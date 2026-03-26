@@ -3,9 +3,6 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 import { notoSans } from "@/styles/font";
 import { cn } from "@/lib/utils";
-import { Geist } from "next/font/google";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: {
@@ -23,7 +20,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", notoSans.className, "font-sans", geist.variable)}
+      className={cn("h-full", "antialiased", notoSans.className, "font-sans")}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
