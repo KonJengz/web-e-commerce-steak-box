@@ -54,11 +54,11 @@ export default async function RegisterPage({
   const resolvedSearchParams = await searchParams;
   const emailParam = resolvedSearchParams.email;
   const prefilledEmail =
-    typeof emailParam === "string" ? emailParam : emailParam?.[0] ?? "";
+    typeof emailParam === "string" ? emailParam : (emailParam?.[0] ?? "");
 
   return (
     <div className="py-6 sm:py-10">
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
+      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-start">
         <section className="relative overflow-hidden rounded-[2.5rem] border border-border/70 bg-[linear-gradient(145deg,#2d1f1f_0%,#1a1617_45%,#0f0d0e_100%)] p-6 text-primary-foreground shadow-[0_40px_140px_rgba(0,0,0,0.6)] sm:p-10 lg:p-14">
           <div className="pointer-events-none absolute inset-0 opacity-40">
             <div className="absolute top-[-10%] right-[-10%] size-[50%] rounded-full bg-primary/20 blur-[120px]" />
@@ -86,9 +86,9 @@ export default async function RegisterPage({
                   </h1>
 
                   <p className="max-w-lg text-lg leading-relaxed text-white/60">
-                    Create your account now, confirm the email code, and we&apos;ll
-                    sign you in automatically so you can continue without an
-                    extra login step.
+                    Create your account now, confirm the email code, and
+                    we&apos;ll sign you in automatically so you can continue
+                    without an extra login step.
                   </p>
                 </div>
               </div>

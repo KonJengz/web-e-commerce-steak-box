@@ -1,34 +1,17 @@
 "use server";
 
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { z } from "zod";
 
-import {
-  verifyEmailSubmissionSchema,
-  type VerifyEmailSubmissionInput,
-} from "@/features/auth/schemas/auth.schema";
 import {
   clearPendingVerificationEmail,
   getPendingVerificationEmail,
-  persistAuthSession,
+  persistPendingVerificationEmail,
 } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
-import type { VerifyEmailActionState } from "@/features/auth/types/auth.type";
+import type { ResendVerificationActionState } from "@/features/auth/types/auth.type";
 import { ApiError } from "@/lib/api/error";
 
-export async function verifyEmailAction(
-  input: VerifyEmailSubmissionInput,
-): Promise<VerifyEmailActionState> {
-  const validatedInput = verifyEmailSubmissionSchema.safeParse(input);
-
-  if (!validatedInput.success) {
-    return {
-      fieldErrors: validatedInput.error.flatten().fieldErrors,
-      message: z.prettifyError(validatedInput.error),
-      success: false,
-    };
-  }
-
+export async function resendVerificationAction(): Promise<ResendVerificationActionState> {
   try {
     const pendingVerificationEmail = await getPendingVerificationEmail();
 
@@ -41,14 +24,12 @@ export async function verifyEmailAction(
       };
     }
 
-    const result = await authService.verifyEmail({
-      code: validatedInput.data.code,
-      email: pendingVerificationEmail,
-    });
-    await persistAuthSession(result);
+    await authService.resendVerification({ email: pendingVerificationEmail });
+    await persistPendingVerificationEmail(pendingVerificationEmail);
 
     return {
-      redirectTo: "/",
+      cooldownSeconds: 60,
+      message: "A new OTP has been sent. Please use the latest code only.",
       success: true,
     };
   } catch (error) {
@@ -82,20 +63,11 @@ export async function verifyEmailAction(
         };
       }
 
-      if (
-        error.status === 400 &&
-        error.message === "Verification code has expired"
-      ) {
+      if (error.status === 429 || error.message.includes("Too many")) {
         return {
-          message: "This OTP has expired. Request a new OTP to continue.",
-          success: false,
-        };
-      }
-
-      if (error.status === 429) {
-        return {
+          cooldownSeconds: 60,
           message:
-            "Too many OTP attempts. Please request a new OTP to continue.",
+            "Too many OTP requests. You can tap Resend OTP again in 1 minute.",
           success: false,
         };
       }
@@ -107,7 +79,7 @@ export async function verifyEmailAction(
     }
 
     return {
-      message: "Verification failed. Please check your code and try again.",
+      message: "Failed to resend verification code. Please try again.",
       success: false,
     };
   }

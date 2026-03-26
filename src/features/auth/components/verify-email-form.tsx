@@ -1,19 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, Loader2, Mail } from "lucide-react";
+import { ArrowRight, Loader2, Mail, RefreshCw } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { resendVerificationAction } from "@/features/auth/actions/resend-verification.action";
 import { verifyEmailAction } from "@/features/auth/actions/verify-email.action";
 import {
-  verifyEmailSchema,
-  type VerifyEmailInput,
+  verifyEmailSubmissionSchema,
+  type VerifyEmailSubmissionInput,
 } from "@/features/auth/schemas/auth.schema";
-import type { VerifyEmailActionState } from "@/features/auth/types/auth.type";
+import type {
+  ResendVerificationActionState,
+  VerifyEmailActionState,
+} from "@/features/auth/types/auth.type";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
@@ -22,50 +26,139 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 
-export function VerifyEmailForm() {
+const OTP_EXPIRY_SECONDS = 15 * 60;
+const REDIRECT_DELAY_MS = 1800;
+const RESEND_NOTICE_DURATION_MS = 3200;
+
+const formatCountdown = (totalSeconds: number): string => {
+  const minutes = Math.floor(totalSeconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+
+  return `${minutes}:${seconds}`;
+};
+
+interface VerifyEmailFormProps {
+  maskedEmail: string | null;
+}
+
+export function VerifyEmailForm({ maskedEmail }: VerifyEmailFormProps) {
+  if (!maskedEmail) {
+    return (
+      <div className="rounded-[2.5rem] border border-destructive/20 bg-destructive/5 p-8 text-center sm:p-12">
+        <h3 className="text-xl font-bold text-destructive">
+          Verification Session Expired
+        </h3>
+        <p className="mt-2 text-muted-foreground">
+          This verification step is no longer available. Start a new signup or
+          sign in again to continue.
+        </p>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
+          <Button asChild variant="outline" className="rounded-full">
+            <Link href="/register">Go to Register</Link>
+          </Button>
+          <Button asChild variant="ghost" className="rounded-full">
+            <Link href="/login">Go to Login</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <VerifyEmailFormContent key={maskedEmail} maskedEmail={maskedEmail} />
+  );
+}
+
+interface VerifyEmailFormContentProps {
+  maskedEmail: string;
+}
+
+function VerifyEmailFormContent({
+  maskedEmail,
+}: VerifyEmailFormContentProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email")?.trim() ?? "";
   const [isPending, startTransition] = useTransition();
+  const [isResending, startResendTransition] = useTransition();
+  const [resendCooldown, setResendCooldown] = useState<number>(0);
+  const [otpCountdown, setOtpCountdown] = useState<number>(OTP_EXPIRY_SECONDS);
+  const [resendState, setResendState] =
+    useState<ResendVerificationActionState | null>(null);
   const [submissionState, setSubmissionState] =
     useState<VerifyEmailActionState | null>(null);
 
-  const { control, clearErrors, handleSubmit, setError, setValue } =
-    useForm<VerifyEmailInput>({
+  const { control, clearErrors, handleSubmit, setError, reset } =
+    useForm<VerifyEmailSubmissionInput>({
       defaultValues: {
         code: "",
-        email,
       },
-      resolver: zodResolver(verifyEmailSchema),
+      resolver: zodResolver(verifyEmailSubmissionSchema),
     });
 
   useEffect(() => {
-    if (!email) {
+    if (otpCountdown <= 0 && resendCooldown <= 0) {
       return;
     }
 
-    setValue("email", email, {
-      shouldDirty: false,
-      shouldValidate: false,
-    });
-  }, [email, setValue]);
+    const timerId = window.setInterval(() => {
+      setOtpCountdown((currentCountdown) =>
+        currentCountdown > 0 ? currentCountdown - 1 : 0,
+      );
+      setResendCooldown((currentCooldown) =>
+        currentCooldown > 0 ? currentCooldown - 1 : 0,
+      );
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, [otpCountdown, resendCooldown]);
+
+  useEffect(() => {
+    if (!resendState?.success) {
+      return;
+    }
+
+    const dismissId = window.setTimeout(() => {
+      setResendState((currentState) =>
+        currentState?.success ? null : currentState,
+      );
+    }, RESEND_NOTICE_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(dismissId);
+    };
+  }, [resendState]);
+
+  useEffect(() => {
+    const redirectTo = submissionState?.redirectTo ?? resendState?.redirectTo;
+
+    if (!redirectTo) {
+      return;
+    }
+
+    const redirectId = window.setTimeout(() => {
+      router.replace(redirectTo);
+    }, REDIRECT_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(redirectId);
+    };
+  }, [resendState?.redirectTo, router, submissionState?.redirectTo]);
 
   const applyServerErrors = (state: VerifyEmailActionState): void => {
-    const emailError = state.fieldErrors?.email?.[0];
     const codeError = state.fieldErrors?.code?.[0];
-
-    if (emailError) {
-      setError("email", { message: emailError, type: "server" });
-    }
 
     if (codeError) {
       setError("code", { message: codeError, type: "server" });
     }
   };
 
-  const handleVerify = (values: VerifyEmailInput): void => {
+  const handleVerify = (values: VerifyEmailSubmissionInput): void => {
     clearErrors();
     setSubmissionState(null);
+    setResendState(null);
 
     startTransition(async () => {
       const result = await verifyEmailAction(values);
@@ -81,19 +174,29 @@ export function VerifyEmailForm() {
     });
   };
 
-  if (!email) {
-    return (
-      <div className="rounded-[2.5rem] border border-destructive/20 bg-destructive/5 p-8 text-center sm:p-12">
-        <h3 className="text-xl font-bold text-destructive">Invalid Request</h3>
-        <p className="mt-2 text-muted-foreground">
-          No email address was provided for verification.
-        </p>
-        <Button asChild variant="link" className="mt-4">
-          <Link href="/register">Go back to registration</Link>
-        </Button>
-      </div>
-    );
-  }
+  const handleResend = (): void => {
+    if (resendCooldown > 0) {
+      return;
+    }
+
+    setResendState(null);
+
+    startResendTransition(async () => {
+      const result = await resendVerificationAction();
+
+      setResendState(result);
+      setResendCooldown(result.cooldownSeconds ?? 0);
+
+      if (!result.success) {
+        return;
+      }
+
+      clearErrors("code");
+      setSubmissionState(null);
+      reset({ code: "" });
+      setOtpCountdown(OTP_EXPIRY_SECONDS);
+    });
+  };
 
   return (
     <div className="relative mx-auto max-w-md overflow-hidden rounded-[2.5rem] border border-border/80 bg-card/95 p-6 shadow-[0_32px_120px_rgba(0,0,0,0.18)] sm:p-10">
@@ -105,14 +208,29 @@ export function VerifyEmailForm() {
             <Mail className="size-8 text-primary" />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h2 className="text-3xl font-bold tracking-tight text-foreground">
               Verify your email
             </h2>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs font-medium text-foreground">
+                {maskedEmail}
+              </span>
+              <span
+                className={
+                  otpCountdown > 0
+                    ? "rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                    : "rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive"
+                }
+              >
+                {otpCountdown > 0
+                  ? `OTP expires in ${formatCountdown(otpCountdown)}`
+                  : "OTP expired. Request a new one."}
+              </span>
+            </div>
             <p className="text-sm leading-6 text-muted-foreground">
-              We&apos;ve already created your account for{" "}
-              <span className="font-semibold text-foreground">{email}</span>.
-              Enter the 6-digit code to activate it and sign in automatically.
+              Enter the 6-digit OTP to activate your account and sign in
+              automatically.
             </p>
           </div>
         </div>
@@ -141,7 +259,11 @@ export function VerifyEmailForm() {
                   maxLength={6}
                   value={field.value}
                   onChange={field.onChange}
-                  disabled={isPending}
+                  disabled={
+                    isPending ||
+                    Boolean(submissionState?.redirectTo) ||
+                    Boolean(resendState?.redirectTo)
+                  }
                   pattern={REGEXP_ONLY_DIGITS}
                   onComplete={() => handleSubmit(handleVerify)()}
                 >
@@ -166,7 +288,11 @@ export function VerifyEmailForm() {
               type="submit"
               size="lg"
               className="group h-13 w-full rounded-full bg-primary text-sm font-bold text-white shadow-xl shadow-primary/25 transition-all hover:bg-primary/90 active:scale-[0.98]"
-              disabled={isPending}
+              disabled={
+                isPending ||
+                Boolean(submissionState?.redirectTo) ||
+                Boolean(resendState?.redirectTo)
+              }
             >
               {isPending ? (
                 <>
@@ -181,18 +307,64 @@ export function VerifyEmailForm() {
               )}
             </Button>
 
-            <div className="rounded-2xl border border-border/60 bg-background/50 px-4 py-3 text-left text-sm leading-6 text-muted-foreground">
-              Need a new code or changed your details? Go back to registration
-              and submit the form again with the same email. We avoid storing
-              your password between steps, so resubmitting the form is the safe
-              path here.
+            <div className="rounded-2xl border border-border/60 bg-background/50 px-4 py-4 text-left text-sm leading-6 text-muted-foreground">
+              <p>
+                If your OTP expires or you need a new one, use the resend
+                button below. After each request, the button unlocks again in 1
+                minute.
+              </p>
+
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-full"
+                  disabled={
+                    isPending ||
+                    isResending ||
+                    resendCooldown > 0 ||
+                    Boolean(resendState?.redirectTo) ||
+                    Boolean(submissionState?.redirectTo)
+                  }
+                  onClick={handleResend}
+                >
+                  {isResending ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="size-4" />
+                      {resendCooldown > 0
+                        ? `Resend OTP in ${formatCountdown(resendCooldown)}`
+                        : "Resend OTP"}
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs leading-5 text-muted-foreground sm:text-right">
+                  The latest OTP stays valid for 15 minutes.
+                </p>
+              </div>
             </div>
+
+            {resendState?.message ? (
+              <div
+                aria-live="polite"
+                className={
+                  resendState.success
+                    ? "rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-sm leading-6 text-emerald-700 dark:text-emerald-400"
+                    : "rounded-2xl border border-destructive/25 bg-destructive/10 px-5 py-4 text-sm leading-6 text-destructive"
+                }
+              >
+                {resendState.message}
+              </div>
+            ) : null}
 
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button asChild variant="outline" className="flex-1 rounded-full">
-                <Link href={`/register?email=${encodeURIComponent(email)}`}>
-                  Back to Register
-                </Link>
+                <Link href="/register">Back to Register</Link>
               </Button>
               <Button asChild variant="ghost" className="flex-1 rounded-full">
                 <Link href="/login">Go to Login</Link>

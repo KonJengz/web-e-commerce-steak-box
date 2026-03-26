@@ -4,6 +4,7 @@ import { envServer } from "@/config/env.server";
 import type {
   LoginInput,
   RegisterInput,
+  ResendVerificationInput,
   VerifyEmailInput,
 } from "@/features/auth/schemas/auth.schema";
 import type {
@@ -81,10 +82,17 @@ const verifyEmail = async (
   return mapAuthResponse(result);
 };
 
+const resendVerification = async (
+  data: ResendVerificationInput,
+): Promise<ApiResult<{ message: string }>> => {
+  return api.post<{ message: string }>("/api/auth/resend-verification", data);
+};
+
 export const authService = {
   login,
   logout,
   refresh,
   register,
+  resendVerification,
   verifyEmail,
 };

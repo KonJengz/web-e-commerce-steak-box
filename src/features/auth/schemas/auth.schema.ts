@@ -21,6 +21,12 @@ const registerPasswordSchema = z
   .min(8, "Password must be at least 8 characters.")
   .max(128, "Password must be at most 128 characters.");
 
+const verificationCodeSchema = z
+  .string()
+  .trim()
+  .length(6, "Verification code must be exactly 6 digits.")
+  .regex(/^\d+$/, "Verification code must contain only numbers.");
+
 export const loginSchema = z.object({
   email: emailSchema,
   password: loginPasswordSchema,
@@ -53,11 +59,21 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const verifyEmailSchema = z.object({
   email: emailSchema,
-  code: z
-    .string()
-    .trim()
-    .length(6, "Verification code must be exactly 6 digits.")
-    .regex(/^\d+$/, "Verification code must contain only numbers."),
+  code: verificationCodeSchema,
 });
 
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+
+export const verifyEmailSubmissionSchema = z.object({
+  code: verificationCodeSchema,
+});
+
+export type VerifyEmailSubmissionInput = z.infer<
+  typeof verifyEmailSubmissionSchema
+>;
+
+export const resendVerificationSchema = z.object({
+  email: emailSchema,
+});
+
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;

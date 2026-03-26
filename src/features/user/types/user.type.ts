@@ -7,3 +7,9 @@ export interface User {
   name: string;
   role: UserRole;
 }
+
+export interface UserProfile extends User {
+  createdAt: string;
+  isActive: boolean;
+  isVerified: boolean;
+}

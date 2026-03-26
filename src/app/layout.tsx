@@ -4,6 +4,8 @@ import "@/styles/globals.css";
 import { notoSans } from "@/styles/font";
 import { cn } from "@/lib/utils";
 
+import { ThemeProvider } from "@/components/providers/theme-provider";
+
 export const metadata: Metadata = {
   title: {
     default: "Steak Box",
@@ -11,8 +13,6 @@ export const metadata: Metadata = {
   },
   description: "Steak Box",
 };
-
-import { ThemeProvider } from "@/components/providers/theme-provider";
 
 export default function RootLayout({
   children,

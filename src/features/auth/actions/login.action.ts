@@ -7,7 +7,11 @@ import {
   loginSchema,
   type LoginInput,
 } from "@/features/auth/schemas/auth.schema";
-import { persistAuthSession } from "@/features/auth/services/auth-session.service";
+import {
+  clearPendingVerificationEmail,
+  persistAuthSession,
+  persistPendingVerificationEmail,
+} from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
 import type { LoginActionState } from "@/features/auth/types/auth.type";
 import { ApiError } from "@/lib/api/error";
@@ -40,12 +44,17 @@ export async function loginAction(
 
     if (error instanceof ApiError) {
       if (error.status === 403 && error.message === "Email not verified") {
+        await persistPendingVerificationEmail(validatedInput.data.email);
+
         return {
-          message: "Email not verified. Enter the code we sent to finish signing in.",
-          pendingVerificationEmail: validatedInput.data.email,
+          message:
+            "Email and password are correct, but this account is not verified yet. Enter the OTP we sent to finish signing in.",
+          requiresEmailVerification: true,
           success: false,
         };
       }
+
+      await clearPendingVerificationEmail();
 
       return {
         message: error.message,

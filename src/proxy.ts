@@ -17,6 +17,7 @@ const protectedRoutes = [
   "/profile",
   "/addresses",
   "/orders",
+  "/cart",
   "/checkout",
   "/admin",
 ] as const;

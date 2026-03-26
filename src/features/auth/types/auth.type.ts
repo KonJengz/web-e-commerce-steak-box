@@ -1,7 +1,7 @@
 import type {
   LoginInput,
   RegisterInput,
-  VerifyEmailInput,
+  VerifyEmailSubmissionInput,
 } from "@/features/auth/schemas/auth.schema";
 import type { User } from "@/features/user/types/user.type";
 
@@ -20,7 +20,7 @@ export type LoginFieldErrors = Partial<Record<keyof LoginInput, string[]>>;
 export interface LoginActionState {
   fieldErrors?: LoginFieldErrors;
   message?: string;
-  pendingVerificationEmail?: string;
+  requiresEmailVerification?: boolean;
   redirectTo?: string;
   success: boolean;
 }
@@ -35,11 +35,18 @@ export interface RegisterActionState {
 }
 
 export type VerifyEmailFieldErrors = Partial<
-  Record<keyof VerifyEmailInput, string[]>
+  Record<keyof VerifyEmailSubmissionInput, string[]>
 >;
 
 export interface VerifyEmailActionState {
   fieldErrors?: VerifyEmailFieldErrors;
+  message?: string;
+  redirectTo?: string;
+  success: boolean;
+}
+
+export interface ResendVerificationActionState {
+  cooldownSeconds?: number;
   message?: string;
   redirectTo?: string;
   success: boolean;

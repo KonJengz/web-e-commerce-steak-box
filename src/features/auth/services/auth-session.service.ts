@@ -8,6 +8,8 @@ import { getCookieValueFromSetCookieHeaders } from "@/lib/auth-helpers";
 import type { ApiResult } from "@/types";
 
 const isProduction = process.env.NODE_ENV === "production";
+const PENDING_VERIFICATION_COOKIE_NAME = "pending_verification_email";
+const PENDING_VERIFICATION_MAX_AGE = 15 * 60;
 
 export const persistAuthSession = async (
   result: ApiResult<AuthResponse>,
@@ -28,6 +30,16 @@ export const persistAuthSession = async (
     result.headers,
     envServer.REFRESH_TOKEN_COOKIE_NAME,
   );
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
+    name: PENDING_VERIFICATION_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: "",
+  });
 
   if (!refreshTokenValue) {
     return;
@@ -66,4 +78,73 @@ export const clearAuthSession = async (): Promise<void> => {
     secure: isProduction,
     value: "",
   });
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
+    name: PENDING_VERIFICATION_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: "",
+  });
+};
+
+export const persistPendingVerificationEmail = async (
+  email: string,
+): Promise<void> => {
+  const cookieStore = await cookies();
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: PENDING_VERIFICATION_MAX_AGE,
+    name: PENDING_VERIFICATION_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: email,
+  });
+};
+
+export const getPendingVerificationEmail = async (): Promise<string | null> => {
+  const cookieStore = await cookies();
+  const email = cookieStore.get(PENDING_VERIFICATION_COOKIE_NAME)?.value?.trim();
+
+  return email ? email : null;
+};
+
+export const clearPendingVerificationEmail = async (): Promise<void> => {
+  const cookieStore = await cookies();
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
+    name: PENDING_VERIFICATION_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: "",
+  });
+};
+
+export const maskEmailAddress = (email: string): string => {
+  const [localPart = "", domainPart = ""] = email.split("@");
+  const visibleLocalPart = localPart.slice(0, Math.min(2, localPart.length));
+  const maskedLocalPart = `${visibleLocalPart}${"*".repeat(
+    Math.max(localPart.length - visibleLocalPart.length, 2),
+  )}`;
+
+  if (!domainPart) {
+    return maskedLocalPart;
+  }
+
+  const [domainName = "", domainSuffix = ""] = domainPart.split(".");
+  const visibleDomainName = domainName.slice(0, 1);
+  const maskedDomainName = `${visibleDomainName}${"*".repeat(
+    Math.max(domainName.length - visibleDomainName.length, 2),
+  )}`;
+
+  return domainSuffix
+    ? `${maskedLocalPart}@${maskedDomainName}.${domainSuffix}`
+    : `${maskedLocalPart}@${maskedDomainName}`;
 };

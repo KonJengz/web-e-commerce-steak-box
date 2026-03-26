@@ -7,6 +7,10 @@ import {
   registerSchema,
   type RegisterInput,
 } from "@/features/auth/schemas/auth.schema";
+import {
+  clearPendingVerificationEmail,
+  persistPendingVerificationEmail,
+} from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
 import type { RegisterActionState } from "@/features/auth/types/auth.type";
 import { ApiError } from "@/lib/api/error";
@@ -27,9 +31,10 @@ export async function registerAction(
   try {
     const { email, name, password } = validatedInput.data;
     await authService.register({ email, name, password });
+    await persistPendingVerificationEmail(email);
 
     return {
-      redirectTo: `/verify-email?email=${encodeURIComponent(email)}`,
+      redirectTo: "/verify-email",
       success: true,
     };
   } catch (error) {
@@ -38,6 +43,16 @@ export async function registerAction(
     }
 
     if (error instanceof ApiError) {
+      if (error.status === 409 && error.message === "Email already registered") {
+        await clearPendingVerificationEmail();
+
+        return {
+          message:
+            "This signup could not be completed. If you already have an account, sign in instead.",
+          success: false,
+        };
+      }
+
       return {
         message: error.message,
         success: false,

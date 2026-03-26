@@ -104,15 +104,9 @@ export function LoginForm() {
           </div>
         ) : null}
 
-        {submissionState?.pendingVerificationEmail ? (
+        {submissionState?.requiresEmailVerification ? (
           <Button asChild variant="outline" className="w-full rounded-full">
-            <Link
-              href={`/verify-email?email=${encodeURIComponent(
-                submissionState.pendingVerificationEmail,
-              )}`}
-            >
-              Verify Email
-            </Link>
+            <Link href="/verify-email">Enter OTP</Link>
           </Button>
         ) : null}
 
