@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
 import { AccountSidebarNav } from "@/components/account/account-sidebar-nav";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getCurrentUser } from "@/features/auth/services/current-user.service";
 import { resolveUserAvatar } from "@/features/user/utils/avatar";
@@ -45,13 +44,6 @@ export async function AccountShell({ children }: AccountShellProps) {
                 <p className="text-sm text-muted-foreground">
                   {currentUser.email}
                 </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="rounded-full px-2.5 py-1">
-                  {currentUser.role}
-                </Badge>
-                <Badge className="rounded-full px-2.5 py-1">Signed In</Badge>
               </div>
             </div>
           </div>

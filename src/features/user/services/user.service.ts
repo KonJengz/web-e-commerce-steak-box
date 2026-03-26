@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { UpdateProfileInput } from "@/features/user/schemas/profile.schema";
 import type { User, UserProfile } from "@/features/user/types/user.type";
 import { api } from "@/lib/api/client";
 import type { ApiResult } from "@/types";
@@ -15,6 +16,19 @@ interface MeApiResponse {
   role: User["role"];
 }
 
+const mapUserProfile = (data: MeApiResponse): UserProfile => {
+  return {
+    createdAt: data.created_at,
+    email: data.email,
+    id: data.id,
+    image: data.image,
+    isActive: data.is_active,
+    isVerified: data.is_verified,
+    name: data.name,
+    role: data.role,
+  };
+};
+
 const getMe = async (accessToken: string): Promise<ApiResult<UserProfile>> => {
   const result = await api.get<MeApiResponse>("/api/users/me", {
     headers: {
@@ -24,19 +38,39 @@ const getMe = async (accessToken: string): Promise<ApiResult<UserProfile>> => {
 
   return {
     ...result,
-    data: {
-      createdAt: result.data.created_at,
-      email: result.data.email,
-      id: result.data.id,
-      image: result.data.image,
-      isActive: result.data.is_active,
-      isVerified: result.data.is_verified,
-      name: result.data.name,
-      role: result.data.role,
+    data: mapUserProfile(result.data),
+  };
+};
+
+const updateProfile = async (
+  accessToken: string,
+  input: UpdateProfileInput,
+): Promise<ApiResult<UserProfile>> => {
+  const formData = new FormData();
+
+  formData.set("name", input.name.trim());
+
+  if (input.image) {
+    formData.set("image", input.image);
+  }
+
+  if (input.removeImage) {
+    formData.set("remove_image", "true");
+  }
+
+  const result = await api.put<MeApiResponse>("/api/users/me/profile", formData, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
     },
+  });
+
+  return {
+    ...result,
+    data: mapUserProfile(result.data),
   };
 };
 
 export const userService = {
   getMe,
+  updateProfile,
 };
