@@ -4,18 +4,18 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
 import {
-  loginSchema,
-  type LoginInput,
+  verifyEmailSchema,
+  type VerifyEmailInput,
 } from "@/features/auth/schemas/auth.schema";
 import { persistAuthSession } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
-import type { LoginActionState } from "@/features/auth/types/auth.type";
+import type { VerifyEmailActionState } from "@/features/auth/types/auth.type";
 import { ApiError } from "@/lib/api/error";
 
-export async function loginAction(
-  input: LoginInput,
-): Promise<LoginActionState> {
-  const validatedInput = loginSchema.safeParse(input);
+export async function verifyEmailAction(
+  input: VerifyEmailInput,
+): Promise<VerifyEmailActionState> {
+  const validatedInput = verifyEmailSchema.safeParse(input);
 
   if (!validatedInput.success) {
     return {
@@ -26,7 +26,7 @@ export async function loginAction(
   }
 
   try {
-    const result = await authService.login(validatedInput.data);
+    const result = await authService.verifyEmail(validatedInput.data);
     await persistAuthSession(result);
 
     return {
@@ -39,14 +39,6 @@ export async function loginAction(
     }
 
     if (error instanceof ApiError) {
-      if (error.status === 403 && error.message === "Email not verified") {
-        return {
-          message: "Email not verified. Enter the code we sent to finish signing in.",
-          pendingVerificationEmail: validatedInput.data.email,
-          success: false,
-        };
-      }
-
       return {
         message: error.message,
         success: false,
@@ -54,7 +46,7 @@ export async function loginAction(
     }
 
     return {
-      message: "Unable to sign in right now. Please try again.",
+      message: "Verification failed. Please check your code and try again.",
       success: false,
     };
   }

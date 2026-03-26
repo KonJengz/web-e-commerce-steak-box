@@ -7,21 +7,13 @@ import MainContainer from "./main-container";
 import { getCurrentUser } from "@/features/auth/services/current-user.service";
 import type { User } from "@/features/user/types/user.type";
 
-const createDisplayName = (email: string): string => {
-  const localPart = email.split("@")[0] ?? "user";
-
-  return localPart
-    .split(/[._-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-};
-
 const toHeaderUser = (user: User): HeaderUser => {
   return {
-    avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.email)}`,
+    avatar:
+      user.image ??
+      `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.email)}`,
     email: user.email,
-    name: createDisplayName(user.email),
+    name: user.name,
   };
 };
 

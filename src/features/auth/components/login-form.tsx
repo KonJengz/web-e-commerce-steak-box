@@ -104,6 +104,18 @@ export function LoginForm() {
           </div>
         ) : null}
 
+        {submissionState?.pendingVerificationEmail ? (
+          <Button asChild variant="outline" className="w-full rounded-full">
+            <Link
+              href={`/verify-email?email=${encodeURIComponent(
+                submissionState.pendingVerificationEmail,
+              )}`}
+            >
+              Verify Email
+            </Link>
+          </Button>
+        ) : null}
+
         <form
           className="space-y-5"
           noValidate

@@ -21,7 +21,7 @@ const protectedRoutes = [
   "/admin",
 ] as const;
 
-const authRoutes = ["/login", "/register"] as const;
+const authRoutes = ["/login", "/register", "/verify-email"] as const;
 
 const isProduction = process.env.NODE_ENV === "production";
 

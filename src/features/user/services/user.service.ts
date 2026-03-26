@@ -8,8 +8,10 @@ interface MeApiResponse {
   created_at: string;
   email: string;
   id: string;
+  image: string | null;
   is_active: boolean;
   is_verified: boolean;
+  name: string;
   role: User["role"];
 }
 
@@ -25,6 +27,8 @@ const getMe = async (accessToken: string): Promise<ApiResult<User>> => {
     data: {
       email: result.data.email,
       id: result.data.id,
+      image: result.data.image,
+      name: result.data.name,
       role: result.data.role,
     },
   };
