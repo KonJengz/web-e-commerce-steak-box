@@ -29,165 +29,100 @@ export default function Error({ error, unstable_retry }: ErrorPageProps) {
         >
           <style>
             {`
-              @keyframes alarm-pulse {
-                0%, 100% { transform: scale(1); opacity: 0.2; }
-                50% { transform: scale(1.08); opacity: 0.45; }
+              @keyframes ring-pulse {
+                0%, 100% { transform: scale(0.92); opacity: 0.18; }
+                50% { transform: scale(1.06); opacity: 0.38; }
               }
 
-              @keyframes dome-shake {
-                0%, 100% { transform: rotate(0deg) translateY(0); }
-                12% { transform: rotate(-2.5deg) translateY(-2px); }
-                24% { transform: rotate(2deg) translateY(0); }
-                36% { transform: rotate(-1.5deg) translateY(-1px); }
-                48% { transform: rotate(1deg) translateY(0); }
-                60% { transform: rotate(0deg) translateY(0); }
+              @keyframes triangle-float {
+                0%, 100% { transform: translateY(0) scale(1); }
+                50% { transform: translateY(-8px) scale(1.02); }
               }
 
-              @keyframes warning-flash {
-                0%, 100% { opacity: 0.3; transform: scale(0.92); }
-                45%, 55% { opacity: 1; transform: scale(1); }
+              @keyframes triangle-glow {
+                0%, 100% { filter: drop-shadow(0 0 0 rgba(178, 57, 40, 0)); }
+                50% { filter: drop-shadow(0 0 18px rgba(178, 57, 40, 0.28)); }
               }
 
-              @keyframes spark-rise {
-                0% { opacity: 0; transform: translateY(10px) scale(0.7); }
-                20% { opacity: 0.95; }
-                100% { opacity: 0; transform: translateY(-28px) scale(1.15); }
+              @keyframes mark-alert {
+                0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+                20% { transform: translateY(-4px) scale(1.04); }
+                32% { transform: translateY(0) scale(0.98); }
+                44% { transform: translateY(-2px) scale(1.02); }
               }
 
-              @keyframes tray-glow {
-                0%, 100% { opacity: 0.2; transform: scaleX(0.9); }
-                50% { opacity: 0.45; transform: scaleX(1); }
+              @keyframes dot-blink {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.55; transform: scale(0.86); }
               }
 
-              .alarm-ring {
-                animation: alarm-pulse 3.4s ease-in-out infinite;
+              .warning-ring {
+                animation: ring-pulse 3.2s ease-in-out infinite;
                 transform-origin: 120px 120px;
               }
 
-              .service-dome {
-                animation: dome-shake 4.2s cubic-bezier(0.45, 0, 0.2, 1) infinite;
-                transform-origin: 120px 146px;
+              .warning-shape {
+                animation:
+                  triangle-float 3.2s ease-in-out infinite,
+                  triangle-glow 3.2s ease-in-out infinite;
+                transform-origin: 120px 124px;
               }
 
-              .warning-mark {
-                animation: warning-flash 4.2s ease-in-out infinite;
+              .warning-bar {
+                animation: mark-alert 3.2s cubic-bezier(0.45, 0, 0.2, 1) infinite;
                 transform-origin: 120px 126px;
               }
 
-              .spark-1 { animation: spark-rise 2.8s ease-out infinite 0.1s; }
-              .spark-2 { animation: spark-rise 2.8s ease-out infinite 0.9s; }
-              .spark-3 { animation: spark-rise 2.8s ease-out infinite 1.6s; }
-
-              .tray-aura {
-                animation: tray-glow 3.2s ease-in-out infinite;
-                transform-origin: 120px 178px;
+              .warning-dot {
+                animation: dot-blink 3.2s ease-in-out infinite;
+                transform-origin: 120px 157px;
               }
             `}
           </style>
 
-          <ellipse
-            cx="120"
-            cy="178"
-            rx="84"
-            ry="18"
-            className="tray-aura fill-primary/10"
-          />
-
           <circle
             cx="120"
             cy="120"
-            r="88"
+            r="84"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.5"
-            strokeDasharray="8 10"
-            className="alarm-ring opacity-30"
+            strokeWidth="2"
+            strokeDasharray="10 12"
+            className="warning-ring opacity-25"
           />
 
-          <path
-            d="M 86 156 C 86 132, 154 132, 154 156"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="4"
-            strokeLinecap="round"
-            className="opacity-25"
-          />
-
-          <path
-            d="M 101 78 L 108 66 L 114 79 L 120 60 L 127 82 L 133 72 L 139 86"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="spark-1"
-          />
-          <path
-            d="M 92 106 L 98 96 L 103 108 L 110 91"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="spark-2"
-          />
-          <path
-            d="M 136 104 L 142 92 L 148 106 L 154 96"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="spark-3"
-          />
-
-          <g className="service-dome">
-            <circle cx="120" cy="74" r="10" fill="currentColor" />
+          <g className="warning-shape">
             <path
-              d="M 48 156 C 52 96, 88 62, 120 62 C 152 62, 188 96, 192 156 Z"
-              fill="currentColor"
-            />
-            <path
-              d="M 58 152 C 62 103, 92 75, 120 75 C 148 75, 178 103, 182 152 Z"
-              className="fill-background opacity-18"
-            />
-            <path
-              d="M 72 146 C 78 112, 100 92, 120 92 C 140 92, 162 112, 168 146 Z"
-              className="fill-background opacity-28"
-            />
-          </g>
-
-          <g className="warning-mark">
-            <polygon
-              points="120,98 149,148 91,148"
+              d="M 108 72
+                 Q 120 50 132 72
+                 L 183 160
+                 Q 194 182 168 182
+                 L 72 182
+                 Q 46 182 57 160
+                 Z"
               className="fill-primary drop-shadow-lg"
             />
-            <rect
-              x="116"
-              y="113"
-              width="8"
-              height="20"
-              rx="4"
-              className="fill-primary-foreground"
-            />
-            <circle
-              cx="120"
-              cy="140"
-              r="4.5"
-              className="fill-primary-foreground"
+            <path
+              d="M 110 82
+                 Q 120 64 130 82
+                 L 171 153
+                 Q 180 169 161 169
+                 L 79 169
+                 Q 60 169 69 153
+                 Z"
+              className="fill-background/15"
             />
           </g>
 
-          <ellipse
-            cx="120"
-            cy="178"
-            rx="92"
-            ry="16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="6"
-            className="opacity-90"
+          <rect
+            x="113"
+            y="90"
+            width="14"
+            height="50"
+            rx="7"
+            className="warning-bar fill-primary-foreground"
           />
+          <circle cx="120" cy="157" r="8" className="warning-dot fill-primary-foreground" />
         </svg>
       </div>
 

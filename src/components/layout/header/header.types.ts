@@ -11,3 +11,9 @@ export interface HeaderNavItem {
   label: string;
   icon: LucideIcon;
 }
+
+export interface HeaderUserMenuItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+}

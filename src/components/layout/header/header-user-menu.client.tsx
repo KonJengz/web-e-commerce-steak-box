@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, MapPin, Package, User, type LucideIcon } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,35 +15,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import type { HeaderUser } from "./header.types";
-
-interface HeaderUserMenuItem {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-}
+import { headerUserMenuItems } from "./header.constants";
+import type { HeaderUser, HeaderUserMenuItem } from "./header.types";
 
 interface HeaderUserMenuProps {
   user: HeaderUser;
 }
-
-const menuItems: readonly HeaderUserMenuItem[] = [
-  {
-    href: "/app/account/profile",
-    label: "Profile",
-    icon: User,
-  },
-  {
-    href: "/app/account/orders",
-    label: "My Orders",
-    icon: Package,
-  },
-  {
-    href: "/app/account/addresses",
-    label: "Addresses",
-    icon: MapPin,
-  },
-];
 
 export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
   return (
@@ -51,9 +28,9 @@ export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="group relative h-10 w-10 rounded-full duration-300 hover:scale-105"
+          className="group relative rounded-full duration-300 h-10 w-10"
         >
-          <Avatar className="h-10 w-10 border-2 border-border shadow-sm transition-colors group-hover:border-primary">
+          <Avatar className="h-9 w-9 border-border shadow-sm transition-colors sm:h-10 sm:w-10">
             <AvatarImage src={user.avatar} alt={user.name} />
             <AvatarFallback className="bg-primary/10 font-bold text-primary">
               {user.name.charAt(0)}
@@ -76,7 +53,7 @@ export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border/50" />
         <DropdownMenuGroup className="p-1">
-          {menuItems.map((item: HeaderUserMenuItem) => {
+          {headerUserMenuItems.map((item: HeaderUserMenuItem) => {
             const Icon = item.icon;
 
             return (

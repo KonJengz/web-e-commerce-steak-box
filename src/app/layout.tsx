@@ -13,7 +13,6 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { Header } from "@/components/layout/header";
 
 export default function RootLayout({
   children,
@@ -32,7 +31,6 @@ export default function RootLayout({
           defaultTheme="dark"
           enableSystem={false}
         >
-          <Header />
           <main className="flex-1">{children}</main>
         </ThemeProvider>
       </body>

@@ -25,10 +25,10 @@ export function ThemeToggle() {
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className={cn(
-        "relative flex h-8 w-[68px] shrink-0 cursor-pointer items-center justify-center rounded-full border-2 transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        "relative flex h-8 w-[68px] shrink-0 cursor-pointer items-center justify-center rounded-full border-1 transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         isDark
           ? "border-primary/20 bg-primary/10 shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] hover:bg-primary/20 hover:border-primary/30"
-          : "border-border/50 bg-secondary/80 shadow-[inset_0_2px_8px_rgba(0,0,0,0.05)] hover:bg-secondary hover:border-border",
+          : "border-border bg-secondary/80 shadow-[inset_0_2px_8px_rgba(0,0,0,0.05)] hover:bg-secondary hover:border-border",
       )}
       aria-label="Toggle theme"
     >
@@ -38,7 +38,7 @@ export function ThemeToggle() {
           className={cn(
             "h-5 w-5 transition-all duration-300",
             isDark
-              ? "text-muted-foreground/30 scale-75 -rotate-90"
+              ? "text-muted-foreground scale-75 -rotate-90"
               : "text-amber-500 scale-100 rotate-0 drop-shadow-sm",
           )}
         />
