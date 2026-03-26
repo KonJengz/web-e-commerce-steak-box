@@ -17,7 +17,6 @@ const protectedRoutes = [
   "/profile",
   "/addresses",
   "/orders",
-  "/cart",
   "/checkout",
   "/admin",
 ] as const;
@@ -114,6 +113,17 @@ const redirectTo = (request: NextRequest, pathname: string): NextResponse => {
   );
 };
 
+const redirectToLogin = (request: NextRequest): NextResponse => {
+  const loginUrl = new URL("/login", request.url);
+  const redirectTarget = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+
+  if (redirectTarget && redirectTarget !== "/login") {
+    loginUrl.searchParams.set("redirectTo", redirectTarget);
+  }
+
+  return applySecurityHeaders(NextResponse.redirect(loginUrl));
+};
+
 const tryRefreshSession = async (
   request: NextRequest,
   response: NextResponse,
@@ -165,12 +175,12 @@ export async function proxy(request: NextRequest) {
           return refreshedResponse;
         }
       } catch {
-        const response = redirectTo(request, "/login");
+        const response = redirectToLogin(request);
         return clearAuthCookies(response);
       }
     }
 
-    const response = redirectTo(request, "/login");
+    const response = redirectToLogin(request);
     return clearAuthCookies(response);
   }
 

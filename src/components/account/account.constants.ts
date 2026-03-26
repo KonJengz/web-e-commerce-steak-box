@@ -1,7 +1,6 @@
 import {
   MapPin,
   Package,
-  ShoppingCart,
   User,
   type LucideIcon,
 } from "lucide-react";
@@ -27,10 +26,5 @@ export const accountNavItems: readonly AccountNavItem[] = [
     href: "/addresses",
     icon: MapPin,
     label: "Addresses",
-  },
-  {
-    href: "/cart",
-    icon: ShoppingCart,
-    label: "Cart",
   },
 ];

@@ -8,7 +8,9 @@ import {
   type VerifyEmailSubmissionInput,
 } from "@/features/auth/schemas/auth.schema";
 import {
+  clearPendingPostAuthRedirect,
   clearPendingVerificationEmail,
+  getPendingPostAuthRedirect,
   getPendingVerificationEmail,
   persistAuthSession,
 } from "@/features/auth/services/auth-session.service";
@@ -31,8 +33,11 @@ export async function verifyEmailAction(
 
   try {
     const pendingVerificationEmail = await getPendingVerificationEmail();
+    const pendingRedirectTo = await getPendingPostAuthRedirect();
 
     if (!pendingVerificationEmail) {
+      await clearPendingPostAuthRedirect();
+
       return {
         message:
           "Your verification session is no longer available. Please start again.",
@@ -48,7 +53,7 @@ export async function verifyEmailAction(
     await persistAuthSession(result);
 
     return {
-      redirectTo: "/",
+      redirectTo: pendingRedirectTo ?? "/",
       success: true,
     };
   } catch (error) {
@@ -61,6 +66,7 @@ export async function verifyEmailAction(
         error.status === 400 &&
         error.message === "No pending verification found for this email"
       ) {
+        await clearPendingPostAuthRedirect();
         await clearPendingVerificationEmail();
 
         return {
@@ -72,6 +78,7 @@ export async function verifyEmailAction(
       }
 
       if (error.status === 400 && error.message === "Email already verified") {
+        await clearPendingPostAuthRedirect();
         await clearPendingVerificationEmail();
 
         return {

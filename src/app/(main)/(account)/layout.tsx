@@ -6,8 +6,6 @@ interface AccountLayoutProps {
   children: ReactNode;
 }
 
-export default async function AccountLayout({
-  children,
-}: AccountLayoutProps) {
+export default async function AccountLayout({ children }: AccountLayoutProps) {
   return <AccountShell>{children}</AccountShell>;
 }

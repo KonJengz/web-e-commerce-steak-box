@@ -8,8 +8,11 @@ import {
   type LoginInput,
 } from "@/features/auth/schemas/auth.schema";
 import {
+  clearPendingPostAuthRedirect,
   clearPendingVerificationEmail,
+  normalizePostAuthRedirect,
   persistAuthSession,
+  persistPendingPostAuthRedirect,
   persistPendingVerificationEmail,
 } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
@@ -18,8 +21,10 @@ import { ApiError } from "@/lib/api/error";
 
 export async function loginAction(
   input: LoginInput,
+  redirectTo?: string | null,
 ): Promise<LoginActionState> {
   const validatedInput = loginSchema.safeParse(input);
+  const normalizedRedirectTo = normalizePostAuthRedirect(redirectTo);
 
   if (!validatedInput.success) {
     return {
@@ -34,7 +39,7 @@ export async function loginAction(
     await persistAuthSession(result);
 
     return {
-      redirectTo: "/",
+      redirectTo: normalizedRedirectTo ?? "/",
       success: true,
     };
   } catch (error) {
@@ -46,6 +51,12 @@ export async function loginAction(
       if (error.status === 403 && error.message === "Email not verified") {
         await persistPendingVerificationEmail(validatedInput.data.email);
 
+        if (normalizedRedirectTo) {
+          await persistPendingPostAuthRedirect(normalizedRedirectTo);
+        } else {
+          await clearPendingPostAuthRedirect();
+        }
+
         return {
           message:
             "Email and password are correct, but this account is not verified yet. Enter the OTP we sent to finish signing in.",
@@ -54,6 +65,7 @@ export async function loginAction(
         };
       }
 
+      await clearPendingPostAuthRedirect();
       await clearPendingVerificationEmail();
 
       return {

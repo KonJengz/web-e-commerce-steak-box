@@ -6,7 +6,6 @@ import {
   ShoppingCart,
   Sparkles,
 } from "lucide-react";
-import { redirect } from "next/navigation";
 
 import { AccountPageHero } from "@/components/account/account-page-hero";
 import {
@@ -31,13 +30,9 @@ const getLineTotal = (currentPrice: string, quantity: number): number => {
 
 export default async function CartPage() {
   const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    redirect("/login");
-  }
-
-  const cart = (await cartService.getCurrent(accessToken)).data;
-  const totalUnits = cart.items.reduce((total, item) => total + item.quantity, 0);
+  const cart = accessToken ? (await cartService.getCurrent(accessToken)).data : null;
+  const totalUnits =
+    cart?.items.reduce((total, item) => total + item.quantity, 0) ?? 0;
 
   return (
     <div className="space-y-6">
@@ -47,18 +42,88 @@ export default async function CartPage() {
         description="Review the products waiting in your cart, watch stock and activity status, and keep the order total in view before you move forward."
         variant="cart"
       >
-        <Badge className="rounded-full px-3 py-1">
-          {totalUnits} item{totalUnits === 1 ? "" : "s"}
-        </Badge>
-        <Badge
-          variant="outline"
-          className="rounded-full border-white/20 px-3 py-1 text-white/80"
-        >
-          Total {formatCurrency(cart.totalAmount)}
-        </Badge>
+        {cart ? (
+          <>
+            <Badge className="rounded-full px-3 py-1">
+              {totalUnits} item{totalUnits === 1 ? "" : "s"}
+            </Badge>
+            <Badge
+              variant="outline"
+              className="rounded-full border-white/20 px-3 py-1 text-white/80"
+            >
+              Total {formatCurrency(cart?.totalAmount ?? 0)}
+            </Badge>
+          </>
+        ) : (
+          <>
+            <Badge className="rounded-full px-3 py-1">Guest Cart</Badge>
+            <Badge
+              variant="outline"
+              className="rounded-full border-white/20 px-3 py-1 text-white/80"
+            >
+              Login required for checkout
+            </Badge>
+          </>
+        )}
       </AccountPageHero>
 
-      {cart.items.length === 0 ? (
+      {!cart ? (
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <section className="rounded-[2rem] border border-dashed border-border/70 bg-card/80 p-8 text-center shadow-[0_22px_70px_rgba(0,0,0,0.05)]">
+            <div className="mx-auto inline-flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <ShoppingCart className="size-6" />
+            </div>
+            <h1 className="mt-5 text-2xl font-semibold tracking-tight text-foreground">
+              Sign in when you&apos;re ready to checkout
+            </h1>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
+              Cart belongs to the shopping flow, so guests can still open this
+              page. Checkout, addresses, and order creation stay protected
+              behind your account session.
+            </p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button asChild className="rounded-full">
+                <Link href="/login?redirectTo=%2Fcheckout">
+                  Login to Checkout
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-full">
+                <Link href="/">Continue Shopping</Link>
+              </Button>
+            </div>
+          </section>
+
+          <aside className="space-y-4 xl:sticky xl:top-24">
+            <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+              <div className="mb-5 flex items-center gap-3">
+                <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary/12 text-primary">
+                  <Boxes className="size-4" />
+                </span>
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Checkout Policy
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Guest browsing is open, checkout requires sign-in.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="rounded-[1.25rem] border border-border/60 bg-background/55 px-4 py-3 text-sm leading-6 text-muted-foreground">
+                  Sign in is required before we unlock delivery addresses,
+                  payment flow, and order creation.
+                </div>
+                <div className="rounded-[1.25rem] border border-border/60 bg-background/55 px-4 py-3 text-sm leading-6 text-muted-foreground">
+                  After login, the app will send you straight to
+                  <span className="font-medium text-foreground"> checkout</span>.
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      ) : cart.items.length === 0 ? (
         <section className="rounded-[2rem] border border-dashed border-border/70 bg-card/80 p-8 text-center shadow-[0_22px_70px_rgba(0,0,0,0.05)]">
           <div className="mx-auto inline-flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <ShoppingCart className="size-6" />
@@ -233,13 +298,13 @@ export default async function CartPage() {
 
               <div className="flex flex-col gap-3">
                 <Button asChild className="rounded-full">
-                  <Link href="/">
-                    Continue Shopping
+                  <Link href="/checkout">
+                    Proceed to Checkout
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="rounded-full">
-                  <Link href="/addresses">Review Addresses</Link>
+                  <Link href="/">Continue Shopping</Link>
                 </Button>
               </div>
             </section>

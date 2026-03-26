@@ -10,6 +10,8 @@ import type { ApiResult } from "@/types";
 const isProduction = process.env.NODE_ENV === "production";
 const PENDING_VERIFICATION_COOKIE_NAME = "pending_verification_email";
 const PENDING_VERIFICATION_MAX_AGE = 15 * 60;
+const PENDING_POST_AUTH_REDIRECT_COOKIE_NAME = "pending_post_auth_redirect";
+const PENDING_POST_AUTH_REDIRECT_MAX_AGE = 15 * 60;
 
 export const persistAuthSession = async (
   result: ApiResult<AuthResponse>,
@@ -35,6 +37,16 @@ export const persistAuthSession = async (
     httpOnly: true,
     maxAge: 0,
     name: PENDING_VERIFICATION_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: "",
+  });
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
+    name: PENDING_POST_AUTH_REDIRECT_COOKIE_NAME,
     path: "/",
     sameSite: "lax",
     secure: isProduction,
@@ -88,6 +100,16 @@ export const clearAuthSession = async (): Promise<void> => {
     secure: isProduction,
     value: "",
   });
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
+    name: PENDING_POST_AUTH_REDIRECT_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: "",
+  });
 };
 
 export const persistPendingVerificationEmail = async (
@@ -120,6 +142,65 @@ export const clearPendingVerificationEmail = async (): Promise<void> => {
     httpOnly: true,
     maxAge: 0,
     name: PENDING_VERIFICATION_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: "",
+  });
+};
+
+export const normalizePostAuthRedirect = (
+  value: string | null | undefined,
+): string | null => {
+  const candidate = value?.trim();
+
+  if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//")) {
+    return null;
+  }
+
+  if (candidate.startsWith("/login") || candidate.startsWith("/verify-email")) {
+    return null;
+  }
+
+  return candidate;
+};
+
+export const persistPendingPostAuthRedirect = async (
+  redirectTo: string,
+): Promise<void> => {
+  const normalizedRedirect = normalizePostAuthRedirect(redirectTo);
+
+  if (!normalizedRedirect) {
+    return;
+  }
+
+  const cookieStore = await cookies();
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: PENDING_POST_AUTH_REDIRECT_MAX_AGE,
+    name: PENDING_POST_AUTH_REDIRECT_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: normalizedRedirect,
+  });
+};
+
+export const getPendingPostAuthRedirect = async (): Promise<string | null> => {
+  const cookieStore = await cookies();
+  const redirectTo = cookieStore.get(PENDING_POST_AUTH_REDIRECT_COOKIE_NAME)?.value;
+
+  return normalizePostAuthRedirect(redirectTo);
+};
+
+export const clearPendingPostAuthRedirect = async (): Promise<void> => {
+  const cookieStore = await cookies();
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
+    name: PENDING_POST_AUTH_REDIRECT_COOKIE_NAME,
     path: "/",
     sameSite: "lax",
     secure: isProduction,

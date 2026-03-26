@@ -29,7 +29,11 @@ const defaultValues: LoginInput = {
   password: "",
 };
 
-export function LoginForm() {
+interface LoginFormProps {
+  redirectTo?: string | null;
+}
+
+export function LoginForm({ redirectTo = null }: LoginFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
@@ -64,7 +68,7 @@ export function LoginForm() {
     setSubmissionState(null);
 
     startTransition(async () => {
-      const result = await loginAction(values);
+      const result = await loginAction(values, redirectTo);
 
       if (!result.success) {
         setSubmissionState(result);

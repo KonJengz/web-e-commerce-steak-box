@@ -3,6 +3,7 @@
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 import {
+  clearPendingPostAuthRedirect,
   clearPendingVerificationEmail,
   getPendingVerificationEmail,
   persistPendingVerificationEmail,
@@ -42,6 +43,7 @@ export async function resendVerificationAction(): Promise<ResendVerificationActi
         error.status === 400 &&
         error.message === "No pending verification found for this email"
       ) {
+        await clearPendingPostAuthRedirect();
         await clearPendingVerificationEmail();
 
         return {
@@ -53,6 +55,7 @@ export async function resendVerificationAction(): Promise<ResendVerificationActi
       }
 
       if (error.status === 400 && error.message === "Email already verified") {
+        await clearPendingPostAuthRedirect();
         await clearPendingVerificationEmail();
 
         return {

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { LogoIconSteakBox } from "@/components/shared/icons/logo-icon";
+import { normalizePostAuthRedirect } from "@/features/auth/services/auth-session.service";
 import { LoginForm } from "@/features/auth/components/login-form";
 
 export const metadata: Metadata = {
@@ -42,7 +43,19 @@ const highlightItems: HighlightItem[] = [
   },
 ];
 
-export default function LoginPage() {
+interface LoginPageProps {
+  searchParams: Promise<{ redirectTo?: string | string[] }>;
+}
+
+export default async function LoginPage({
+  searchParams,
+}: LoginPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const redirectParam = resolvedSearchParams.redirectTo;
+  const redirectToValue =
+    typeof redirectParam === "string" ? redirectParam : redirectParam?.[0];
+  const redirectTo = normalizePostAuthRedirect(redirectToValue);
+
   return (
     <div className="py-6 sm:py-10">
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
@@ -114,7 +127,7 @@ export default function LoginPage() {
         </section>
 
         <section>
-          <LoginForm />
+          <LoginForm redirectTo={redirectTo} />
         </section>
       </div>
     </div>
