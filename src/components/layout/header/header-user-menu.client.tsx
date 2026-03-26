@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { LogOut, Loader2 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { logoutAction } from "@/features/auth/actions/logout.action";
 import { headerUserMenuItems } from "./header.constants";
 import type { HeaderUser, HeaderUserMenuItem } from "./header.types";
 
@@ -23,12 +26,23 @@ interface HeaderUserMenuProps {
 }
 
 export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const handleLogout = (): void => {
+    startTransition(async () => {
+      await logoutAction();
+      router.refresh();
+    });
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           className="group relative rounded-full duration-300 h-10 w-10"
+          disabled={isPending}
         >
           <Avatar className="h-9 w-9 border-border shadow-sm transition-colors sm:h-10 sm:w-10">
             <AvatarImage src={user.avatar} alt={user.name} />
@@ -36,6 +50,11 @@ export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
               {user.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
+          {isPending && (
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background/50">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            </div>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -74,9 +93,17 @@ export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
           })}
         </DropdownMenuGroup>
         <DropdownMenuSeparator className="bg-border/50" />
-        <DropdownMenuItem className="m-1 cursor-pointer rounded-lg p-1 py-3 font-medium text-destructive transition-colors hover:bg-destructive/10">
-          <LogOut className="mr-3 h-4 w-4" />
-          <span>Log out</span>
+        <DropdownMenuItem
+          className="m-1 cursor-pointer rounded-lg p-1 py-3 font-medium text-destructive transition-colors hover:bg-destructive/10"
+          onClick={handleLogout}
+          disabled={isPending}
+        >
+          {isPending ? (
+            <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="mr-3 h-4 w-4" />
+          )}
+          <span>{isPending ? "Logging out..." : "Log out"}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

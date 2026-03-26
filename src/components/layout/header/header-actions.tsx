@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/layout/header/theme-toggle";
 interface HeaderActionsProps {
   cartItemsCount: number;
   isLoggedIn: boolean;
-  user: HeaderUser;
+  user: HeaderUser | null;
 }
 
 export function HeaderActions({
@@ -39,7 +39,7 @@ export function HeaderActions({
         </Link>
       </Button>
 
-      {!isLoggedIn ? (
+      {isLoggedIn && user ? (
         <HeaderUserMenu user={user} />
       ) : (
         <Button

@@ -4,14 +4,30 @@ import { HeaderSearch } from "./header-search";
 import type { HeaderUser } from "./header.types";
 import MainContainer from "./main-container";
 
-export function Header() {
-  // TODO: Replace with real auth state from a server-side session.
-  const isLoggedIn: boolean = true;
-  const user: HeaderUser = {
-    name: "John Doe",
-    email: "john@example.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
+import { getCurrentUser } from "@/features/auth/services/current-user.service";
+import type { User } from "@/features/user/types/user.type";
+
+const createDisplayName = (email: string): string => {
+  const localPart = email.split("@")[0] ?? "user";
+
+  return localPart
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+const toHeaderUser = (user: User): HeaderUser => {
+  return {
+    avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.email)}`,
+    email: user.email,
+    name: createDisplayName(user.email),
   };
+};
+
+export async function Header() {
+  const currentUser = await getCurrentUser();
+  const user = currentUser ? toHeaderUser(currentUser) : null;
   const cartItemsCount: number = 3;
 
   return (
@@ -29,7 +45,7 @@ export function Header() {
           <div className="flex flex-none items-center">
             <HeaderActions
               cartItemsCount={cartItemsCount}
-              isLoggedIn={isLoggedIn}
+              isLoggedIn={Boolean(user)}
               user={user}
             />
           </div>

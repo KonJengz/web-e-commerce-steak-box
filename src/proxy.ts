@@ -6,10 +6,6 @@ import {
   isAccessTokenExpired,
   refreshAccessToken,
 } from "@/lib/auth-helpers";
-import {
-  ACCESS_TOKEN_MAX_AGE,
-  REFRESH_TOKEN_MAX_AGE,
-} from "@/features/auth/constants/auth.constants";
 
 export const config = {
   matcher: [
@@ -63,7 +59,7 @@ const setAccessTokenCookie = (
 ): void => {
   response.cookies.set({
     httpOnly: true,
-    maxAge: ACCESS_TOKEN_MAX_AGE,
+    maxAge: envServer.ACCESS_TOKEN_MAX_AGE,
     name: envServer.ACCESS_TOKEN_COOKIE_NAME,
     path: "/",
     sameSite: "lax",
@@ -102,7 +98,7 @@ const setRefreshTokenCookie = (
 ): void => {
   response.cookies.set({
     httpOnly: true,
-    maxAge: REFRESH_TOKEN_MAX_AGE,
+    maxAge: envServer.REFRESH_TOKEN_MAX_AGE,
     name: envServer.REFRESH_TOKEN_COOKIE_NAME,
     path: "/",
     sameSite: "strict",

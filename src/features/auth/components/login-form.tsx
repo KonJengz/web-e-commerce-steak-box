@@ -3,12 +3,22 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, LockKeyhole, Mail } from "lucide-react";
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  LockKeyhole,
+  Mail,
+} from "lucide-react";
 import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { loginAction } from "@/features/auth/actions/login.action";
-import { loginSchema, type LoginInput } from "@/features/auth/schemas/auth.schema";
+import {
+  loginSchema,
+  type LoginInput,
+} from "@/features/auth/schemas/auth.schema";
 import type { LoginActionState } from "@/features/auth/types/auth.type";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -22,6 +32,7 @@ const defaultValues: LoginInput = {
 export function LoginForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [submissionState, setSubmissionState] =
     useState<LoginActionState | null>(null);
   const { control, clearErrors, handleSubmit, setError } = useForm<LoginInput>({
@@ -93,7 +104,11 @@ export function LoginForm() {
           </div>
         ) : null}
 
-        <form className="space-y-5" noValidate onSubmit={handleSubmit(handleLogin)}>
+        <form
+          className="space-y-5"
+          noValidate
+          onSubmit={handleSubmit(handleLogin)}
+        >
           <Controller
             control={control}
             name="email"
@@ -134,13 +149,29 @@ export function LoginForm() {
                   <Input
                     {...field}
                     id={field.name}
-                    type="password"
+                    type={isPasswordVisible ? "text" : "password"}
                     autoComplete="current-password"
                     placeholder="Enter your password"
                     aria-invalid={fieldState.invalid}
-                    className="h-12 rounded-full pr-4 pl-11"
+                    className="h-12 rounded-full pr-12 pl-11"
                     disabled={isPending}
                   />
+                  <button
+                    type="button"
+                    aria-label={
+                      isPasswordVisible ? "Hide password" : "Show password"
+                    }
+                    aria-pressed={isPasswordVisible}
+                    className="absolute top-1/2 right-3 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-60"
+                    disabled={isPending}
+                    onClick={() => setIsPasswordVisible((visible) => !visible)}
+                  >
+                    {!isPasswordVisible ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                  </button>
                 </div>
                 <FieldError errors={[fieldState.error]} />
               </Field>
@@ -153,7 +184,14 @@ export function LoginForm() {
             className="h-12 w-full rounded-full text-sm font-semibold shadow-lg shadow-primary/20"
             disabled={isPending}
           >
-            {isPending ? "Signing in..." : "Sign In"}
+            {isPending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              "Login"
+            )}
             <ArrowRight className="size-4" />
           </Button>
         </form>

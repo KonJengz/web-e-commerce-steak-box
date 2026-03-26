@@ -39,7 +39,16 @@ const refresh = async (
   };
 };
 
+const logout = async (accessToken: string): Promise<ApiResult<{ message: string }>> => {
+  return api.post<{ message: string }>("/api/auth/logout", undefined, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+};
+
 export const authService = {
   login,
+  logout,
   refresh,
 };
