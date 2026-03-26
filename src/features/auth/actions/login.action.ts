@@ -74,6 +74,9 @@ export async function loginAction(
       };
     }
 
+    await clearPendingPostAuthRedirect();
+    await clearPendingVerificationEmail();
+
     return {
       message: "Unable to sign in right now. Please try again.",
       success: false,

@@ -10,6 +10,8 @@ import {
 
 import { LogoIconSteakBox } from "@/components/shared/icons/logo-icon";
 import { RegisterForm } from "@/features/auth/components/register-form";
+import { normalizePostAuthRedirect } from "@/features/auth/services/auth-session.service";
+import { authService } from "@/features/auth/services/auth.service";
 
 export const metadata: Metadata = {
   title: "Register - Join Steak Box",
@@ -45,7 +47,10 @@ const joinHighlights: HighlightItem[] = [
 ];
 
 interface RegisterPageProps {
-  searchParams: Promise<{ email?: string | string[] }>;
+  searchParams: Promise<{
+    email?: string | string[];
+    redirectTo?: string | string[];
+  }>;
 }
 
 export default async function RegisterPage({
@@ -53,8 +58,13 @@ export default async function RegisterPage({
 }: RegisterPageProps) {
   const resolvedSearchParams = await searchParams;
   const emailParam = resolvedSearchParams.email;
+  const redirectParam = resolvedSearchParams.redirectTo;
   const prefilledEmail =
     typeof emailParam === "string" ? emailParam : (emailParam?.[0] ?? "");
+  const redirectToValue =
+    typeof redirectParam === "string" ? redirectParam : redirectParam?.[0];
+  const redirectTo = normalizePostAuthRedirect(redirectToValue);
+  const googleAuthHref = authService.buildGoogleStartHref(redirectTo);
 
   return (
     <div className="py-6 sm:py-10">
@@ -127,7 +137,14 @@ export default async function RegisterPage({
                 Already have an account?
               </p>
               <Link
-                href="/login"
+                href={
+                  redirectTo
+                    ? {
+                        pathname: "/login",
+                        query: { redirectTo },
+                      }
+                    : "/login"
+                }
                 className="group inline-flex items-center gap-2 text-sm font-bold text-white transition-all hover:text-primary"
               >
                 Sign in now
@@ -138,7 +155,11 @@ export default async function RegisterPage({
         </section>
 
         <section className="flex flex-col justify-center">
-          <RegisterForm prefilledEmail={prefilledEmail} />
+          <RegisterForm
+            googleAuthHref={googleAuthHref}
+            prefilledEmail={prefilledEmail}
+            redirectTo={redirectTo}
+          />
         </section>
       </div>
     </div>

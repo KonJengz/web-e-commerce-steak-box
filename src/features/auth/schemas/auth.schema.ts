@@ -77,3 +77,13 @@ export const resendVerificationSchema = z.object({
 });
 
 export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+
+export const oauthExchangeSchema = z.object({
+  ticket: z
+    .string()
+    .trim()
+    .min(1, "OAuth ticket is required.")
+    .max(255, "OAuth ticket is invalid."),
+});
+
+export type OAuthExchangeInput = z.infer<typeof oauthExchangeSchema>;

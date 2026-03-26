@@ -9,8 +9,9 @@ import {
 } from "lucide-react";
 
 import { LogoIconSteakBox } from "@/components/shared/icons/logo-icon";
-import { normalizePostAuthRedirect } from "@/features/auth/services/auth-session.service";
 import { LoginForm } from "@/features/auth/components/login-form";
+import { normalizePostAuthRedirect } from "@/features/auth/services/auth-session.service";
+import { authService } from "@/features/auth/services/auth.service";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -44,17 +45,25 @@ const highlightItems: HighlightItem[] = [
 ];
 
 interface LoginPageProps {
-  searchParams: Promise<{ redirectTo?: string | string[] }>;
+  searchParams: Promise<{
+    oauth_error?: string | string[];
+    redirectTo?: string | string[];
+  }>;
 }
 
-export default async function LoginPage({
-  searchParams,
-}: LoginPageProps) {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const resolvedSearchParams = await searchParams;
   const redirectParam = resolvedSearchParams.redirectTo;
+  const oauthErrorParam = resolvedSearchParams.oauth_error;
   const redirectToValue =
     typeof redirectParam === "string" ? redirectParam : redirectParam?.[0];
+  const oauthErrorValue =
+    typeof oauthErrorParam === "string" ? oauthErrorParam : oauthErrorParam?.[0];
   const redirectTo = normalizePostAuthRedirect(redirectToValue);
+  const googleAuthHref = authService.buildGoogleStartHref(redirectTo);
+  const oauthErrorMessage = oauthErrorValue
+    ? "Google sign-in could not be completed. Please try again or continue with email instead."
+    : null;
 
   return (
     <div className="py-6 sm:py-10">
@@ -116,7 +125,14 @@ export default async function LoginPage({
             <p className="text-sm leading-6 text-white/70">
               Need a new account?{" "}
               <Link
-                href="/register"
+                href={
+                  redirectTo
+                    ? {
+                        pathname: "/register",
+                        query: { redirectTo },
+                      }
+                    : "/register"
+                }
                 className="inline-flex items-center gap-1 font-semibold text-[#f2d7ac] transition-colors hover:text-white"
               >
                 Create one
@@ -127,7 +143,11 @@ export default async function LoginPage({
         </section>
 
         <section>
-          <LoginForm redirectTo={redirectTo} />
+          <LoginForm
+            googleAuthHref={googleAuthHref}
+            oauthErrorMessage={oauthErrorMessage}
+            redirectTo={redirectTo}
+          />
         </section>
       </div>
     </div>

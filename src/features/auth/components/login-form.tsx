@@ -15,6 +15,7 @@ import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { loginAction } from "@/features/auth/actions/login.action";
+import { AuthGoogleButton } from "@/features/auth/components/auth-google-button";
 import {
   loginSchema,
   type LoginInput,
@@ -30,12 +31,20 @@ const defaultValues: LoginInput = {
 };
 
 interface LoginFormProps {
+  googleAuthHref: string;
+  oauthErrorMessage?: string | null;
   redirectTo?: string | null;
 }
 
-export function LoginForm({ redirectTo = null }: LoginFormProps) {
+export function LoginForm({
+  googleAuthHref,
+  oauthErrorMessage = null,
+  redirectTo = null,
+}: LoginFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isOauthErrorVisible, setIsOauthErrorVisible] =
+    useState<boolean>(Boolean(oauthErrorMessage));
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [submissionState, setSubmissionState] =
     useState<LoginActionState | null>(null);
@@ -65,6 +74,7 @@ export function LoginForm({ redirectTo = null }: LoginFormProps) {
 
   const handleLogin = (values: LoginInput): void => {
     clearErrors();
+    setIsOauthErrorVisible(false);
     setSubmissionState(null);
 
     startTransition(async () => {
@@ -102,6 +112,12 @@ export function LoginForm({ redirectTo = null }: LoginFormProps) {
           </div>
         </div>
 
+        {isOauthErrorVisible && oauthErrorMessage ? (
+          <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive">
+            {oauthErrorMessage}
+          </div>
+        ) : null}
+
         {submissionState?.message ? (
           <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive">
             {submissionState.message}
@@ -113,6 +129,21 @@ export function LoginForm({ redirectTo = null }: LoginFormProps) {
             <Link href="/verify-email">Enter OTP</Link>
           </Button>
         ) : null}
+
+        <div className="space-y-4">
+          <AuthGoogleButton href={googleAuthHref} />
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border/50" />
+            </div>
+            <div className="relative flex justify-center text-[11px] uppercase">
+              <span className="bg-card px-3 font-medium tracking-[0.24em] text-muted-foreground">
+                Or continue with email
+              </span>
+            </div>
+          </div>
+        </div>
 
         <form
           className="space-y-5"
@@ -209,7 +240,14 @@ export function LoginForm({ redirectTo = null }: LoginFormProps) {
         <p className="text-center text-sm leading-6 text-muted-foreground">
           New to Steak Box?{" "}
           <Link
-            href="/register"
+            href={
+              redirectTo
+                ? {
+                    pathname: "/register",
+                    query: { redirectTo },
+                  }
+                : "/register"
+            }
             className="font-semibold text-primary transition-colors hover:text-primary/80"
           >
             Create an account

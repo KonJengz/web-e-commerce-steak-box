@@ -17,6 +17,7 @@ import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { registerAction } from "@/features/auth/actions/register.action";
+import { AuthGoogleButton } from "@/features/auth/components/auth-google-button";
 import {
   registerSchema,
   type RegisterInput,
@@ -34,11 +35,15 @@ const defaultValues: RegisterInput = {
 };
 
 interface RegisterFormProps {
+  googleAuthHref: string;
   prefilledEmail?: string;
+  redirectTo?: string | null;
 }
 
 export function RegisterForm({
+  googleAuthHref,
   prefilledEmail = "",
+  redirectTo = null,
 }: RegisterFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -85,7 +90,7 @@ export function RegisterForm({
     setSubmissionState(null);
 
     startTransition(async () => {
-      const result = await registerAction(values);
+      const result = await registerAction(values, redirectTo);
 
       if (!result.success) {
         setSubmissionState(result);
@@ -124,6 +129,21 @@ export function RegisterForm({
             {submissionState.message}
           </div>
         ) : null}
+
+        <div className="space-y-4">
+          <AuthGoogleButton href={googleAuthHref} />
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border/50" />
+            </div>
+            <div className="relative flex justify-center text-[11px] uppercase">
+              <span className="bg-card px-3 font-medium tracking-[0.24em] text-muted-foreground">
+                Or continue with email
+              </span>
+            </div>
+          </div>
+        </div>
 
         <form
           className="space-y-6"
@@ -305,7 +325,18 @@ export function RegisterForm({
           asChild
           className="h-13 w-full rounded-full border-border/60 font-semibold transition-all hover:bg-muted/50"
         >
-          <Link href="/login">Sign In to Your Account</Link>
+          <Link
+            href={
+              redirectTo
+                ? {
+                    pathname: "/login",
+                    query: { redirectTo },
+                  }
+                : "/login"
+            }
+          >
+            Sign In to Your Account
+          </Link>
         </Button>
       </div>
     </div>

@@ -1,8 +1,10 @@
 import "server-only";
 
+import { envClient } from "@/config/env.client";
 import { envServer } from "@/config/env.server";
 import type {
   LoginInput,
+  OAuthExchangeInput,
   RegisterInput,
   ResendVerificationInput,
   VerifyEmailInput,
@@ -13,6 +15,22 @@ import type {
 } from "@/features/auth/types/auth.type";
 import { api } from "@/lib/api/client";
 import type { ApiResult } from "@/types";
+
+const normalizeOAuthRedirectTarget = (
+  value: string | null | undefined,
+): string => {
+  const candidate = value?.trim();
+
+  if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//")) {
+    return "/";
+  }
+
+  if (candidate.startsWith("/login") || candidate.startsWith("/verify-email")) {
+    return "/";
+  }
+
+  return candidate;
+};
 
 const mapAuthResponse = (
   result: ApiResult<AuthApiResponse>,
@@ -88,7 +106,33 @@ const resendVerification = async (
   return api.post<{ message: string }>("/api/auth/resend-verification", data);
 };
 
+const exchangeOAuthTicket = async (
+  data: OAuthExchangeInput,
+): Promise<ApiResult<AuthResponse>> => {
+  const result = await api.post<AuthApiResponse>("/api/auth/oauth/exchange", data);
+
+  return mapAuthResponse(result);
+};
+
+const buildGoogleStartHref = (redirectTo?: string | null): string => {
+  const exchangeUrl = new URL(
+    "/login/oauth/callback",
+    envClient.NEXT_PUBLIC_APP_URL,
+  ).toString();
+  const startUrl = new URL("/api/auth/google/start", envServer.BACKEND_URL);
+
+  startUrl.searchParams.set("exchange_url", exchangeUrl);
+  startUrl.searchParams.set(
+    "redirect_to",
+    normalizeOAuthRedirectTarget(redirectTo),
+  );
+
+  return startUrl.toString();
+};
+
 export const authService = {
+  buildGoogleStartHref,
+  exchangeOAuthTicket,
   login,
   logout,
   refresh,

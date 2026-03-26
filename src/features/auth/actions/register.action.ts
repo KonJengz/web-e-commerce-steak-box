@@ -8,7 +8,10 @@ import {
   type RegisterInput,
 } from "@/features/auth/schemas/auth.schema";
 import {
+  clearPendingPostAuthRedirect,
   clearPendingVerificationEmail,
+  normalizePostAuthRedirect,
+  persistPendingPostAuthRedirect,
   persistPendingVerificationEmail,
 } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
@@ -17,8 +20,10 @@ import { ApiError } from "@/lib/api/error";
 
 export async function registerAction(
   input: RegisterInput,
+  redirectTo?: string | null,
 ): Promise<RegisterActionState> {
   const validatedInput = registerSchema.safeParse(input);
+  const normalizedRedirectTo = normalizePostAuthRedirect(redirectTo);
 
   if (!validatedInput.success) {
     return {
@@ -33,6 +38,12 @@ export async function registerAction(
     await authService.register({ email, name, password });
     await persistPendingVerificationEmail(email);
 
+    if (normalizedRedirectTo) {
+      await persistPendingPostAuthRedirect(normalizedRedirectTo);
+    } else {
+      await clearPendingPostAuthRedirect();
+    }
+
     return {
       redirectTo: "/verify-email",
       success: true,
@@ -44,6 +55,7 @@ export async function registerAction(
 
     if (error instanceof ApiError) {
       if (error.status === 409 && error.message === "Email already registered") {
+        await clearPendingPostAuthRedirect();
         await clearPendingVerificationEmail();
 
         return {
@@ -53,11 +65,17 @@ export async function registerAction(
         };
       }
 
+      await clearPendingPostAuthRedirect();
+      await clearPendingVerificationEmail();
+
       return {
         message: error.message,
         success: false,
       };
     }
+
+    await clearPendingPostAuthRedirect();
+    await clearPendingVerificationEmail();
 
     return {
       message: "Something went wrong during registration. Please try again.",
