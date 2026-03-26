@@ -3,11 +3,13 @@ import type { NextRequest } from "next/server";
 
 import { envServer } from "@/config/env.server";
 import {
-  ACCESS_TOKEN_MAX_AGE,
-  REFRESH_TOKEN_COOKIE_NAME,
   isAccessTokenExpired,
   refreshAccessToken,
 } from "@/lib/auth-helpers";
+import {
+  ACCESS_TOKEN_MAX_AGE,
+  REFRESH_TOKEN_MAX_AGE,
+} from "@/features/auth/constants/auth.constants";
 
 export const config = {
   matcher: [
@@ -84,18 +86,8 @@ const clearAuthCookies = (response: NextResponse): NextResponse => {
   response.cookies.set({
     httpOnly: true,
     maxAge: 0,
-    name: REFRESH_TOKEN_COOKIE_NAME,
+    name: envServer.REFRESH_TOKEN_COOKIE_NAME,
     path: "/",
-    sameSite: "strict",
-    secure: isProduction,
-    value: "",
-  });
-
-  response.cookies.set({
-    httpOnly: true,
-    maxAge: 0,
-    name: REFRESH_TOKEN_COOKIE_NAME,
-    path: "/api/auth",
     sameSite: "strict",
     secure: isProduction,
     value: "",
@@ -110,8 +102,8 @@ const setRefreshTokenCookie = (
 ): void => {
   response.cookies.set({
     httpOnly: true,
-    maxAge: 60 * 60 * 24 * 7,
-    name: REFRESH_TOKEN_COOKIE_NAME,
+    maxAge: REFRESH_TOKEN_MAX_AGE,
+    name: envServer.REFRESH_TOKEN_COOKIE_NAME,
     path: "/",
     sameSite: "strict",
     secure: isProduction,
@@ -129,7 +121,7 @@ const tryRefreshSession = async (
   request: NextRequest,
   response: NextResponse,
 ): Promise<NextResponse | null> => {
-  const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)?.value;
+  const refreshToken = request.cookies.get(envServer.REFRESH_TOKEN_COOKIE_NAME)?.value;
 
   if (!refreshToken) {
     return null;
@@ -153,7 +145,7 @@ const tryRefreshSession = async (
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get(envServer.ACCESS_TOKEN_COOKIE_NAME)?.value;
-  const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)?.value;
+  const refreshToken = request.cookies.get(envServer.REFRESH_TOKEN_COOKIE_NAME)?.value;
   const hasAccessToken = Boolean(accessToken);
   const hasRefreshToken = Boolean(refreshToken);
   const isProtected = isProtectedRoute(pathname);

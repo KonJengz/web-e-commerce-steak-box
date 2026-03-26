@@ -13,8 +13,10 @@ import { authService } from "@/features/auth/services/auth.service";
 import type { LoginActionState } from "@/features/auth/types/auth.type";
 import { getCookieValueFromSetCookieHeaders } from "@/lib/auth-helpers";
 import { ApiError } from "@/lib/api/error";
-
-const REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+import {
+  ACCESS_TOKEN_MAX_AGE,
+  REFRESH_TOKEN_MAX_AGE,
+} from "@/features/auth/constants/auth.constants";
 
 export async function loginAction(
   input: LoginInput,
@@ -40,22 +42,22 @@ export async function loginAction(
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       value: result.data.accessToken,
-      maxAge: 60 * 15,
+      maxAge: ACCESS_TOKEN_MAX_AGE,
     });
 
     const refreshTokenValue = getCookieValueFromSetCookieHeaders(
       result.headers,
-      REFRESH_TOKEN_COOKIE_NAME,
+      envServer.REFRESH_TOKEN_COOKIE_NAME,
     );
     if (refreshTokenValue) {
       cookieStore.set({
         httpOnly: true,
-        name: REFRESH_TOKEN_COOKIE_NAME,
+        name: envServer.REFRESH_TOKEN_COOKIE_NAME,
         path: "/",
         sameSite: "strict",
         secure: process.env.NODE_ENV === "production",
         value: refreshTokenValue,
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: REFRESH_TOKEN_MAX_AGE,
       });
     }
 

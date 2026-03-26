@@ -5,6 +5,7 @@ import { z } from "zod";
 const envServerSchema = z.object({
   BACKEND_URL: z.url(),
   ACCESS_TOKEN_COOKIE_NAME: z.string().min(1),
+  REFRESH_TOKEN_COOKIE_NAME: z.string().min(1),
 });
 
 const envServerResult = envServerSchema.safeParse(process.env);

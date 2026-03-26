@@ -1,8 +1,6 @@
+import { envServer } from "@/config/env.server";
 import { authService } from "@/features/auth/services/auth.service";
 import { ApiError } from "@/lib/api/error";
-
-export const ACCESS_TOKEN_MAX_AGE = 60 * 15;
-export const REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
 export interface RefreshedAuthSession {
   accessToken: string;
@@ -92,7 +90,7 @@ export const refreshAccessToken = async (
       accessToken: result.data.accessToken,
       refreshToken: getCookieValueFromSetCookieHeaders(
         result.headers,
-        REFRESH_TOKEN_COOKIE_NAME,
+        envServer.REFRESH_TOKEN_COOKIE_NAME,
       ),
     };
   } catch (error) {
