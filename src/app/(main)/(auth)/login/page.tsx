@@ -44,6 +44,33 @@ const highlightItems: HighlightItem[] = [
   },
 ];
 
+const getOAuthErrorMessage = (
+  oauthErrorCode: string | null | undefined,
+): string | null => {
+  switch (oauthErrorCode) {
+    case "account_suspended":
+      return "This account is suspended. Contact support if you need help restoring access.";
+    case "google_access_denied":
+      return "Google sign-in was canceled before completion.";
+    case "invalid_oauth_state":
+    case "missing_oauth_callback":
+    case "missing_oauth_code":
+    case "missing_oauth_pkce_verifier":
+      return "Your Google sign-in session could not be verified. Please try again from the Google button.";
+    case "oauth_account_conflict":
+      return "This email is already linked to a different sign-in method. Use your existing login method to continue.";
+    case "oauth_exchange_failed":
+    case "oauth_ticket_failed":
+      return "Your Google sign-in session expired before we could finish logging you in. Please try again.";
+    case "google_sign_in_failed":
+      return "Google sign-in could not be completed. Please try again or continue with email instead.";
+    default:
+      return oauthErrorCode
+        ? "Social sign-in could not be completed. Please try again."
+        : null;
+  }
+};
+
 interface LoginPageProps {
   searchParams: Promise<{
     oauth_error?: string | string[];
@@ -61,9 +88,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     typeof oauthErrorParam === "string" ? oauthErrorParam : oauthErrorParam?.[0];
   const redirectTo = normalizePostAuthRedirect(redirectToValue);
   const googleAuthHref = authService.buildGoogleStartHref(redirectTo);
-  const oauthErrorMessage = oauthErrorValue
-    ? "Google sign-in could not be completed. Please try again or continue with email instead."
-    : null;
+  const oauthErrorMessage = getOAuthErrorMessage(oauthErrorValue);
 
   return (
     <div className="py-6 sm:py-10">

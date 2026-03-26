@@ -9,14 +9,27 @@ import {
 import { authService } from "@/features/auth/services/auth.service";
 import { ApiError } from "@/lib/api/error";
 
+const mapOAuthExchangeErrorCode = (error: ApiError): string => {
+  if (
+    error.status === 401 &&
+    (error.message === "OAuth login ticket is invalid or expired" ||
+      error.message === "OAuth login ticket has expired")
+  ) {
+    return "oauth_exchange_failed";
+  }
+
+  return "google_sign_in_failed";
+};
+
 const buildLoginErrorResponse = (
   request: NextRequest,
+  errorCode: string,
   redirectTo?: string | null,
 ): NextResponse => {
   const loginUrl = new URL("/login", request.url);
   const normalizedRedirectTo = normalizePostAuthRedirect(redirectTo);
 
-  loginUrl.searchParams.set("oauth_error", "google_sign_in_failed");
+  loginUrl.searchParams.set("oauth_error", errorCode);
 
   if (normalizedRedirectTo) {
     loginUrl.searchParams.set("redirectTo", normalizedRedirectTo);
@@ -32,7 +45,7 @@ export async function GET(request: NextRequest) {
   const redirectTo = request.nextUrl.searchParams.get("redirectTo");
 
   if (!ticketResult.success) {
-    return buildLoginErrorResponse(request, redirectTo);
+    return buildLoginErrorResponse(request, "oauth_exchange_failed", redirectTo);
   }
 
   try {
@@ -40,7 +53,11 @@ export async function GET(request: NextRequest) {
     await persistAuthSession(result);
   } catch (error) {
     if (error instanceof ApiError) {
-      return buildLoginErrorResponse(request, redirectTo);
+      return buildLoginErrorResponse(
+        request,
+        mapOAuthExchangeErrorCode(error),
+        redirectTo,
+      );
     }
 
     throw error;

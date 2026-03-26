@@ -45,7 +45,11 @@ export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
           disabled={isPending}
         >
           <Avatar className="h-9 w-9 border-border shadow-sm transition-colors sm:h-10 sm:w-10">
-            <AvatarImage src={user.avatar} alt={user.name} />
+            <AvatarImage
+              src={user.avatar}
+              alt={user.name}
+              referrerPolicy="no-referrer"
+            />
             <AvatarFallback className="bg-primary/10 font-bold text-primary">
               {user.name.charAt(0)}
             </AvatarFallback>

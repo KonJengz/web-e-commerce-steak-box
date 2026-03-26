@@ -5,6 +5,7 @@ import { AccountSidebarNav } from "@/components/account/account-sidebar-nav";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getCurrentUser } from "@/features/auth/services/current-user.service";
+import { resolveUserAvatar } from "@/features/user/utils/avatar";
 
 interface AccountShellProps {
   children: ReactNode;
@@ -17,9 +18,7 @@ export async function AccountShell({ children }: AccountShellProps) {
     redirect("/login");
   }
 
-  const avatar =
-    currentUser.image ??
-    `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(currentUser.email)}`;
+  const avatar = resolveUserAvatar(currentUser.email, currentUser.image);
 
   return (
     <div className="py-6 sm:py-10">
@@ -29,7 +28,11 @@ export async function AccountShell({ children }: AccountShellProps) {
             <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,color-mix(in_oklab,var(--color-primary)_18%,transparent),transparent_75%)]" />
             <div className="relative space-y-4">
               <Avatar className="size-16 border-border/80 shadow-md">
-                <AvatarImage src={avatar} alt={currentUser.name} />
+                <AvatarImage
+                  src={avatar}
+                  alt={currentUser.name}
+                  referrerPolicy="no-referrer"
+                />
                 <AvatarFallback className="bg-primary/10 font-semibold text-primary">
                   {currentUser.name.charAt(0)}
                 </AvatarFallback>

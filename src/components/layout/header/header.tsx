@@ -6,12 +6,11 @@ import MainContainer from "./main-container";
 
 import { getCurrentUser } from "@/features/auth/services/current-user.service";
 import type { User } from "@/features/user/types/user.type";
+import { resolveUserAvatar } from "@/features/user/utils/avatar";
 
 const toHeaderUser = (user: User): HeaderUser => {
   return {
-    avatar:
-      user.image ??
-      `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.email)}`,
+    avatar: resolveUserAvatar(user.email, user.image),
     email: user.email,
     name: user.name,
   };

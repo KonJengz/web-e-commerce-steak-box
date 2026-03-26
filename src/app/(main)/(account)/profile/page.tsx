@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/features/auth/services/current-user.service";
+import { resolveUserAvatar } from "@/features/user/utils/avatar";
 
 export default async function ProfilePage() {
   const profile = await getCurrentUser();
@@ -19,9 +20,7 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const avatar =
-    profile.image ??
-    `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(profile.email)}`;
+  const avatar = resolveUserAvatar(profile.email, profile.image);
 
   return (
     <div className="space-y-6">
@@ -43,7 +42,11 @@ export default async function ProfilePage() {
         <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <Avatar className="size-20 border-border shadow-md">
-              <AvatarImage src={avatar} alt={profile.name} />
+              <AvatarImage
+                src={avatar}
+                alt={profile.name}
+                referrerPolicy="no-referrer"
+              />
               <AvatarFallback className="bg-primary/10 font-semibold text-primary">
                 {profile.name.charAt(0)}
               </AvatarFallback>
