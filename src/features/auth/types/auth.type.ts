@@ -1,6 +1,8 @@
 import type {
+  ForgotPasswordInput,
   LoginInput,
   RegisterInput,
+  ResetPasswordSubmissionInput,
   VerifyEmailSubmissionInput,
 } from "@/features/auth/schemas/auth.schema";
 import type { User } from "@/features/user/types/user.type";
@@ -47,6 +49,28 @@ export interface VerifyEmailActionState {
 
 export interface ResendVerificationActionState {
   cooldownSeconds?: number;
+  message?: string;
+  redirectTo?: string;
+  success: boolean;
+}
+
+export type ForgotPasswordFieldErrors = Partial<
+  Record<keyof ForgotPasswordInput, string[]>
+>;
+
+export interface ForgotPasswordActionState {
+  cooldownSeconds?: number;
+  fieldErrors?: ForgotPasswordFieldErrors;
+  message?: string;
+  success: boolean;
+}
+
+export type ResetPasswordFieldErrors = Partial<
+  Record<keyof ResetPasswordSubmissionInput, string[]>
+>;
+
+export interface ResetPasswordActionState {
+  fieldErrors?: ResetPasswordFieldErrors;
   message?: string;
   redirectTo?: string;
   success: boolean;

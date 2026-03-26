@@ -181,9 +181,12 @@ export function LoginForm({
               <Field data-invalid={fieldState.invalid}>
                 <div className="flex items-center justify-between gap-3">
                   <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                  <span className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                    8+ chars
-                  </span>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs font-semibold uppercase tracking-[0.16em] text-primary transition-colors hover:text-primary/80"
+                  >
+                    Forgot password?
+                  </Link>
                 </div>
                 <div className="relative">
                   <LockKeyhole className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />

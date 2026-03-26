@@ -3,9 +3,11 @@ import "server-only";
 import { envClient } from "@/config/env.client";
 import { envServer } from "@/config/env.server";
 import type {
+  ForgotPasswordInput,
   LoginInput,
   OAuthExchangeInput,
   RegisterInput,
+  ResetPasswordInput,
   ResendVerificationInput,
   VerifyEmailInput,
 } from "@/features/auth/schemas/auth.schema";
@@ -106,6 +108,18 @@ const resendVerification = async (
   return api.post<{ message: string }>("/api/auth/resend-verification", data);
 };
 
+const forgotPassword = async (
+  data: ForgotPasswordInput,
+): Promise<ApiResult<{ message: string }>> => {
+  return api.post<{ message: string }>("/api/auth/forgot-password", data);
+};
+
+const resetPassword = async (
+  data: ResetPasswordInput,
+): Promise<ApiResult<{ message: string }>> => {
+  return api.post<{ message: string }>("/api/auth/reset-password", data);
+};
+
 const exchangeOAuthTicket = async (
   data: OAuthExchangeInput,
 ): Promise<ApiResult<AuthResponse>> => {
@@ -133,10 +147,12 @@ const buildGoogleStartHref = (redirectTo?: string | null): string => {
 export const authService = {
   buildGoogleStartHref,
   exchangeOAuthTicket,
+  forgotPassword,
   login,
   logout,
   refresh,
   register,
+  resetPassword,
   resendVerification,
   verifyEmail,
 };

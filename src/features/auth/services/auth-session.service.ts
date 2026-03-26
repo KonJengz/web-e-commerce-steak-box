@@ -10,6 +10,8 @@ import type { ApiResult } from "@/types";
 const isProduction = process.env.NODE_ENV === "production";
 const PENDING_VERIFICATION_COOKIE_NAME = "pending_verification_email";
 const PENDING_VERIFICATION_MAX_AGE = 15 * 60;
+const PENDING_PASSWORD_RESET_COOKIE_NAME = "pending_password_reset_email";
+const PENDING_PASSWORD_RESET_MAX_AGE = 15 * 60;
 const PENDING_POST_AUTH_REDIRECT_COOKIE_NAME = "pending_post_auth_redirect";
 const PENDING_POST_AUTH_REDIRECT_MAX_AGE = 15 * 60;
 
@@ -37,6 +39,16 @@ export const persistAuthSession = async (
     httpOnly: true,
     maxAge: 0,
     name: PENDING_VERIFICATION_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: "",
+  });
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
+    name: PENDING_PASSWORD_RESET_COOKIE_NAME,
     path: "/",
     sameSite: "lax",
     secure: isProduction,
@@ -104,6 +116,16 @@ export const clearAuthSession = async (): Promise<void> => {
   cookieStore.set({
     httpOnly: true,
     maxAge: 0,
+    name: PENDING_PASSWORD_RESET_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: "",
+  });
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
     name: PENDING_POST_AUTH_REDIRECT_COOKIE_NAME,
     path: "/",
     sameSite: "lax",
@@ -142,6 +164,43 @@ export const clearPendingVerificationEmail = async (): Promise<void> => {
     httpOnly: true,
     maxAge: 0,
     name: PENDING_VERIFICATION_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: "",
+  });
+};
+
+export const persistPendingPasswordResetEmail = async (
+  email: string,
+): Promise<void> => {
+  const cookieStore = await cookies();
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: PENDING_PASSWORD_RESET_MAX_AGE,
+    name: PENDING_PASSWORD_RESET_COOKIE_NAME,
+    path: "/",
+    sameSite: "lax",
+    secure: isProduction,
+    value: email,
+  });
+};
+
+export const getPendingPasswordResetEmail = async (): Promise<string | null> => {
+  const cookieStore = await cookies();
+  const email = cookieStore.get(PENDING_PASSWORD_RESET_COOKIE_NAME)?.value?.trim();
+
+  return email ? email : null;
+};
+
+export const clearPendingPasswordResetEmail = async (): Promise<void> => {
+  const cookieStore = await cookies();
+
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
+    name: PENDING_PASSWORD_RESET_COOKIE_NAME,
     path: "/",
     sameSite: "lax",
     secure: isProduction,

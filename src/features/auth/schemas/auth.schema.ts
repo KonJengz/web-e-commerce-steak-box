@@ -78,6 +78,41 @@ export const resendVerificationSchema = z.object({
 
 export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    email: emailSchema,
+    code: verificationCodeSchema,
+    newPassword: registerPasswordSchema,
+    confirmPassword: registerPasswordSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const resetPasswordSubmissionSchema = z
+  .object({
+    code: verificationCodeSchema,
+    newPassword: registerPasswordSchema,
+    confirmPassword: registerPasswordSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+export type ResetPasswordSubmissionInput = z.infer<
+  typeof resetPasswordSubmissionSchema
+>;
+
 export const oauthExchangeSchema = z.object({
   ticket: z
     .string()
