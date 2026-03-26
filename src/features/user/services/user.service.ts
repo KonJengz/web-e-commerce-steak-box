@@ -1,6 +1,10 @@
 import "server-only";
 
-import type { UpdateProfileInput } from "@/features/user/schemas/profile.schema";
+import type {
+  RequestEmailChangeInput,
+  UpdateProfileInput,
+  VerifyEmailChangeInput,
+} from "@/features/user/schemas/profile.schema";
 import type { User, UserProfile } from "@/features/user/types/user.type";
 import { api } from "@/lib/api/client";
 import type { ApiResult } from "@/types";
@@ -14,6 +18,10 @@ interface MeApiResponse {
   is_verified: boolean;
   name: string;
   role: User["role"];
+}
+
+interface MessageApiResponse {
+  message: string;
 }
 
 const mapUserProfile = (data: MeApiResponse): UserProfile => {
@@ -48,7 +56,9 @@ const updateProfile = async (
 ): Promise<ApiResult<UserProfile>> => {
   const formData = new FormData();
 
-  formData.set("name", input.name.trim());
+  if (input.name !== undefined) {
+    formData.set("name", input.name.trim());
+  }
 
   if (input.image) {
     formData.set("image", input.image);
@@ -70,7 +80,40 @@ const updateProfile = async (
   };
 };
 
+const requestEmailChange = async (
+  accessToken: string,
+  input: RequestEmailChangeInput,
+): Promise<ApiResult<MessageApiResponse>> => {
+  return api.put<MessageApiResponse>("/api/users/me", input, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+};
+
+const verifyEmailChange = async (
+  accessToken: string,
+  input: VerifyEmailChangeInput,
+): Promise<ApiResult<UserProfile>> => {
+  const result = await api.post<MeApiResponse>(
+    "/api/users/me/verify-email-change",
+    input,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: mapUserProfile(result.data),
+  };
+};
+
 export const userService = {
   getMe,
+  requestEmailChange,
   updateProfile,
+  verifyEmailChange,
 };

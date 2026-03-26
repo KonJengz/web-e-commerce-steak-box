@@ -25,3 +25,24 @@ export interface UpdateProfileActionState {
   requiresReauthentication?: boolean;
   success: boolean;
 }
+
+export interface RequestEmailChangeActionState {
+  fieldErrors?: {
+    email?: string[];
+  };
+  message?: string;
+  pendingEmail?: string;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}
+
+export interface VerifyEmailChangeActionState {
+  fieldErrors?: {
+    code?: string[];
+    email?: string[];
+  };
+  message?: string;
+  profile?: UserProfile;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}

@@ -17,14 +17,15 @@ const getUpdateProfileInput = (
   formData: FormData,
 ): {
   image: FormDataEntryValue | undefined;
-  name: string;
+  name: string | undefined;
   removeImage: boolean;
 } => {
   const image = formData.get("image");
+  const name = formData.get("name");
 
   return {
     image: image === null ? undefined : image,
-    name: String(formData.get("name") ?? ""),
+    name: typeof name === "string" ? name : undefined,
     removeImage: formData.get("removeImage") === "true",
   };
 };
@@ -72,7 +73,7 @@ const buildApiErrorState = (error: ApiError): UpdateProfileActionState => {
 
   if (error.message === "Provide at least one of name, image, or remove_image=true") {
     return {
-      message: "Update your name or photo before saving.",
+      message: "Update at least one profile detail before saving.",
       success: false,
     };
   }
