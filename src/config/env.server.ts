@@ -3,11 +3,16 @@ import "server-only";
 import { z } from "zod";
 
 const envServerSchema = z.object({
-  BACKEND_URL: z.string().url().default("http://localhost:4000"),
-  ACCESS_TOKEN_COOKIE_NAME: z.string().min(1).default("access_token"),
+  BACKEND_URL: z.url(),
+  ACCESS_TOKEN_COOKIE_NAME: z.string().min(1),
 });
 
-export const envServer = envServerSchema.parse({
-  BACKEND_URL: process.env.BACKEND_URL,
-  ACCESS_TOKEN_COOKIE_NAME: process.env.ACCESS_TOKEN_COOKIE_NAME,
-});
+const envServerResult = envServerSchema.safeParse(process.env);
+
+if (!envServerResult.success) {
+  throw new Error(
+    `Invalid server environment variables:\n${z.prettifyError(envServerResult.error)}`,
+  );
+}
+
+export const envServer = envServerResult.data;

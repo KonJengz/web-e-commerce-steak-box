@@ -1,27 +1,20 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { isRedirectError } from "next/dist/client/components/redirect";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { z } from "zod";
 
 import { envServer } from "@/config/env.server";
-import { loginSchema, type LoginInput } from "@/features/auth/schemas/auth.schema";
+import {
+  loginSchema,
+  type LoginInput,
+} from "@/features/auth/schemas/auth.schema";
 import { authService } from "@/features/auth/services/auth.service";
 import type { LoginActionState } from "@/features/auth/types/auth.type";
+import { getCookieValueFromSetCookieHeaders } from "@/lib/auth-helpers";
 import { ApiError } from "@/lib/api/error";
 
 const REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-
-const getRefreshTokenValue = (setCookieHeader: string | null): string | null => {
-  if (!setCookieHeader) {
-    return null;
-  }
-
-  const match = setCookieHeader.match(
-    new RegExp(`(?:^|,\\s*)${REFRESH_TOKEN_COOKIE_NAME}=([^;]+)`),
-  );
-
-  return match?.[1] ? decodeURIComponent(match[1]) : null;
-};
 
 export async function loginAction(
   input: LoginInput,
@@ -31,6 +24,7 @@ export async function loginAction(
   if (!validatedInput.success) {
     return {
       fieldErrors: validatedInput.error.flatten().fieldErrors,
+      message: z.prettifyError(validatedInput.error),
       success: false,
     };
   }
@@ -46,20 +40,22 @@ export async function loginAction(
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       value: result.data.accessToken,
+      maxAge: 60 * 15,
     });
 
-    const refreshTokenValue = getRefreshTokenValue(
-      result.headers.get("set-cookie"),
+    const refreshTokenValue = getCookieValueFromSetCookieHeaders(
+      result.headers,
+      REFRESH_TOKEN_COOKIE_NAME,
     );
-
     if (refreshTokenValue) {
       cookieStore.set({
         httpOnly: true,
         name: REFRESH_TOKEN_COOKIE_NAME,
-        path: "/api/auth",
+        path: "/",
         sameSite: "strict",
         secure: process.env.NODE_ENV === "production",
         value: refreshTokenValue,
+        maxAge: 60 * 60 * 24 * 7,
       });
     }
 

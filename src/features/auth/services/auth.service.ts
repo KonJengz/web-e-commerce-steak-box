@@ -8,6 +8,8 @@ import type {
 import { api } from "@/lib/api/client";
 import type { ApiResult } from "@/types";
 
+const REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+
 const login = async (data: LoginInput): Promise<ApiResult<LoginResponse>> => {
   const result = await api.post<LoginApiResponse>("/api/auth/login", data);
 
@@ -20,6 +22,25 @@ const login = async (data: LoginInput): Promise<ApiResult<LoginResponse>> => {
   };
 };
 
+const refresh = async (
+  refreshToken: string,
+): Promise<ApiResult<LoginResponse>> => {
+  const result = await api.post<LoginApiResponse>("/api/auth/refresh", undefined, {
+    headers: {
+      Cookie: `${REFRESH_TOKEN_COOKIE_NAME}=${encodeURIComponent(refreshToken)}`,
+    },
+  });
+
+  return {
+    ...result,
+    data: {
+      accessToken: result.data.access_token,
+      user: result.data.user,
+    },
+  };
+};
+
 export const authService = {
   login,
+  refresh,
 };

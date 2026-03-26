@@ -88,7 +88,7 @@ export function LoginForm() {
         </div>
 
         {submissionState?.message ? (
-          <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm leading-6 text-destructive">
+          <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive">
             {submissionState.message}
           </div>
         ) : null}

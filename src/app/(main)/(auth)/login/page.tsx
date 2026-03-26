@@ -23,17 +23,20 @@ interface HighlightItem {
 
 const highlightItems: HighlightItem[] = [
   {
-    description: "Track shipments, invoices, and repeat purchases without re-entering details.",
+    description:
+      "Track shipments, invoices, and repeat purchases without re-entering details.",
     icon: ShoppingBag,
     title: "Order history in one place",
   },
   {
-    description: "Private account actions stay behind server-side auth and HttpOnly cookies.",
+    description:
+      "Private account actions stay behind server-side auth and HttpOnly cookies.",
     icon: ShieldCheck,
     title: "Built for secure checkout",
   },
   {
-    description: "Keep addresses, saved preferences, and cart flow ready for your next order.",
+    description:
+      "Keep addresses, saved preferences, and cart flow ready for your next order.",
     icon: Sparkles,
     title: "Faster return visits",
   },
@@ -110,7 +113,7 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <section className="lg:pl-2">
+        <section>
           <LoginForm />
         </section>
       </div>
