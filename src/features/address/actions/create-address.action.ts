@@ -1,0 +1,77 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { z } from "zod";
+
+import {
+  createAddressSchema,
+  type CreateAddressInput,
+} from "@/features/address/schemas/address.schema";
+import { addressService } from "@/features/address/services/address.service";
+import type { CreateAddressActionState } from "@/features/address/types/address.type";
+import { clearAuthSession } from "@/features/auth/services/auth-session.service";
+import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import { ApiError } from "@/lib/api/error";
+
+const buildUnauthorizedState = async (): Promise<CreateAddressActionState> => {
+  await clearAuthSession();
+
+  return {
+    message: "Your session expired. Please sign in again to save an address.",
+    requiresReauthentication: true,
+    success: false,
+  };
+};
+
+export async function createAddressAction(
+  input: CreateAddressInput,
+): Promise<CreateAddressActionState> {
+  const accessToken = await getCurrentAccessToken();
+
+  if (!accessToken) {
+    return buildUnauthorizedState();
+  }
+
+  const validatedInput = createAddressSchema.safeParse(input);
+
+  if (!validatedInput.success) {
+    return {
+      fieldErrors: validatedInput.error.flatten().fieldErrors,
+      message: z.prettifyError(validatedInput.error),
+      success: false,
+    };
+  }
+
+  try {
+    const result = await addressService.create(accessToken, validatedInput.data);
+
+    revalidatePath("/addresses");
+    revalidatePath("/checkout");
+
+    return {
+      message: result.data?.message ?? "Address saved successfully.",
+      success: true,
+    };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    if (error instanceof ApiError) {
+      if (error.status === 401) {
+        return buildUnauthorizedState();
+      }
+
+      return {
+        message: error.message,
+        success: false,
+      };
+    }
+
+    return {
+      message: "Unable to save the address right now. Please try again.",
+      success: false,
+    };
+  }
+}

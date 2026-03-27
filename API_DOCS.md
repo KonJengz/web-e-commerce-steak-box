@@ -878,6 +878,23 @@ _(refresh_token ใหม่จะถูกส่งผ่าน `Set-Cookie` he
 
 **Headers:** `Authorization: Bearer <access_token>`
 
+**Response 200:**
+
+```json
+[
+  {
+    "id": "0195dd2a-9b4c-7c8d-b4ab-629f8ff53e59",
+    "recipient_name": "John Doe",
+    "phone": "0812345678",
+    "address_line": "123/4 ถนนสุขุมวิท",
+    "city": "กรุงเทพ",
+    "postal_code": "10110",
+    "is_default": true,
+    "created_at": "2024-03-27T10:30:00Z"
+  }
+]
+```
+
 ---
 
 ### POST `/api/addresses`
@@ -895,10 +912,26 @@ _(refresh_token ใหม่จะถูกส่งผ่าน `Set-Cookie` he
   "address_line": "123/4 ถนนสุขุมวิท",
   "city": "กรุงเทพ",
   "postal_code": "10110",
-  "country": "Thailand",
   "is_default": true
 }
 ```
+
+**Response 201:**
+
+```json
+{
+  "id": "0195dd2a-9b4c-7c8d-b4ab-629f8ff53e59",
+  "recipient_name": "John Doe",
+  "phone": "0812345678",
+  "address_line": "123/4 ถนนสุขุมวิท",
+  "city": "กรุงเทพ",
+  "postal_code": "10110",
+  "is_default": true,
+  "created_at": "2024-03-27T10:30:00Z"
+}
+```
+
+**หมายเหตุ:** ระบบนี้รองรับเฉพาะที่อยู่ในประเทศไทย ดังนั้น request/response ของ address จะไม่มี field `country`
 
 ---
 
@@ -917,6 +950,21 @@ _(refresh_token ใหม่จะถูกส่งผ่าน `Set-Cookie` he
 }
 ```
 
+**Response 200:**
+
+```json
+{
+  "id": "0195dd2a-9b4c-7c8d-b4ab-629f8ff53e59",
+  "recipient_name": "Jane Doe",
+  "phone": "0812345678",
+  "address_line": "123/4 ถนนสุขุมวิท",
+  "city": "กรุงเทพ",
+  "postal_code": "10110",
+  "is_default": true,
+  "created_at": "2024-03-27T10:30:00Z"
+}
+```
+
 ---
 
 ### DELETE `/api/addresses/{id}`
@@ -924,6 +972,14 @@ _(refresh_token ใหม่จะถูกส่งผ่าน `Set-Cookie` he
 ลบที่อยู่
 
 **Headers:** `Authorization: Bearer <access_token>`
+
+**Response 200:**
+
+```json
+{
+  "message": "Address deleted successfully"
+}
+```
 
 ---
 
