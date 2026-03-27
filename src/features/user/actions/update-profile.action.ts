@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
-import { clearAuthSession } from "@/features/auth/services/auth-session.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import {
   updateProfileSchema,
@@ -31,8 +30,6 @@ const getUpdateProfileInput = (
 };
 
 const buildUnauthorizedState = async (): Promise<UpdateProfileActionState> => {
-  await clearAuthSession();
-
   return {
     message: "Your session expired. Please sign in again to update your profile.",
     requiresReauthentication: true,

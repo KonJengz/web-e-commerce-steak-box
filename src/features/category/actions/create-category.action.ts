@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
-import { clearAuthSession } from "@/features/auth/services/auth-session.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import {
   createCategorySchema,
@@ -15,8 +14,6 @@ import type { CreateCategoryActionState } from "@/features/category/types/catego
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<CreateCategoryActionState> => {
-  await clearAuthSession();
-
   return {
     message: "Your session expired. Please sign in again to manage categories.",
     requiresReauthentication: true,

@@ -10,13 +10,10 @@ import {
 } from "@/features/address/schemas/address.schema";
 import { addressService } from "@/features/address/services/address.service";
 import type { UpdateAddressActionState } from "@/features/address/types/address.type";
-import { clearAuthSession } from "@/features/auth/services/auth-session.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<UpdateAddressActionState> => {
-  await clearAuthSession();
-
   return {
     message: "Your session expired. Please sign in again to update this address.",
     requiresReauthentication: true,

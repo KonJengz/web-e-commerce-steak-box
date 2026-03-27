@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { envServer } from "@/config/env.server";
+import { applyResolvedSessionCookies } from "@/features/auth/services/auth-response-cookie.service";
 import {
-  isAccessTokenExpired,
-  refreshAccessToken,
-} from "@/lib/auth-helpers";
+  buildRequestHeadersWithAuthSession,
+  getRequestAccessToken,
+  getRequestRefreshToken,
+  hasValidRequestAccessToken,
+  resolveRequestAuthSession,
+  type RequestAuthSession,
+} from "@/features/auth/services/request-auth-session.service";
 
 export const config = {
   matcher: [
@@ -38,6 +42,18 @@ const isAuthRoute = (pathname: string): boolean => {
   return authRoutes.some((route) => pathname === route);
 };
 
+const createNextResponse = (requestHeaders?: Headers): NextResponse => {
+  return applySecurityHeaders(
+    requestHeaders
+      ? NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        })
+      : NextResponse.next(),
+  );
+};
+
 const applySecurityHeaders = (response: NextResponse): NextResponse => {
   response.headers.set("X-DNS-Prefetch-Control", "on");
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
@@ -52,60 +68,6 @@ const applySecurityHeaders = (response: NextResponse): NextResponse => {
   }
 
   return response;
-};
-
-const setAccessTokenCookie = (
-  response: NextResponse,
-  accessToken: string,
-): void => {
-  response.cookies.set({
-    httpOnly: true,
-    maxAge: envServer.ACCESS_TOKEN_MAX_AGE,
-    name: envServer.ACCESS_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "lax",
-    secure: isProduction,
-    value: accessToken,
-  });
-};
-
-const clearAuthCookies = (response: NextResponse): NextResponse => {
-  response.cookies.set({
-    httpOnly: true,
-    maxAge: 0,
-    name: envServer.ACCESS_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "lax",
-    secure: isProduction,
-    value: "",
-  });
-
-  response.cookies.set({
-    httpOnly: true,
-    maxAge: 0,
-    name: envServer.REFRESH_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "strict",
-    secure: isProduction,
-    value: "",
-  });
-
-  return response;
-};
-
-const setRefreshTokenCookie = (
-  response: NextResponse,
-  refreshToken: string,
-): void => {
-  response.cookies.set({
-    httpOnly: true,
-    maxAge: envServer.REFRESH_TOKEN_MAX_AGE,
-    name: envServer.REFRESH_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "strict",
-    secure: isProduction,
-    value: refreshToken,
-  });
 };
 
 const redirectTo = (request: NextRequest, pathname: string): NextResponse => {
@@ -125,93 +87,86 @@ const redirectToLogin = (request: NextRequest): NextResponse => {
   return applySecurityHeaders(NextResponse.redirect(loginUrl));
 };
 
-const tryRefreshSession = async (
+const createResponseWithResolvedSession = (
   request: NextRequest,
+  session: RequestAuthSession,
+): NextResponse => {
+  const response = createNextResponse(
+    buildRequestHeadersWithAuthSession(request, session),
+  );
+
+  return applyResolvedSessionCookies(response, session);
+};
+
+const applyResolvedSessionToRedirect = (
   response: NextResponse,
-): Promise<NextResponse | null> => {
-  const refreshToken = request.cookies.get(envServer.REFRESH_TOKEN_COOKIE_NAME)?.value;
+  session: RequestAuthSession | null,
+): NextResponse => {
+  if (!session) {
+    return response;
+  }
 
-  if (!refreshToken) {
+  return applyResolvedSessionCookies(response, session);
+};
+
+const resolveSessionSafely = async (
+  request: NextRequest,
+): Promise<RequestAuthSession | null> => {
+  try {
+    return await resolveRequestAuthSession(request);
+  } catch {
     return null;
   }
-
-  const refreshedSession = await refreshAccessToken(refreshToken);
-
-  if (!refreshedSession) {
-    return null;
-  }
-
-  setAccessTokenCookie(response, refreshedSession.accessToken);
-
-  if (refreshedSession.refreshToken) {
-    setRefreshTokenCookie(response, refreshedSession.refreshToken);
-  }
-
-  return response;
 };
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const accessToken = request.cookies.get(envServer.ACCESS_TOKEN_COOKIE_NAME)?.value;
-  const refreshToken = request.cookies.get(envServer.REFRESH_TOKEN_COOKIE_NAME)?.value;
+  const accessToken = getRequestAccessToken(request);
+  const refreshToken = getRequestRefreshToken(request);
   const hasAccessToken = Boolean(accessToken);
   const hasRefreshToken = Boolean(refreshToken);
+  const hasValidAccessToken = hasValidRequestAccessToken(request);
   const isProtected = isProtectedRoute(pathname);
   const isAuth = isAuthRoute(pathname);
-  const hasValidAccessToken = accessToken
-    ? !isAccessTokenExpired(accessToken)
-    : false;
+  const resolvedSession =
+    !hasValidAccessToken && hasRefreshToken
+      ? await resolveSessionSafely(request)
+      : null;
+  const activeSession =
+    hasValidAccessToken && accessToken
+      ? ({
+          accessToken,
+          refreshedSession: null,
+        } satisfies RequestAuthSession)
+      : resolvedSession;
 
   if (isProtected) {
-    if (hasValidAccessToken) {
-      return applySecurityHeaders(NextResponse.next());
+    if (!activeSession) {
+      return redirectToLogin(request);
     }
 
-    if (hasRefreshToken) {
-      try {
-        const response = applySecurityHeaders(NextResponse.next());
-        const refreshedResponse = await tryRefreshSession(request, response);
-
-        if (refreshedResponse) {
-          return refreshedResponse;
-        }
-      } catch {
-        const response = redirectToLogin(request);
-        return clearAuthCookies(response);
-      }
+    if (activeSession.refreshedSession) {
+      return createResponseWithResolvedSession(request, activeSession);
     }
 
-    const response = redirectToLogin(request);
-    return clearAuthCookies(response);
+    return createNextResponse();
   }
 
   if (isAuth) {
-    if (hasValidAccessToken) {
-      return redirectTo(request, "/");
+    if (activeSession) {
+      return applyResolvedSessionToRedirect(redirectTo(request, "/"), activeSession);
     }
 
-    if (hasRefreshToken) {
-      try {
-        const response = redirectTo(request, "/");
-        const refreshedResponse = await tryRefreshSession(request, response);
-
-        if (refreshedResponse) {
-          return refreshedResponse;
-        }
-      } catch {
-        const response = applySecurityHeaders(NextResponse.next());
-        return clearAuthCookies(response);
-      }
-
-      const response = applySecurityHeaders(NextResponse.next());
-      return clearAuthCookies(response);
-    }
-
-    if (hasAccessToken) {
-      const response = applySecurityHeaders(NextResponse.next());
-      return clearAuthCookies(response);
-    }
+    return createNextResponse();
   }
 
-  return applySecurityHeaders(NextResponse.next());
+  if (resolvedSession?.refreshedSession) {
+    return createResponseWithResolvedSession(request, resolvedSession);
+  }
+
+  if (hasAccessToken && !hasValidAccessToken && !hasRefreshToken) {
+    return createNextResponse();
+  }
+
+  return createNextResponse();
 }

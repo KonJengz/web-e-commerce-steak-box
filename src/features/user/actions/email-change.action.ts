@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
-import { clearAuthSession } from "@/features/auth/services/auth-session.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import {
   requestEmailChangeSchema,
@@ -21,8 +20,6 @@ import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedRequestState =
   async (): Promise<RequestEmailChangeActionState> => {
-    await clearAuthSession();
-
     return {
       message: "Your session expired. Please sign in again to change your email.",
       requiresReauthentication: true,
@@ -32,8 +29,6 @@ const buildUnauthorizedRequestState =
 
 const buildUnauthorizedVerifyState =
   async (): Promise<VerifyEmailChangeActionState> => {
-    await clearAuthSession();
-
     return {
       message: "Your session expired. Please sign in again to verify your email change.",
       requiresReauthentication: true,

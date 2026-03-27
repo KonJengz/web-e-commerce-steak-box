@@ -3,15 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-import { clearAuthSession } from "@/features/auth/services/auth-session.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import { productService } from "@/features/product/services/product.service";
 import type { DeleteProductActionState } from "@/features/product/types/product.type";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<DeleteProductActionState> => {
-  await clearAuthSession();
-
   return {
     message: "Your session expired. Please sign in again to manage products.",
     requiresReauthentication: true,

@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
-import { clearAuthSession } from "@/features/auth/services/auth-session.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import {
   createProductSchema,
@@ -15,8 +14,6 @@ import type { CreateProductActionState } from "@/features/product/types/product.
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<CreateProductActionState> => {
-  await clearAuthSession();
-
   return {
     message: "Your session expired. Please sign in again to manage products.",
     requiresReauthentication: true,

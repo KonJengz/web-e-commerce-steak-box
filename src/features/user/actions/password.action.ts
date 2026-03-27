@@ -16,8 +16,6 @@ import type { UpdatePasswordActionState } from "@/features/user/types/user.type"
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<UpdatePasswordActionState> => {
-  await clearAuthSession();
-
   return {
     message: "Your session expired. Please sign in again to update your password.",
     redirectToLogin: true,

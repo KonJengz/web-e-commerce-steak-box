@@ -5,13 +5,10 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 import { addressService } from "@/features/address/services/address.service";
 import type { DeleteAddressActionState } from "@/features/address/types/address.type";
-import { clearAuthSession } from "@/features/auth/services/auth-session.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<DeleteAddressActionState> => {
-  await clearAuthSession();
-
   return {
     message: "Your session expired. Please sign in again to delete this address.",
     requiresReauthentication: true,
