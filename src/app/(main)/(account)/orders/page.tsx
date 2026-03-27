@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { orderService } from "@/features/order/services/order.service";
 
 interface OrdersPageProps {
@@ -23,7 +24,7 @@ export default async function OrdersPage({
   const accessToken = await getCurrentAccessToken();
 
   if (!accessToken) {
-    redirect("/login");
+    redirect(buildLoginRedirectPath("/orders"));
   }
 
   const resolvedSearchParams = await searchParams;

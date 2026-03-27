@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AccountSidebarNav } from "@/components/account/account-sidebar-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getCurrentUser } from "@/features/auth/services/current-user.service";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { resolveUserAvatar } from "@/features/user/utils/avatar";
 
 interface AccountShellProps {
@@ -14,7 +15,7 @@ export async function AccountShell({ children }: AccountShellProps) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    redirect("/login");
+    redirect(buildLoginRedirectPath("/profile"));
   }
 
   const avatar = resolveUserAvatar(currentUser.email, currentUser.image);

@@ -1,10 +1,11 @@
 import "server-only";
 
 import { cache } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { envServer } from "@/config/env.server";
+import { REQUEST_ACCESS_TOKEN_HEADER_NAME } from "@/features/auth/services/request-auth-session.service";
 import { userService } from "@/features/user/services/user.service";
 import type { UserProfile } from "@/features/user/types/user.type";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
@@ -12,6 +13,13 @@ import { isAccessTokenExpired } from "@/lib/auth-helpers";
 import { ApiError } from "@/lib/api/error";
 
 export const getCurrentAccessToken = cache(async (): Promise<string | null> => {
+  const requestHeaders = await headers();
+  const headerAccessToken = requestHeaders.get(REQUEST_ACCESS_TOKEN_HEADER_NAME);
+
+  if (headerAccessToken && !isAccessTokenExpired(headerAccessToken)) {
+    return headerAccessToken;
+  }
+
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(envServer.ACCESS_TOKEN_COOKIE_NAME)?.value;
 

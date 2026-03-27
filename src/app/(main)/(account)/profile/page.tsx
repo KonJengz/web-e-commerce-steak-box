@@ -6,6 +6,7 @@ import { formatAccountDate } from "@/components/account/account.utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getCurrentUser } from "@/features/auth/services/current-user.service";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { ProfileEmailEditor } from "@/features/user/components/profile-email-editor";
 import { ProfileNameEditor } from "@/features/user/components/profile-name-editor";
 import { ProfilePhotoEditor } from "@/features/user/components/profile-photo-editor";
@@ -15,7 +16,7 @@ export default async function ProfilePage() {
   const profile = await getCurrentUser();
 
   if (!profile) {
-    redirect("/login");
+    redirect(buildLoginRedirectPath("/profile"));
   }
 
   const avatar = resolveUserAvatar(profile.email, profile.image);

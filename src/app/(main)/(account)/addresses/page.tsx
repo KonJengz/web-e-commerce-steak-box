@@ -9,12 +9,13 @@ import { AddressCard } from "@/features/address/components/address-card";
 import { AddressCreateForm } from "@/features/address/components/address-create-form";
 import { addressService } from "@/features/address/services/address.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 
 export default async function AddressesPage() {
   const accessToken = await getCurrentAccessToken();
 
   if (!accessToken) {
-    redirect("/login");
+    redirect(buildLoginRedirectPath("/addresses"));
   }
 
   const addresses = (await addressService.getAll(accessToken)).data;

@@ -7,6 +7,8 @@ import {
   type RefreshedAuthSession,
 } from "@/lib/auth-helpers";
 
+export const REQUEST_ACCESS_TOKEN_HEADER_NAME = "x-auth-access-token";
+
 export interface RequestAuthSession {
   accessToken: string;
   refreshedSession: RefreshedAuthSession | null;
@@ -89,6 +91,8 @@ export const buildRequestHeadersWithAuthSession = (
   } else {
     requestHeaders.delete("cookie");
   }
+
+  requestHeaders.set(REQUEST_ACCESS_TOKEN_HEADER_NAME, session.accessToken);
 
   return requestHeaders;
 };

@@ -10,6 +10,7 @@ import {
 } from "@/features/auth/components/google-link-card";
 import { authService } from "@/features/auth/services/auth.service";
 import { ProfilePasswordEditor } from "@/features/user/components/profile-password-editor";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 
 export const metadata: Metadata = {
   title: "Security",
@@ -92,7 +93,7 @@ export default async function SecurityPage({
   const profile = await getCurrentUser();
 
   if (!profile) {
-    redirect("/login");
+    redirect(buildLoginRedirectPath("/security"));
   }
 
   const resolvedSearchParams = await searchParams;
