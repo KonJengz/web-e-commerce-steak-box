@@ -23,10 +23,10 @@ export async function Header() {
   const cartItemsCount: number = 3;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/92 shadow-sm backdrop-blur supports-backdrop-filter:bg-background/60 transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 shadow-sm backdrop-blur-xl transition-all duration-300">
       <MainContainer>
-        <div className="flex items-center justify-between gap-10 xl:gap-16">
-          <div>
+        <div className="flex items-center justify-between gap-8 xl:gap-16">
+          <div className="shrink-0">
             <HeaderBrand />
           </div>
 
@@ -34,7 +34,7 @@ export async function Header() {
             <HeaderSearch />
           </div>
 
-          <div className="flex flex-none items-center">
+          <div className="flex shrink-0 items-center">
             <HeaderActions
               cartItemsCount={cartItemsCount}
               isLoggedIn={Boolean(user)}

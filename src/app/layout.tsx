@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import "@/styles/globals.css";
-import { notoSans } from "@/styles/font";
+import { inter } from "@/styles/font";
 import { cn } from "@/lib/utils";
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", notoSans.className, "font-sans")}
+      className={cn("h-full", "antialiased", inter.variable, "font-sans")}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

@@ -10,10 +10,36 @@ export interface ProductSummary {
   stock: number;
 }
 
+export interface ProductDetail {
+  categoryId: string | null;
+  categoryName: string | null;
+  createdAt: string;
+  currentPrice: string;
+  description: string;
+  id: string;
+  imagePublicId: string | null;
+  imageUrl: string | null;
+  isActive: boolean;
+  name: string;
+  stock: number;
+}
+
+export interface ProductImage {
+  createdAt: string;
+  id: string;
+  imagePublicId: string;
+  imageUrl: string;
+  isPrimary: boolean;
+  productId: string;
+  sortOrder: number;
+}
+
 export interface ProductQueryOptions {
   categoryId?: string;
   inStock?: boolean;
   limit?: number;
+  maxPrice?: number;
+  minPrice?: number;
   page?: number;
   search?: string;
   sort?: "created_asc" | "created_desc" | "price_asc" | "price_desc";

@@ -2,6 +2,8 @@ import "server-only";
 
 import type { CreateProductInput } from "@/features/product/schemas/product.schema";
 import type {
+  ProductDetail,
+  ProductImage,
   ProductListResult,
   ProductQueryOptions,
   ProductSummary,
@@ -27,6 +29,30 @@ interface ProductListApiResponse {
   total_pages: number;
 }
 
+interface ProductDetailApiResponse {
+  category_id: string | null;
+  category_name: string | null;
+  created_at: string;
+  current_price: string;
+  description: string;
+  id: string;
+  image_public_id: string | null;
+  image_url: string | null;
+  is_active: boolean;
+  name: string;
+  stock: number;
+}
+
+interface ProductImageApiResponse {
+  created_at: string;
+  id: string;
+  image_public_id: string;
+  image_url: string;
+  is_primary: boolean;
+  product_id: string;
+  sort_order: number;
+}
+
 interface ProductMutationApiResponse {
   id: string;
 }
@@ -45,6 +71,38 @@ const mapProductSummary = (
   };
 };
 
+const mapProductDetail = (
+  product: ProductDetailApiResponse,
+): ProductDetail => {
+  return {
+    categoryId: product.category_id,
+    categoryName: product.category_name,
+    createdAt: product.created_at,
+    currentPrice: product.current_price,
+    description: product.description,
+    id: product.id,
+    imagePublicId: product.image_public_id,
+    imageUrl: product.image_url,
+    isActive: product.is_active,
+    name: product.name,
+    stock: product.stock,
+  };
+};
+
+const mapProductImage = (
+  image: ProductImageApiResponse,
+): ProductImage => {
+  return {
+    createdAt: image.created_at,
+    id: image.id,
+    imagePublicId: image.image_public_id,
+    imageUrl: image.image_url,
+    isPrimary: image.is_primary,
+    productId: image.product_id,
+    sortOrder: image.sort_order,
+  };
+};
+
 const buildProductListPath = (options: ProductQueryOptions = {}): string => {
   const searchParams = new URLSearchParams();
 
@@ -58,6 +116,14 @@ const buildProductListPath = (options: ProductQueryOptions = {}): string => {
 
   if (typeof options.limit === "number") {
     searchParams.set("limit", String(options.limit));
+  }
+
+  if (typeof options.maxPrice === "number") {
+    searchParams.set("max_price", String(options.maxPrice));
+  }
+
+  if (typeof options.minPrice === "number") {
+    searchParams.set("min_price", String(options.minPrice));
   }
 
   if (typeof options.page === "number") {
@@ -91,6 +157,32 @@ const getAll = async (
       total: result.data.total,
       totalPages: result.data.total_pages,
     },
+  };
+};
+
+const getById = async (
+  productId: string,
+): Promise<ApiResult<ProductDetail>> => {
+  const result = await api.get<ProductDetailApiResponse>(
+    `/api/products/${productId}`,
+  );
+
+  return {
+    ...result,
+    data: mapProductDetail(result.data),
+  };
+};
+
+const getImages = async (
+  productId: string,
+): Promise<ApiResult<ProductImage[]>> => {
+  const result = await api.get<ProductImageApiResponse[]>(
+    `/api/products/${productId}/images`,
+  );
+
+  return {
+    ...result,
+    data: result.data.map(mapProductImage),
   };
 };
 
@@ -129,5 +221,7 @@ const remove = async (
 export const productService = {
   create,
   getAll,
+  getById,
+  getImages,
   remove,
 };

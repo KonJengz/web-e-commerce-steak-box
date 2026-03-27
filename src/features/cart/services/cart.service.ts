@@ -65,6 +65,31 @@ const getCurrent = async (accessToken: string): Promise<ApiResult<Cart>> => {
   };
 };
 
+const addItem = async (
+  accessToken: string,
+  productId: string,
+  quantity: number,
+): Promise<ApiResult<Cart>> => {
+  const result = await api.post<CartApiResponse>(
+    "/api/carts/items",
+    {
+      product_id: productId,
+      quantity,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: mapCart(result.data),
+  };
+};
+
 export const cartService = {
+  addItem,
   getCurrent,
 };
