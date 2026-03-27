@@ -9,7 +9,7 @@ import {
 } from "@/components/account/account.utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { requireCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import { executeProtectedRequestOrRedirect } from "@/features/auth/services/current-user.service";
 import { orderService } from "@/features/order/services/order.service";
 
 interface OrdersPageProps {
@@ -19,20 +19,22 @@ interface OrdersPageProps {
 export default async function OrdersPage({
   searchParams,
 }: OrdersPageProps) {
-  const accessToken = await requireCurrentAccessToken("/orders");
-
   const resolvedSearchParams = await searchParams;
   const pageParam = resolvedSearchParams.page;
   const pageValue = typeof pageParam === "string" ? pageParam : pageParam?.[0];
   const pageNumber = Number(pageValue);
   const currentPage =
     Number.isFinite(pageNumber) && pageNumber > 0 ? Math.floor(pageNumber) : 1;
-  const ordersPage = (
-    await orderService.getAll(accessToken, {
-      limit: 6,
-      page: currentPage,
-    })
-  ).data;
+  const ordersPage = await executeProtectedRequestOrRedirect(
+    async (accessToken) =>
+      (
+        await orderService.getAll(accessToken, {
+          limit: 6,
+          page: currentPage,
+        })
+      ).data,
+    `/orders${currentPage > 1 ? `?page=${currentPage}` : ""}`,
+  );
   const hasPreviousPage = ordersPage.page > 1;
   const hasNextPage = ordersPage.page < ordersPage.totalPages;
 

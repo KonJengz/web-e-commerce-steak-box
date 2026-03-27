@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { AddressCard } from "@/features/address/components/address-card";
 import { AddressCreateForm } from "@/features/address/components/address-create-form";
 import { addressService } from "@/features/address/services/address.service";
-import { requireCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import { executeProtectedRequestOrRedirect } from "@/features/auth/services/current-user.service";
 
 export default async function AddressesPage() {
-  const accessToken = await requireCurrentAccessToken("/addresses");
-
-  const addresses = (await addressService.getAll(accessToken)).data;
+  const addresses = await executeProtectedRequestOrRedirect(
+    async (accessToken) => (await addressService.getAll(accessToken)).data,
+    "/addresses",
+  );
   const sortedAddresses = [...addresses].sort((left, right) => {
     if (left.isDefault !== right.isDefault) {
       return Number(right.isDefault) - Number(left.isDefault);

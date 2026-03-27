@@ -11,7 +11,10 @@ import {
   resolveRequestAuthSession,
   type RequestAuthSession,
 } from "@/features/auth/services/request-auth-session.service";
-import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
+import {
+  buildLoginRedirectPath,
+  FORCE_LOGIN_QUERY_PARAM,
+} from "@/features/auth/utils/auth-redirect";
 
 export const config = {
   matcher: [
@@ -119,6 +122,7 @@ const resolveSessionSafely = async (
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const forceLogin = request.nextUrl.searchParams.get(FORCE_LOGIN_QUERY_PARAM) === "1";
   const accessToken = getRequestAccessToken(request);
   const refreshToken = getRequestRefreshToken(request);
   const hasAccessToken = Boolean(accessToken);
@@ -147,6 +151,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isAuth) {
+    if (forceLogin) {
+      return clearAuthResponseCookies(createNextResponse());
+    }
+
     if (activeSession) {
       return applyResolvedSessionToRedirect(redirectTo(request, "/"), activeSession);
     }

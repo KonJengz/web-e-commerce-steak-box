@@ -10,7 +10,7 @@ interface AccountShellProps {
 }
 
 export async function AccountShell({ children }: AccountShellProps) {
-  const currentUser = await requireCurrentUser("/profile");
+  const currentUser = await requireCurrentUser();
 
   const avatar = resolveUserAvatar(currentUser.email, currentUser.image);
 

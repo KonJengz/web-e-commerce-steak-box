@@ -8,6 +8,7 @@ import {
 import { refreshAccessTokenSingleFlight } from "@/features/auth/services/auth-refresh-coordinator.service";
 
 export const REQUEST_ACCESS_TOKEN_HEADER_NAME = "x-auth-access-token";
+export const REQUEST_PATH_HEADER_NAME = "x-auth-request-path";
 
 export interface RequestAuthSession {
   accessToken: string;
@@ -93,6 +94,10 @@ export const buildRequestHeadersWithAuthSession = (
   }
 
   requestHeaders.set(REQUEST_ACCESS_TOKEN_HEADER_NAME, session.accessToken);
+  requestHeaders.set(
+    REQUEST_PATH_HEADER_NAME,
+    `${request.nextUrl.pathname}${request.nextUrl.search}`,
+  );
 
   return requestHeaders;
 };

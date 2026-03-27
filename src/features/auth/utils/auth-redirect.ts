@@ -1,5 +1,6 @@
 const LOGIN_PATHNAME = "/login";
 const AUTH_REDIRECT_BASE_URL = "http://local.test";
+export const FORCE_LOGIN_QUERY_PARAM = "forceLogin";
 
 const BLOCKED_REDIRECT_PREFIXES = [LOGIN_PATHNAME, "/verify-email"] as const;
 
@@ -32,12 +33,19 @@ export const resolveAuthRedirectTarget = (
 
 export const buildLoginRedirectPath = (
   redirectTo?: string | null,
+  options?: {
+    forceLogin?: boolean;
+  },
 ): string => {
   const loginUrl = new URL(LOGIN_PATHNAME, AUTH_REDIRECT_BASE_URL);
   const normalizedRedirectTarget = normalizeAuthRedirectTarget(redirectTo);
 
   if (normalizedRedirectTarget) {
     loginUrl.searchParams.set("redirectTo", normalizedRedirectTarget);
+  }
+
+  if (options?.forceLogin) {
+    loginUrl.searchParams.set(FORCE_LOGIN_QUERY_PARAM, "1");
   }
 
   return `${loginUrl.pathname}${loginUrl.search}`;

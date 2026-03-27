@@ -6,16 +6,18 @@ import { formatCurrency } from "@/components/account/account.utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { addressService } from "@/features/address/services/address.service";
-import { requireCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import { executeProtectedRequestOrRedirect } from "@/features/auth/services/current-user.service";
 import { cartService } from "@/features/cart/services/cart.service";
 
 export default async function CheckoutPage() {
-  const accessToken = await requireCurrentAccessToken("/checkout");
-
-  const [cartResult, addressesResult] = await Promise.all([
-    cartService.getCurrent(accessToken),
-    addressService.getAll(accessToken),
-  ]);
+  const [cartResult, addressesResult] = await executeProtectedRequestOrRedirect(
+    async (accessToken) =>
+      Promise.all([
+        cartService.getCurrent(accessToken),
+        addressService.getAll(accessToken),
+      ]),
+    "/checkout",
+  );
 
   const cart = cartResult.data;
   const addresses = addressesResult.data;
