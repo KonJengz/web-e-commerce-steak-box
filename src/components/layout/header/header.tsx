@@ -13,6 +13,7 @@ const toHeaderUser = (user: User): HeaderUser => {
     avatar: resolveUserAvatar(user.email, user.image),
     email: user.email,
     name: user.name,
+    role: user.role,
   };
 };
 

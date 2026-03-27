@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { logoutAction } from "@/features/auth/actions/logout.action";
-import { headerUserMenuItems } from "./header.constants";
+import { headerAdminMenuItem, headerUserMenuItems } from "./header.constants";
 import type { HeaderUser, HeaderUserMenuItem } from "./header.types";
 
 interface HeaderUserMenuProps {
@@ -28,6 +28,8 @@ interface HeaderUserMenuProps {
 export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const adminMenuItems: HeaderUserMenuItem[] =
+    user.role === "ADMIN" ? [headerAdminMenuItem] : [];
 
   const handleLogout = (): void => {
     startTransition(async () => {
@@ -75,6 +77,32 @@ export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border/50" />
+        {adminMenuItems.length > 0 ? (
+          <>
+            <DropdownMenuGroup className="p-1">
+              {adminMenuItems.map((item: HeaderUserMenuItem) => {
+                const Icon = item.icon;
+
+                return (
+                  <DropdownMenuItem
+                    key={item.href}
+                    asChild
+                    className="mb-1 cursor-pointer rounded-lg transition-colors hover:bg-primary/10 hover:text-primary"
+                  >
+                    <Link
+                      href={item.href}
+                      className="flex w-full items-center py-2 text-foreground/80"
+                    >
+                      <Icon className="mr-3 h-4 w-4" />
+                      <span className="font-medium">{item.label}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator className="bg-border/50" />
+          </>
+        ) : null}
         <DropdownMenuGroup className="p-1">
           {headerUserMenuItems.map((item: HeaderUserMenuItem) => {
             const Icon = item.icon;

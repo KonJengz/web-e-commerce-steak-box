@@ -1,9 +1,11 @@
 import type { LucideIcon } from "lucide-react";
+import type { UserRole } from "@/features/user/types/user.type";
 
 export interface HeaderUser {
   name: string;
   email: string;
   avatar: string;
+  role: UserRole;
 }
 
 export interface HeaderNavItem {
