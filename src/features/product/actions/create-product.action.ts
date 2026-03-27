@@ -5,7 +5,8 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
 import {
-  executeWithServerAuthRetry,
+  executeWithAdminServerAuthRetry,
+  isServerAdminAuthorizationRequiredError,
   isServerAuthRequiredError,
 } from "@/features/auth/services/server-auth-execution.service";
 import {
@@ -20,6 +21,14 @@ const buildUnauthorizedState = async (): Promise<CreateProductActionState> => {
   return {
     message: "Your session expired. Please sign in again to manage products.",
     requiresReauthentication: true,
+    success: false,
+  };
+};
+
+const buildForbiddenState = (): CreateProductActionState => {
+  return {
+    message: "Administrator access is required to manage products.",
+    requiresAdmin: true,
     success: false,
   };
 };
@@ -55,7 +64,7 @@ export async function createProductAction(
   }
 
   try {
-    await executeWithServerAuthRetry((accessToken) =>
+    await executeWithAdminServerAuthRetry((accessToken) =>
       productService.create(accessToken, validatedInput.data),
     );
 
@@ -76,7 +85,15 @@ export async function createProductAction(
       return buildUnauthorizedState();
     }
 
+    if (isServerAdminAuthorizationRequiredError(error)) {
+      return buildForbiddenState();
+    }
+
     if (error instanceof ApiError) {
+      if (error.status === 403) {
+        return buildForbiddenState();
+      }
+
       return buildApiErrorState(error);
     }
 

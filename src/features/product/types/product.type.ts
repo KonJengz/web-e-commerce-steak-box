@@ -54,12 +54,14 @@ export interface CreateProductActionState {
     stock?: string[];
   };
   message?: string;
+  requiresAdmin?: boolean;
   requiresReauthentication?: boolean;
   success: boolean;
 }
 
 export interface DeleteProductActionState {
   message?: string;
+  requiresAdmin?: boolean;
   requiresReauthentication?: boolean;
   success: boolean;
 }

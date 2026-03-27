@@ -40,6 +40,11 @@ export function AdminProductDeleteButton({
 
         if (result.requiresReauthentication) {
           router.replace(buildLoginRedirectPath("/admin/products"));
+          return;
+        }
+
+        if (result.requiresAdmin) {
+          router.replace("/");
         }
 
         return;

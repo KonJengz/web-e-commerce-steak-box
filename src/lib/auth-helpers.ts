@@ -1,5 +1,6 @@
 import { envServer } from "@/config/env.server";
 import { authService } from "@/features/auth/services/auth.service";
+import type { UserRole } from "@/features/user/types/user.type";
 import { ApiError } from "@/lib/api/error";
 
 export interface RefreshedAuthSession {
@@ -46,7 +47,15 @@ export const getCookieValueFromSetCookieHeaders = (
   return null;
 };
 
-const decodeJwtPayload = (token: string): { exp?: number } | null => {
+interface JwtPayload {
+  exp?: number;
+  role?: unknown;
+  user?: {
+    role?: unknown;
+  };
+}
+
+const decodeJwtPayload = (token: string): JwtPayload | null => {
   try {
     const encodedPayload = token.split(".")[1];
 
@@ -62,12 +71,16 @@ const decodeJwtPayload = (token: string): { exp?: number } | null => {
       "=",
     );
 
-    return JSON.parse(Buffer.from(paddedPayload, "base64").toString("utf8")) as {
-      exp?: number;
-    };
+    return JSON.parse(
+      Buffer.from(paddedPayload, "base64").toString("utf8"),
+    ) as JwtPayload;
   } catch {
     return null;
   }
+};
+
+const isUserRole = (value: unknown): value is UserRole => {
+  return value === "ADMIN" || value === "USER";
 };
 
 export const isAccessTokenExpired = (token: string): boolean => {
@@ -78,6 +91,24 @@ export const isAccessTokenExpired = (token: string): boolean => {
   }
 
   return payload.exp * 1000 <= Date.now() + 5_000;
+};
+
+export const getAccessTokenRole = (token: string): UserRole | null => {
+  const payload = decodeJwtPayload(token);
+
+  if (!payload) {
+    return null;
+  }
+
+  if (isUserRole(payload.role)) {
+    return payload.role;
+  }
+
+  if (isUserRole(payload.user?.role)) {
+    return payload.user.role;
+  }
+
+  return null;
 };
 
 export const refreshAccessToken = async (

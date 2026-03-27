@@ -18,33 +18,36 @@ export function AdminPageHero({
   variant,
 }: AdminPageHeroProps) {
   return (
-    <section className="relative overflow-hidden rounded-[2.25rem] border border-emerald-500/20 bg-[linear-gradient(145deg,#07110d_0%,#0d1613_38%,#0f1316_100%)] px-6 py-7 text-white shadow-[0_30px_90px_rgba(0,0,0,0.35)] sm:px-8 sm:py-8">
-      <div className="pointer-events-none absolute inset-0 opacity-60">
-        <div className="absolute top-[-8%] right-[-2%] size-56 rounded-full bg-emerald-400/12 blur-[120px]" />
-        <div className="absolute bottom-[-22%] left-[-10%] size-60 rounded-full bg-[#f6c168]/10 blur-[140px]" />
+    <section className="animate-fade-in relative overflow-hidden rounded-3xl border border-white/6 bg-linear-to-br from-[#1a0f0d] via-[#0f0908] to-[#0a0706] px-6 py-7 text-white shadow-2xl sm:px-8 sm:py-8">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="animate-float absolute -top-12 -right-12 size-52 rounded-full bg-primary/15 blur-[100px]" />
+        <div className="animate-float-delayed absolute -bottom-20 -left-16 size-56 rounded-full bg-[#f6c168]/8 blur-[120px]" />
       </div>
 
-      <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-center">
+      <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_180px] lg:items-center">
         <div className="space-y-5">
-          <div className="inline-flex w-fit items-center rounded-full border border-white/10 bg-white/6 px-4 py-1.5 text-[11px] font-semibold tracking-[0.24em] uppercase text-[#8ef2c5]">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-1.5 text-[11px] font-semibold tracking-[0.24em] uppercase text-[#f6c168] backdrop-blur-sm">
+            <div className="glow-dot" />
             {badge}
           </div>
 
           <div className="space-y-3">
-            <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+            <h1 className="animate-fade-in-up max-w-2xl text-2xl font-bold tracking-tight text-white sm:text-3xl" style={{ animationDelay: "0.1s", animationFillMode: "backwards" }}>
               {title}
             </h1>
-            <p className="max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
+            <p className="animate-fade-in-up max-w-2xl text-sm leading-7 text-white/50" style={{ animationDelay: "0.2s", animationFillMode: "backwards" }}>
               {description}
             </p>
           </div>
 
           {children ? (
-            <div className="flex flex-wrap gap-3 pt-2">{children}</div>
+            <div className="animate-fade-in-up flex flex-wrap gap-3 pt-1" style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}>
+              {children}
+            </div>
           ) : null}
         </div>
 
-        <div className="mx-auto aspect-square w-full max-w-[220px]">
+        <div className="animate-float-slow mx-auto aspect-square w-full max-w-[180px]">
           <AdminSvgLoop variant={variant} />
         </div>
       </div>

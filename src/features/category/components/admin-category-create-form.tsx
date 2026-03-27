@@ -92,6 +92,11 @@ export function AdminCategoryCreateForm() {
 
         if (result.requiresReauthentication) {
           router.replace(buildLoginRedirectPath("/admin/categories"));
+          return;
+        }
+
+        if (result.requiresAdmin) {
+          router.replace("/");
         }
 
         return;

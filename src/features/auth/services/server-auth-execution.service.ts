@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 import { envServer } from "@/config/env.server";
 import { refreshAccessTokenSingleFlight as refreshAuthSessionSingleFlight } from "@/features/auth/services/auth-refresh-coordinator.service";
+import { userService } from "@/features/user/services/user.service";
 import {
   isAccessTokenExpired,
   type RefreshedAuthSession,
@@ -26,6 +27,13 @@ class ServerAuthRequiredError extends Error {
   constructor() {
     super("Authentication is required to complete this request.");
     this.name = "ServerAuthRequiredError";
+  }
+}
+
+class ServerAdminAuthorizationRequiredError extends Error {
+  constructor() {
+    super("Administrator access is required to complete this request.");
+    this.name = "ServerAdminAuthorizationRequiredError";
   }
 }
 
@@ -146,8 +154,28 @@ export const executeWithServerAuthRetry = async <T>(
   }
 };
 
+export const executeWithAdminServerAuthRetry = async <T>(
+  operation: (accessToken: string) => Promise<T>,
+): Promise<T> => {
+  return executeWithServerAuthRetry(async (accessToken) => {
+    const currentUser = await userService.getMe(accessToken);
+
+    if (currentUser.data.role !== "ADMIN") {
+      throw new ServerAdminAuthorizationRequiredError();
+    }
+
+    return operation(accessToken);
+  });
+};
+
 export const isServerAuthRequiredError = (
   error: unknown,
 ): error is ServerAuthRequiredError => {
   return error instanceof ServerAuthRequiredError;
+};
+
+export const isServerAdminAuthorizationRequiredError = (
+  error: unknown,
+): error is ServerAdminAuthorizationRequiredError => {
+  return error instanceof ServerAdminAuthorizationRequiredError;
 };

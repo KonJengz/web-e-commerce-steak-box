@@ -12,6 +12,7 @@ export interface CreateCategoryActionState {
     name?: string[];
   };
   message?: string;
+  requiresAdmin?: boolean;
   requiresReauthentication?: boolean;
   success: boolean;
 }

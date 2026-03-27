@@ -5,7 +5,8 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
 import {
-  executeWithServerAuthRetry,
+  executeWithAdminServerAuthRetry,
+  isServerAdminAuthorizationRequiredError,
   isServerAuthRequiredError,
 } from "@/features/auth/services/server-auth-execution.service";
 import {
@@ -20,6 +21,14 @@ const buildUnauthorizedState = async (): Promise<CreateCategoryActionState> => {
   return {
     message: "Your session expired. Please sign in again to manage categories.",
     requiresReauthentication: true,
+    success: false,
+  };
+};
+
+const buildForbiddenState = (): CreateCategoryActionState => {
+  return {
+    message: "Administrator access is required to manage categories.",
+    requiresAdmin: true,
     success: false,
   };
 };
@@ -55,7 +64,7 @@ export async function createCategoryAction(
   }
 
   try {
-    await executeWithServerAuthRetry((accessToken) =>
+    await executeWithAdminServerAuthRetry((accessToken) =>
       categoryService.create(accessToken, validatedInput.data),
     );
 
@@ -77,7 +86,15 @@ export async function createCategoryAction(
       return buildUnauthorizedState();
     }
 
+    if (isServerAdminAuthorizationRequiredError(error)) {
+      return buildForbiddenState();
+    }
+
     if (error instanceof ApiError) {
+      if (error.status === 403) {
+        return buildForbiddenState();
+      }
+
       return buildApiErrorState(error);
     }
 

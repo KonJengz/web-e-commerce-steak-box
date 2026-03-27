@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 import {
-  executeWithServerAuthRetry,
+  executeWithAdminServerAuthRetry,
+  isServerAdminAuthorizationRequiredError,
   isServerAuthRequiredError,
 } from "@/features/auth/services/server-auth-execution.service";
 import { productService } from "@/features/product/services/product.service";
@@ -19,11 +20,19 @@ const buildUnauthorizedState = async (): Promise<DeleteProductActionState> => {
   };
 };
 
+const buildForbiddenState = (): DeleteProductActionState => {
+  return {
+    message: "Administrator access is required to manage products.",
+    requiresAdmin: true,
+    success: false,
+  };
+};
+
 export async function deleteProductAction(
   productId: string,
 ): Promise<DeleteProductActionState> {
   try {
-    await executeWithServerAuthRetry((accessToken) =>
+    await executeWithAdminServerAuthRetry((accessToken) =>
       productService.remove(accessToken, productId),
     );
 
@@ -43,7 +52,15 @@ export async function deleteProductAction(
       return buildUnauthorizedState();
     }
 
+    if (isServerAdminAuthorizationRequiredError(error)) {
+      return buildForbiddenState();
+    }
+
     if (error instanceof ApiError) {
+      if (error.status === 403) {
+        return buildForbiddenState();
+      }
+
       return {
         message: error.message,
         success: false,

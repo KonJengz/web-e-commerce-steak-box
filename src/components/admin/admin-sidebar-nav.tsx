@@ -10,7 +10,7 @@ export function AdminSidebarNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="space-y-2">
+    <nav className="space-y-1">
       {adminNavItems.map((item) => {
         const Icon = item.icon;
         const isActive =
@@ -21,18 +21,18 @@ export function AdminSidebarNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-3 rounded-[1.25rem] border px-4 py-3 text-sm font-medium transition-all",
+              "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200",
               isActive
-                ? "border-emerald-400/35 bg-emerald-500/12 text-foreground shadow-[0_18px_40px_rgba(16,185,129,0.12)]"
-                : "border-border/70 bg-background/55 text-muted-foreground hover:border-emerald-400/20 hover:bg-muted/60 hover:text-foreground",
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground",
             )}
           >
             <span
               className={cn(
-                "inline-flex size-9 items-center justify-center rounded-full border transition-colors",
+                "inline-flex size-8 items-center justify-center rounded-lg transition-colors",
                 isActive
-                  ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-500"
-                  : "border-border/70 bg-background text-muted-foreground",
+                  ? "bg-primary/15 text-primary"
+                  : "bg-muted text-muted-foreground",
               )}
             >
               <Icon className="size-4" />

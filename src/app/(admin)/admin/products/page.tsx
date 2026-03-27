@@ -30,7 +30,7 @@ const getFirstSearchParam = (
 };
 
 const selectClassName =
-  "flex h-10 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
+  "flex h-10 w-full rounded-xl border border-border/50 bg-muted/30 px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export default async function AdminProductsPage({
   searchParams,
@@ -85,9 +85,9 @@ export default async function AdminProductsPage({
   return (
     <div className="space-y-6">
       <AdminPageHero
-        badge="Catalog Admin"
-        title="Manage live inventory without mixing it into the storefront shell"
-        description="Products stay in a dedicated admin route tree. Filtering uses the public listing endpoint, while writes still go through protected admin APIs."
+        badge="Products"
+        title="Manage your product catalog"
+        description="Create, search, and manage products. Writes go through protected admin APIs."
         variant="products"
       >
         <Badge
@@ -100,33 +100,31 @@ export default async function AdminProductsPage({
 
       <AdminProductCreateForm categories={categories} />
 
-      <section className="rounded-[2rem] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,251,249,0.95))] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold tracking-[0.28em] text-emerald-600 uppercase">
-              Product Directory
-            </p>
-            <div className="space-y-1">
-              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-                Search and review the catalog
-              </h2>
-              <p className="text-sm leading-7 text-muted-foreground">
-                The admin list only exposes capabilities the current API contract supports confidently.
+      <section className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="glow-dot" />
+              <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
+                Product Directory
               </p>
             </div>
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              Search and review catalog
+            </h2>
           </div>
 
-          <form className="grid gap-3 rounded-[1.6rem] border border-emerald-500/10 bg-background/55 p-4 sm:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
+          <form className="flex flex-wrap items-center gap-3 rounded-xl border border-border/40 bg-muted/30 p-3">
             <Input
               name="query"
               defaultValue={searchQuery}
-              placeholder="Search by product name"
-              className="border-emerald-500/10 bg-card/90"
+              placeholder="Search by name"
+              className="min-w-40 flex-1 border-border/40 bg-card text-sm"
             />
             <select
               name="category"
               defaultValue={selectedCategoryId}
-              className={cn(selectClassName, "border-emerald-500/10 bg-card/90")}
+              className={cn(selectClassName, "w-44")}
             >
               <option value="">All categories</option>
               {categories.map((category) => (
@@ -135,27 +133,27 @@ export default async function AdminProductsPage({
                 </option>
               ))}
             </select>
-            <Button type="submit" className="rounded-full">
+            <Button type="submit" size="sm" className="rounded-full">
               Apply
             </Button>
-            <Button asChild variant="outline" className="rounded-full">
+            <Button asChild variant="outline" size="sm" className="rounded-full">
               <Link href="/admin/products">Clear</Link>
             </Button>
           </form>
         </div>
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-6 space-y-3">
           {products.length > 0 ? (
             products.map((product) => (
               <article
                 key={product.id}
-                className="rounded-[1.5rem] border border-emerald-500/10 bg-background/60 p-5 shadow-[0_18px_45px_rgba(0,0,0,0.03)] transition-transform duration-300 hover:-translate-y-0.5"
+                className="rounded-xl border border-border/40 bg-muted/20 p-5 transition-all duration-200 hover:bg-muted/40"
               >
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-semibold tracking-tight text-foreground">
+                        <h3 className="text-base font-semibold tracking-tight text-foreground">
                           {product.name}
                         </h3>
                         <Badge
@@ -169,33 +167,33 @@ export default async function AdminProductsPage({
                           {product.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        ID {formatCompactId(product.id)}
+                      <p className="font-mono text-xs text-muted-foreground/60">
+                        {formatCompactId(product.id)}
                       </p>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      <div className="rounded-[1.25rem] border border-emerald-500/10 bg-card/80 px-4 py-3">
-                        <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <div className="rounded-lg border border-border/30 bg-card px-3 py-2">
+                        <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
                           Price
                         </p>
-                        <p className="mt-2 text-base font-semibold text-foreground">
+                        <p className="mt-0.5 text-sm font-semibold text-foreground">
                           {formatCurrency(product.currentPrice)}
                         </p>
                       </div>
-                      <div className="rounded-[1.25rem] border border-emerald-500/10 bg-card/80 px-4 py-3">
-                        <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                      <div className="rounded-lg border border-border/30 bg-card px-3 py-2">
+                        <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
                           Stock
                         </p>
-                        <p className="mt-2 text-base font-semibold text-foreground">
+                        <p className="mt-0.5 text-sm font-semibold text-foreground">
                           {product.stock}
                         </p>
                       </div>
-                      <div className="rounded-[1.25rem] border border-emerald-500/10 bg-card/80 px-4 py-3">
-                        <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                      <div className="rounded-lg border border-border/30 bg-card px-3 py-2">
+                        <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
                           Category
                         </p>
-                        <p className="mt-2 text-base font-semibold text-foreground">
+                        <p className="mt-0.5 text-sm font-semibold text-foreground">
                           {product.categoryName ?? "Uncategorized"}
                         </p>
                       </div>
@@ -210,21 +208,22 @@ export default async function AdminProductsPage({
               </article>
             ))
           ) : (
-            <div className="rounded-[1.5rem] border border-dashed border-border/70 bg-background/45 px-5 py-10 text-center text-sm leading-7 text-muted-foreground">
-              No products matched this filter. Adjust the search or create a new one above.
+            <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 px-5 py-10 text-center text-sm text-muted-foreground">
+              No products matched. Adjust the search or create a new one above.
             </div>
           )}
         </div>
 
         {totalPages > 1 ? (
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               Page {currentPage} of {totalPages}
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <Button
                 asChild
                 variant="outline"
+                size="sm"
                 className="rounded-full"
                 disabled={!hasPreviousPage}
               >
@@ -237,6 +236,7 @@ export default async function AdminProductsPage({
               <Button
                 asChild
                 variant="outline"
+                size="sm"
                 className="rounded-full"
                 disabled={!hasNextPage}
               >
