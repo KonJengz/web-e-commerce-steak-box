@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { oauthExchangeSchema } from "@/features/auth/schemas/auth.schema";
-import {
-  normalizePostAuthRedirect,
-  persistAuthSession,
-} from "@/features/auth/services/auth-session.service";
+import { persistAuthSession } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
+import {
+  buildLoginRedirectPath,
+  normalizeAuthRedirectTarget,
+} from "@/features/auth/utils/auth-redirect";
 import { ApiError } from "@/lib/api/error";
 
 const mapOAuthExchangeErrorCode = (error: ApiError): string => {
@@ -26,14 +27,13 @@ const buildLoginErrorResponse = (
   errorCode: string,
   redirectTo?: string | null,
 ): NextResponse => {
-  const loginUrl = new URL("/login", request.url);
-  const normalizedRedirectTo = normalizePostAuthRedirect(redirectTo);
+  const normalizedRedirectTo = normalizeAuthRedirectTarget(redirectTo);
+  const loginUrl = new URL(
+    buildLoginRedirectPath(normalizedRedirectTo),
+    request.url,
+  );
 
   loginUrl.searchParams.set("oauth_error", errorCode);
-
-  if (normalizedRedirectTo) {
-    loginUrl.searchParams.set("redirectTo", normalizedRedirectTo);
-  }
 
   return NextResponse.redirect(loginUrl);
 };
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     throw error;
   }
 
-  const destination = normalizePostAuthRedirect(redirectTo) ?? "/";
+  const destination = normalizeAuthRedirectTarget(redirectTo) ?? "/";
 
   return NextResponse.redirect(new URL(destination, request.url));
 }

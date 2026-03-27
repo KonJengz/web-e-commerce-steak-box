@@ -15,6 +15,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import {
   requestEmailChangeAction,
   verifyEmailChangeAction,
@@ -166,7 +167,7 @@ export function ProfileEmailEditor({ profile }: ProfileEmailEditorProps) {
         applyEmailRequestErrors(result);
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/profile");
+          router.replace(buildLoginRedirectPath("/profile"));
         }
 
         return;
@@ -203,7 +204,7 @@ export function ProfileEmailEditor({ profile }: ProfileEmailEditorProps) {
         applyEmailVerifyErrors(result);
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/profile");
+          router.replace(buildLoginRedirectPath("/profile"));
         }
 
         return;

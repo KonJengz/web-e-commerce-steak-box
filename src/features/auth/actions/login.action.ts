@@ -10,13 +10,13 @@ import {
 import {
   clearPendingPostAuthRedirect,
   clearPendingVerificationEmail,
-  normalizePostAuthRedirect,
   persistAuthSession,
   persistPendingPostAuthRedirect,
   persistPendingVerificationEmail,
 } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
 import type { LoginActionState } from "@/features/auth/types/auth.type";
+import { normalizeAuthRedirectTarget } from "@/features/auth/utils/auth-redirect";
 import { ApiError } from "@/lib/api/error";
 
 export async function loginAction(
@@ -24,7 +24,7 @@ export async function loginAction(
   redirectTo?: string | null,
 ): Promise<LoginActionState> {
   const validatedInput = loginSchema.safeParse(input);
-  const normalizedRedirectTo = normalizePostAuthRedirect(redirectTo);
+  const normalizedRedirectTo = normalizeAuthRedirectTarget(redirectTo);
 
   if (!validatedInput.success) {
     return {

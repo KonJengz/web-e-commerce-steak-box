@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { deleteAddressAction } from "@/features/address/actions/delete-address.action";
 import { updateAddressAction } from "@/features/address/actions/update-address.action";
 import { AddressFormFields } from "@/features/address/components/address-form-fields";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import {
   updateAddressSchema,
   type UpdateAddressInput,
@@ -127,7 +128,7 @@ export function AddressCard({ address }: AddressCardProps) {
         applyServerErrors(result);
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/addresses");
+          router.replace(buildLoginRedirectPath("/addresses"));
         }
 
         return;
@@ -153,7 +154,7 @@ export function AddressCard({ address }: AddressCardProps) {
         setDeleteState(result);
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/addresses");
+          router.replace(buildLoginRedirectPath("/addresses"));
         }
 
         return;

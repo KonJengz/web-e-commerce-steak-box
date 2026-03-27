@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { applyResolvedSessionCookies } from "@/features/auth/services/auth-response-cookie.service";
-import { normalizePostAuthRedirect } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
 import {
   resolveRequestAuthSession,
   type RequestAuthSession,
 } from "@/features/auth/services/request-auth-session.service";
+import {
+  buildLoginRedirectPath,
+  resolveAuthRedirectTarget,
+} from "@/features/auth/utils/auth-redirect";
 import {
   getSetCookieHeaders,
 } from "@/lib/auth-helpers";
@@ -16,15 +19,14 @@ import { ApiError } from "@/lib/api/error";
 const normalizeSecurityRedirect = (
   redirectTo: string | null | undefined,
 ): string => {
-  return normalizePostAuthRedirect(redirectTo) ?? "/security";
+  return resolveAuthRedirectTarget(redirectTo, "/security");
 };
 
 const buildLoginRedirect = (
   request: NextRequest,
   redirectTo: string,
 ): NextResponse => {
-  const loginUrl = new URL("/login", request.url);
-  loginUrl.searchParams.set("redirectTo", redirectTo);
+  const loginUrl = new URL(buildLoginRedirectPath(redirectTo), request.url);
 
   return NextResponse.redirect(loginUrl);
 };

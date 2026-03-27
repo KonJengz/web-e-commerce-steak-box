@@ -10,12 +10,12 @@ import {
 import {
   clearPendingPostAuthRedirect,
   clearPendingVerificationEmail,
-  normalizePostAuthRedirect,
   persistPendingPostAuthRedirect,
   persistPendingVerificationEmail,
 } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
 import type { RegisterActionState } from "@/features/auth/types/auth.type";
+import { normalizeAuthRedirectTarget } from "@/features/auth/utils/auth-redirect";
 import { ApiError } from "@/lib/api/error";
 
 export async function registerAction(
@@ -23,7 +23,7 @@ export async function registerAction(
   redirectTo?: string | null,
 ): Promise<RegisterActionState> {
   const validatedInput = registerSchema.safeParse(input);
-  const normalizedRedirectTo = normalizePostAuthRedirect(redirectTo);
+  const normalizedRedirectTo = normalizeAuthRedirectTarget(redirectTo);
 
   if (!validatedInput.success) {
     return {

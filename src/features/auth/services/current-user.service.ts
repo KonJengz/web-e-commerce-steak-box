@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { envServer } from "@/config/env.server";
 import { userService } from "@/features/user/services/user.service";
 import type { UserProfile } from "@/features/user/types/user.type";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { isAccessTokenExpired } from "@/lib/auth-helpers";
 import { ApiError } from "@/lib/api/error";
 
@@ -40,13 +41,6 @@ export const getCurrentUser = cache(async (): Promise<UserProfile | null> => {
     throw error;
   }
 });
-
-const buildLoginRedirectPath = (redirectTo: string): string => {
-  const loginUrl = new URL("http://local.test/login");
-  loginUrl.searchParams.set("redirectTo", redirectTo);
-
-  return `${loginUrl.pathname}${loginUrl.search}`;
-};
 
 export const requireAdminUser = async (
   redirectToPath: string = "/admin",

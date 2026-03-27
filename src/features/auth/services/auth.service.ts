@@ -15,24 +15,12 @@ import type {
   AuthApiResponse,
   AuthResponse,
 } from "@/features/auth/types/auth.type";
+import {
+  normalizeAuthRedirectTarget,
+  resolveAuthRedirectTarget,
+} from "@/features/auth/utils/auth-redirect";
 import { api } from "@/lib/api/client";
 import type { ApiResult } from "@/types";
-
-const normalizeOAuthRedirectTarget = (
-  value: string | null | undefined,
-): string => {
-  const candidate = value?.trim();
-
-  if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//")) {
-    return "/";
-  }
-
-  if (candidate.startsWith("/login") || candidate.startsWith("/verify-email")) {
-    return "/";
-  }
-
-  return candidate;
-};
 
 const mapAuthResponse = (
   result: ApiResult<AuthApiResponse>,
@@ -143,7 +131,7 @@ const startGoogleLink = async (
   const result = await api.post<OAuthLinkStartApiResponse>(
     "/api/auth/google/link/start",
     {
-      redirect_to: normalizeOAuthRedirectTarget(redirectTo),
+      redirect_to: resolveAuthRedirectTarget(redirectTo, "/"),
     },
     {
       headers: {
@@ -170,14 +158,14 @@ const buildGoogleStartHref = (redirectTo?: string | null): string => {
   startUrl.searchParams.set("exchange_url", exchangeUrl);
   startUrl.searchParams.set(
     "redirect_to",
-    normalizeOAuthRedirectTarget(redirectTo),
+    resolveAuthRedirectTarget(redirectTo, "/"),
   );
 
   return startUrl.toString();
 };
 
 const buildGoogleLinkStartHref = (redirectTo?: string | null): string => {
-  const normalizedRedirect = normalizeOAuthRedirectTarget(redirectTo);
+  const normalizedRedirect = normalizeAuthRedirectTarget(redirectTo) ?? "/";
   const searchParams = new URLSearchParams({
     redirectTo: normalizedRedirect,
   });

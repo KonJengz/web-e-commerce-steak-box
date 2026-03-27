@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { updateProfileAction } from "@/features/user/actions/update-profile.action";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import {
   updateProfileNameSchema,
   type UpdateProfileNameInput,
@@ -84,7 +85,7 @@ export function ProfileNameEditor({ profile }: ProfileNameEditorProps) {
         applyServerErrors(result);
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/profile");
+          router.replace(buildLoginRedirectPath("/profile"));
         }
 
         return;

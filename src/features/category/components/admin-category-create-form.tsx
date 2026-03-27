@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { createCategoryAction } from "@/features/category/actions/create-category.action";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import {
   createCategorySchema,
   type CreateCategoryInput,
@@ -90,7 +91,7 @@ export function AdminCategoryCreateForm() {
         applyServerErrors(result);
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/admin/categories");
+          router.replace(buildLoginRedirectPath("/admin/categories"));
         }
 
         return;

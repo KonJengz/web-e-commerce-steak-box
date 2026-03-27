@@ -9,6 +9,8 @@ import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import type { Category } from "@/features/category/types/category.type";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { createProductAction } from "@/features/product/actions/create-product.action";
 import {
   createProductSchema,
@@ -16,7 +18,6 @@ import {
   type CreateProductInput,
 } from "@/features/product/schemas/product.schema";
 import type { CreateProductActionState } from "@/features/product/types/product.type";
-import type { Category } from "@/features/category/types/category.type";
 import { cn } from "@/lib/utils";
 
 interface AdminProductCreateFormProps {
@@ -128,7 +129,7 @@ export function AdminProductCreateForm({
         applyServerErrors(result);
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/admin/products");
+          router.replace(buildLoginRedirectPath("/admin/products"));
         }
 
         return;

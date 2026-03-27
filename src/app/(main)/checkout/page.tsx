@@ -8,13 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { addressService } from "@/features/address/services/address.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { cartService } from "@/features/cart/services/cart.service";
 
 export default async function CheckoutPage() {
   const accessToken = await getCurrentAccessToken();
 
   if (!accessToken) {
-    redirect("/login?redirectTo=/checkout");
+    redirect(buildLoginRedirectPath("/checkout"));
   }
 
   const [cartResult, addressesResult] = await Promise.all([

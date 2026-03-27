@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { deleteProductAction } from "@/features/product/actions/delete-product.action";
 
 interface AdminProductDeleteButtonProps {
@@ -38,7 +39,7 @@ export function AdminProductDeleteButton({
         setMessage(result.message ?? "Unable to delete this product.");
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/admin/products");
+          router.replace(buildLoginRedirectPath("/admin/products"));
         }
 
         return;

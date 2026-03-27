@@ -16,6 +16,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { updatePasswordAction } from "@/features/user/actions/password.action";
 import {
   updatePasswordSchema,
@@ -112,6 +113,7 @@ export function ProfilePasswordEditor({
   const handleSave = (values: UpdatePasswordInput): void => {
     clearErrors();
     setSubmissionState(null);
+    const loginRedirectPath = buildLoginRedirectPath(redirectPath);
 
     startTransition(async () => {
       const result = await updatePasswordAction(values);
@@ -121,7 +123,7 @@ export function ProfilePasswordEditor({
         applyServerErrors(result);
 
         if (result.requiresReauthentication || result.redirectToLogin) {
-          router.replace(`/login?redirectTo=${encodeURIComponent(redirectPath)}`);
+          router.replace(loginRedirectPath);
         }
 
         return;
@@ -130,7 +132,7 @@ export function ProfilePasswordEditor({
       closeEditor();
 
       if (result.redirectToLogin) {
-        router.replace(`/login?redirectTo=${encodeURIComponent(redirectPath)}`);
+        router.replace(loginRedirectPath);
         return;
       }
 

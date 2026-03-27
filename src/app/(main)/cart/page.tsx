@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { cartService } from "@/features/cart/services/cart.service";
 
 const getLineTotal = (currentPrice: string, quantity: number): number => {
@@ -83,7 +84,7 @@ export default async function CartPage() {
             </p>
             <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
               <Button asChild className="rounded-full">
-                <Link href="/login?redirectTo=%2Fcheckout">
+                <Link href={buildLoginRedirectPath("/checkout")}>
                   Login to Checkout
                   <ArrowRight className="size-4" />
                 </Link>

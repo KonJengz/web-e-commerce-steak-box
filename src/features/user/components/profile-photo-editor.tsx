@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { updateProfileAction } from "@/features/user/actions/update-profile.action";
 import {
   PROFILE_IMAGE_ACCEPT,
@@ -159,7 +160,7 @@ export function ProfilePhotoEditor({ profile }: ProfilePhotoEditorProps) {
         applyServerErrors(result);
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/profile");
+          router.replace(buildLoginRedirectPath("/profile"));
         }
 
         return;

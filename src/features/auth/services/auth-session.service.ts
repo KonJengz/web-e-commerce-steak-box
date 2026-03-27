@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 import { envServer } from "@/config/env.server";
 import type { AuthResponse } from "@/features/auth/types/auth.type";
+import { normalizeAuthRedirectTarget } from "@/features/auth/utils/auth-redirect";
 import { getCookieValueFromSetCookieHeaders } from "@/lib/auth-helpers";
 import type { ApiResult } from "@/types";
 
@@ -208,26 +209,10 @@ export const clearPendingPasswordResetEmail = async (): Promise<void> => {
   });
 };
 
-export const normalizePostAuthRedirect = (
-  value: string | null | undefined,
-): string | null => {
-  const candidate = value?.trim();
-
-  if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//")) {
-    return null;
-  }
-
-  if (candidate.startsWith("/login") || candidate.startsWith("/verify-email")) {
-    return null;
-  }
-
-  return candidate;
-};
-
 export const persistPendingPostAuthRedirect = async (
   redirectTo: string,
 ): Promise<void> => {
-  const normalizedRedirect = normalizePostAuthRedirect(redirectTo);
+  const normalizedRedirect = normalizeAuthRedirectTarget(redirectTo);
 
   if (!normalizedRedirect) {
     return;
@@ -250,7 +235,7 @@ export const getPendingPostAuthRedirect = async (): Promise<string | null> => {
   const cookieStore = await cookies();
   const redirectTo = cookieStore.get(PENDING_POST_AUTH_REDIRECT_COOKIE_NAME)?.value;
 
-  return normalizePostAuthRedirect(redirectTo);
+  return normalizeAuthRedirectTarget(redirectTo);
 };
 
 export const clearPendingPostAuthRedirect = async (): Promise<void> => {

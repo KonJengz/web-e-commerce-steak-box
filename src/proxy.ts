@@ -10,6 +10,7 @@ import {
   resolveRequestAuthSession,
   type RequestAuthSession,
 } from "@/features/auth/services/request-auth-session.service";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 
 export const config = {
   matcher: [
@@ -77,12 +78,8 @@ const redirectTo = (request: NextRequest, pathname: string): NextResponse => {
 };
 
 const redirectToLogin = (request: NextRequest): NextResponse => {
-  const loginUrl = new URL("/login", request.url);
   const redirectTarget = `${request.nextUrl.pathname}${request.nextUrl.search}`;
-
-  if (redirectTarget && redirectTarget !== "/login") {
-    loginUrl.searchParams.set("redirectTo", redirectTarget);
-  }
+  const loginUrl = new URL(buildLoginRedirectPath(redirectTarget), request.url);
 
   return applySecurityHeaders(NextResponse.redirect(loginUrl));
 };

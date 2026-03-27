@@ -14,6 +14,7 @@ import {
   type CreateAddressInput,
 } from "@/features/address/schemas/address.schema";
 import type { CreateAddressActionState } from "@/features/address/types/address.type";
+import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 
 interface AddressCreateFormProps {
   hasAddresses: boolean;
@@ -119,7 +120,7 @@ export function AddressCreateForm({ hasAddresses }: AddressCreateFormProps) {
         applyServerErrors(result);
 
         if (result.requiresReauthentication) {
-          router.replace("/login?redirectTo=/addresses");
+          router.replace(buildLoginRedirectPath("/addresses"));
         }
 
         return;

@@ -10,8 +10,8 @@ import {
 
 import { LogoIconSteakBox } from "@/components/shared/icons/logo-icon";
 import { LoginForm } from "@/features/auth/components/login-form";
-import { normalizePostAuthRedirect } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
+import { normalizeAuthRedirectTarget } from "@/features/auth/utils/auth-redirect";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -86,7 +86,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     typeof redirectParam === "string" ? redirectParam : redirectParam?.[0];
   const oauthErrorValue =
     typeof oauthErrorParam === "string" ? oauthErrorParam : oauthErrorParam?.[0];
-  const redirectTo = normalizePostAuthRedirect(redirectToValue);
+  const redirectTo = normalizeAuthRedirectTarget(redirectToValue);
   const googleAuthHref = authService.buildGoogleStartHref(redirectTo);
   const oauthErrorMessage = getOAuthErrorMessage(oauthErrorValue);
 

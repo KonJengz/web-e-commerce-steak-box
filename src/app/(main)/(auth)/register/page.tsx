@@ -10,8 +10,8 @@ import {
 
 import { LogoIconSteakBox } from "@/components/shared/icons/logo-icon";
 import { RegisterForm } from "@/features/auth/components/register-form";
-import { normalizePostAuthRedirect } from "@/features/auth/services/auth-session.service";
 import { authService } from "@/features/auth/services/auth.service";
+import { normalizeAuthRedirectTarget } from "@/features/auth/utils/auth-redirect";
 
 export const metadata: Metadata = {
   title: "Register - Join Steak Box",
@@ -63,7 +63,7 @@ export default async function RegisterPage({
     typeof emailParam === "string" ? emailParam : (emailParam?.[0] ?? "");
   const redirectToValue =
     typeof redirectParam === "string" ? redirectParam : redirectParam?.[0];
-  const redirectTo = normalizePostAuthRedirect(redirectToValue);
+  const redirectTo = normalizeAuthRedirectTarget(redirectToValue);
   const googleAuthHref = authService.buildGoogleStartHref(redirectTo);
 
   return (
