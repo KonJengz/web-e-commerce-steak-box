@@ -1,20 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Loader2,
-  MapPinHouse,
-  Phone,
-  UserRound,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { createAddressAction } from "@/features/address/actions/create-address.action";
+import { AddressFormFields } from "@/features/address/components/address-form-fields";
 import {
   createAddressSchema,
   type CreateAddressInput,
@@ -178,146 +172,10 @@ export function AddressCreateForm({ hasAddresses }: AddressCreateFormProps) {
           </div>
         ) : null}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <Controller
-            control={control}
-            name="recipientName"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Recipient Name</FieldLabel>
-                <div className="relative mt-2">
-                  <UserRound className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    {...field}
-                    id={field.name}
-                    autoComplete="name"
-                    aria-invalid={fieldState.invalid}
-                    className="h-12 rounded-2xl border-border/70 bg-card/85 pr-4 pl-11"
-                    disabled={isPending}
-                    placeholder="Who will receive the order"
-                  />
-                </div>
-                <FieldError errors={[fieldState.error]} />
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="phone"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Phone</FieldLabel>
-                <div className="relative mt-2">
-                  <Phone className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    {...field}
-                    id={field.name}
-                    autoComplete="tel"
-                    aria-invalid={fieldState.invalid}
-                    className="h-12 rounded-2xl border-border/70 bg-card/85 pr-4 pl-11"
-                    disabled={isPending}
-                    inputMode="tel"
-                    placeholder="0812345678"
-                  />
-                </div>
-                <FieldError errors={[fieldState.error]} />
-              </Field>
-            )}
-          />
-        </div>
-
-        <Controller
+        <AddressFormFields
           control={control}
-          name="addressLine"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Address Line</FieldLabel>
-              <div className="relative mt-2">
-                <MapPinHouse className="pointer-events-none absolute top-4 left-4 size-4 text-muted-foreground" />
-                <Input
-                  {...field}
-                  id={field.name}
-                  autoComplete="street-address"
-                  aria-invalid={fieldState.invalid}
-                  className="h-12 rounded-2xl border-border/70 bg-card/85 pr-4 pl-11"
-                  disabled={isPending}
-                  placeholder="123/4 ถนนสุขุมวิท แขวงคลองตัน"
-                />
-              </div>
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
-        />
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <Controller
-            control={control}
-            name="city"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>City</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  autoComplete="address-level2"
-                  aria-invalid={fieldState.invalid}
-                  className="mt-2 h-12 rounded-2xl border-border/70 bg-card/85 px-4"
-                  disabled={isPending}
-                  placeholder="กรุงเทพ"
-                />
-                <FieldError errors={[fieldState.error]} />
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="postalCode"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Postal Code</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  autoComplete="postal-code"
-                  aria-invalid={fieldState.invalid}
-                  className="mt-2 h-12 rounded-2xl border-border/70 bg-card/85 px-4"
-                  disabled={isPending}
-                  inputMode="numeric"
-                  placeholder="10110"
-                />
-                <FieldError errors={[fieldState.error]} />
-              </Field>
-            )}
-          />
-        </div>
-
-        <Controller
-          control={control}
-          name="isDefault"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <label className="flex cursor-pointer items-start justify-between gap-4 rounded-[1.5rem] border border-border/70 bg-background/70 px-4 py-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold text-foreground">
-                    Use as default delivery address
-                  </p>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    This address will be shown first when you move into checkout.
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={field.value}
-                  onChange={(event) => field.onChange(event.target.checked)}
-                  disabled={isPending}
-                  className="mt-1 h-4 w-4 rounded border-border text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                />
-              </label>
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+          disabled={isPending}
+          idPrefix="create-address"
         />
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">

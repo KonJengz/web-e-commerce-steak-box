@@ -9,7 +9,7 @@ export interface Address {
   recipientName: string;
 }
 
-export interface CreateAddressFieldErrors {
+export interface AddressFieldErrors {
   addressLine?: string[];
   city?: string[];
   isDefault?: string[];
@@ -19,7 +19,20 @@ export interface CreateAddressFieldErrors {
 }
 
 export interface CreateAddressActionState {
-  fieldErrors?: CreateAddressFieldErrors;
+  fieldErrors?: AddressFieldErrors;
+  message?: string;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}
+
+export interface UpdateAddressActionState {
+  fieldErrors?: AddressFieldErrors;
+  message?: string;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}
+
+export interface DeleteAddressActionState {
   message?: string;
   requiresReauthentication?: boolean;
   success: boolean;

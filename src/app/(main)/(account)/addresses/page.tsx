@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { MapPinHouse, Navigation, Star } from "lucide-react";
+import { MapPinHouse } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { AccountPageHero } from "@/components/account/account-page-hero";
-import { formatAccountDate } from "@/components/account/account.utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AddressCard } from "@/features/address/components/address-card";
 import { AddressCreateForm } from "@/features/address/components/address-create-form";
 import { addressService } from "@/features/address/services/address.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
@@ -38,7 +38,10 @@ export default async function AddressesPage() {
           {sortedAddresses.length} saved location
           {sortedAddresses.length === 1 ? "" : "s"}
         </Badge>
-        <Badge variant="outline" className="rounded-full border-white/20 px-3 py-1 text-white/80">
+        <Badge
+          variant="outline"
+          className="rounded-full border-white/20 px-3 py-1 text-white/80"
+        >
           Default first
         </Badge>
       </AccountPageHero>
@@ -66,49 +69,7 @@ export default async function AddressesPage() {
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
           {sortedAddresses.map((address) => (
-            <article
-              key={address.id}
-              className="group overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] transition-transform hover:-translate-y-0.5"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-lg font-semibold tracking-tight text-foreground">
-                      {address.recipientName}
-                    </h2>
-                    {address.isDefault ? (
-                      <Badge className="rounded-full px-2.5 py-1">
-                        Default
-                      </Badge>
-                    ) : null}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Saved on {formatAccountDate(address.createdAt)}
-                  </p>
-                </div>
-
-                <span className="inline-flex size-11 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
-                  {address.isDefault ? (
-                    <Star className="size-4" />
-                  ) : (
-                    <Navigation className="size-4" />
-                  )}
-                </span>
-              </div>
-
-              <div className="mt-5 space-y-3 rounded-[1.5rem] border border-border/60 bg-background/60 p-4">
-                <p className="text-sm leading-7 text-foreground">
-                  {address.addressLine}
-                </p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                  <span>{address.city}</span>
-                  <span>{address.postalCode}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {address.phone ?? "No phone number saved"}
-                </p>
-              </div>
-            </article>
+            <AddressCard key={address.id} address={address} />
           ))}
         </div>
       )}

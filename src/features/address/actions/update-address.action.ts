@@ -5,35 +5,45 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
 import {
-  createAddressSchema,
-  type CreateAddressInput,
+  updateAddressSchema,
+  type UpdateAddressInput,
 } from "@/features/address/schemas/address.schema";
 import { addressService } from "@/features/address/services/address.service";
-import type { CreateAddressActionState } from "@/features/address/types/address.type";
+import type { UpdateAddressActionState } from "@/features/address/types/address.type";
 import { clearAuthSession } from "@/features/auth/services/auth-session.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import { ApiError } from "@/lib/api/error";
 
-const buildUnauthorizedState = async (): Promise<CreateAddressActionState> => {
+const buildUnauthorizedState = async (): Promise<UpdateAddressActionState> => {
   await clearAuthSession();
 
   return {
-    message: "Your session expired. Please sign in again to save an address.",
+    message: "Your session expired. Please sign in again to update this address.",
     requiresReauthentication: true,
     success: false,
   };
 };
 
-export async function createAddressAction(
-  input: CreateAddressInput,
-): Promise<CreateAddressActionState> {
+export async function updateAddressAction(
+  addressId: string,
+  input: UpdateAddressInput,
+): Promise<UpdateAddressActionState> {
   const accessToken = await getCurrentAccessToken();
 
   if (!accessToken) {
     return buildUnauthorizedState();
   }
 
-  const validatedInput = createAddressSchema.safeParse(input);
+  const normalizedAddressId = addressId.trim();
+
+  if (!normalizedAddressId) {
+    return {
+      message: "Address could not be identified. Refresh the page and try again.",
+      success: false,
+    };
+  }
+
+  const validatedInput = updateAddressSchema.safeParse(input);
 
   if (!validatedInput.success) {
     return {
@@ -44,13 +54,13 @@ export async function createAddressAction(
   }
 
   try {
-    await addressService.create(accessToken, validatedInput.data);
+    await addressService.update(accessToken, normalizedAddressId, validatedInput.data);
 
     revalidatePath("/addresses");
     revalidatePath("/checkout");
 
     return {
-      message: "Address saved successfully.",
+      message: "Address updated successfully.",
       success: true,
     };
   } catch (error) {
@@ -70,7 +80,7 @@ export async function createAddressAction(
     }
 
     return {
-      message: "Unable to save the address right now. Please try again.",
+      message: "Unable to update the address right now. Please try again.",
       success: false,
     };
   }

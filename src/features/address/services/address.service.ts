@@ -1,6 +1,9 @@
 import "server-only";
 
-import type { CreateAddressInput } from "@/features/address/schemas/address.schema";
+import type {
+  CreateAddressInput,
+  UpdateAddressInput,
+} from "@/features/address/schemas/address.schema";
 import type { Address } from "@/features/address/types/address.type";
 import { api } from "@/lib/api/client";
 import type { ApiResult } from "@/types";
@@ -36,8 +39,8 @@ const mapAddress = (address: AddressApiResponse): Address => {
 const create = async (
   accessToken: string,
   input: CreateAddressInput,
-): Promise<ApiResult<AddressMutationResponse>> => {
-  return api.post<AddressMutationResponse>(
+): Promise<ApiResult<Address>> => {
+  const result = await api.post<AddressApiResponse>(
     "/api/addresses",
     {
       address_line: input.addressLine.trim(),
@@ -53,6 +56,11 @@ const create = async (
       },
     },
   );
+
+  return {
+    ...result,
+    data: mapAddress(result.data),
+  };
 };
 
 const getAll = async (accessToken: string): Promise<ApiResult<Address[]>> => {
@@ -68,7 +76,48 @@ const getAll = async (accessToken: string): Promise<ApiResult<Address[]>> => {
   };
 };
 
+const remove = async (
+  accessToken: string,
+  addressId: string,
+): Promise<ApiResult<AddressMutationResponse>> => {
+  return api.delete<AddressMutationResponse>(`/api/addresses/${addressId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+};
+
+const update = async (
+  accessToken: string,
+  addressId: string,
+  input: UpdateAddressInput,
+): Promise<ApiResult<Address>> => {
+  const result = await api.put<AddressApiResponse>(
+    `/api/addresses/${addressId}`,
+    {
+      address_line: input.addressLine.trim(),
+      city: input.city.trim(),
+      is_default: input.isDefault,
+      phone: input.phone.trim(),
+      postal_code: input.postalCode.trim(),
+      recipient_name: input.recipientName.trim(),
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: mapAddress(result.data),
+  };
+};
+
 export const addressService = {
   create,
   getAll,
+  remove,
+  update,
 };

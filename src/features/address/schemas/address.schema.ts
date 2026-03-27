@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-const phonePattern = /^[0-9+\-\s()]+$/;
+const phonePattern = /^\d{10}$/;
+const postalCodePattern = /^\d{5}$/;
 
 const recipientNameSchema = z
   .string()
@@ -11,12 +12,8 @@ const recipientNameSchema = z
 const phoneSchema = z
   .string()
   .trim()
-  .min(8, "Phone number must be at least 8 characters.")
-  .max(20, "Phone number must be at most 20 characters.")
-  .regex(
-    phonePattern,
-    "Phone number can only include digits, spaces, parentheses, plus, and hyphen.",
-  );
+  .min(1, "Phone number is required.")
+  .regex(phonePattern, "Phone number must contain exactly 10 digits.");
 
 const addressLineSchema = z
   .string()
@@ -33,10 +30,10 @@ const citySchema = z
 const postalCodeSchema = z
   .string()
   .trim()
-  .min(3, "Postal code must be at least 3 characters.")
-  .max(20, "Postal code must be at most 20 characters.");
+  .min(1, "Postal code is required.")
+  .regex(postalCodePattern, "Postal code must contain exactly 5 digits.");
 
-export const createAddressSchema = z.object({
+export const addressFormSchema = z.object({
   addressLine: addressLineSchema,
   city: citySchema,
   isDefault: z.boolean(),
@@ -45,4 +42,9 @@ export const createAddressSchema = z.object({
   recipientName: recipientNameSchema,
 });
 
-export type CreateAddressInput = z.infer<typeof createAddressSchema>;
+export const createAddressSchema = addressFormSchema;
+export const updateAddressSchema = addressFormSchema;
+
+export type AddressFormInput = z.infer<typeof addressFormSchema>;
+export type CreateAddressInput = AddressFormInput;
+export type UpdateAddressInput = AddressFormInput;

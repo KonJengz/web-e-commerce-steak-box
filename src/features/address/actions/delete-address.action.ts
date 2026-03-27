@@ -2,55 +2,49 @@
 
 import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { z } from "zod";
 
-import {
-  createAddressSchema,
-  type CreateAddressInput,
-} from "@/features/address/schemas/address.schema";
 import { addressService } from "@/features/address/services/address.service";
-import type { CreateAddressActionState } from "@/features/address/types/address.type";
+import type { DeleteAddressActionState } from "@/features/address/types/address.type";
 import { clearAuthSession } from "@/features/auth/services/auth-session.service";
 import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import { ApiError } from "@/lib/api/error";
 
-const buildUnauthorizedState = async (): Promise<CreateAddressActionState> => {
+const buildUnauthorizedState = async (): Promise<DeleteAddressActionState> => {
   await clearAuthSession();
 
   return {
-    message: "Your session expired. Please sign in again to save an address.",
+    message: "Your session expired. Please sign in again to delete this address.",
     requiresReauthentication: true,
     success: false,
   };
 };
 
-export async function createAddressAction(
-  input: CreateAddressInput,
-): Promise<CreateAddressActionState> {
+export async function deleteAddressAction(
+  addressId: string,
+): Promise<DeleteAddressActionState> {
   const accessToken = await getCurrentAccessToken();
 
   if (!accessToken) {
     return buildUnauthorizedState();
   }
 
-  const validatedInput = createAddressSchema.safeParse(input);
+  const normalizedAddressId = addressId.trim();
 
-  if (!validatedInput.success) {
+  if (!normalizedAddressId) {
     return {
-      fieldErrors: validatedInput.error.flatten().fieldErrors,
-      message: z.prettifyError(validatedInput.error),
+      message: "Address could not be identified. Refresh the page and try again.",
       success: false,
     };
   }
 
   try {
-    await addressService.create(accessToken, validatedInput.data);
+    const result = await addressService.remove(accessToken, normalizedAddressId);
 
     revalidatePath("/addresses");
     revalidatePath("/checkout");
 
     return {
-      message: "Address saved successfully.",
+      message: result.data.message ?? "Address deleted successfully.",
       success: true,
     };
   } catch (error) {
@@ -70,7 +64,7 @@ export async function createAddressAction(
     }
 
     return {
-      message: "Unable to save the address right now. Please try again.",
+      message: "Unable to delete the address right now. Please try again.",
       success: false,
     };
   }
