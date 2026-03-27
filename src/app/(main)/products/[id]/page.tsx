@@ -10,17 +10,50 @@ import {
   Check,
 } from "lucide-react";
 import { notFound } from "next/navigation";
+import { cache, Suspense } from "react";
 
 import { formatCurrency } from "@/components/account/account.utils";
+import { ProductGallerySectionSkeleton } from "@/components/shared/loading-skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddToCartButton } from "@/features/product/components/add-to-cart-button";
 import { ProductGallery } from "@/features/product/components/product-gallery";
 import { productService } from "@/features/product/services/product.service";
+import type { ProductImage } from "@/features/product/types/product.type";
 import { ApiError } from "@/lib/api/error";
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
+}
+
+const getProduct = cache(async (productId: string) => {
+  return (await productService.getById(productId)).data;
+});
+
+const getProductImages = cache(async (productId: string) => {
+  return (await productService.getImages(productId)).data;
+});
+
+interface ProductGallerySectionProps {
+  imagesPromise: Promise<ProductImage[]>;
+  primaryImageUrl?: string | null;
+  productName: string;
+}
+
+async function ProductGallerySection({
+  imagesPromise,
+  primaryImageUrl,
+  productName,
+}: ProductGallerySectionProps) {
+  const images = await imagesPromise;
+
+  return (
+    <ProductGallery
+      images={images}
+      productName={productName}
+      primaryImageUrl={primaryImageUrl}
+    />
+  );
 }
 
 export async function generateMetadata({
@@ -29,13 +62,13 @@ export async function generateMetadata({
   const resolvedParams = await params;
 
   try {
-    const result = await productService.getById(resolvedParams.id);
+    const product = await getProduct(resolvedParams.id);
 
     return {
-      title: `${result.data.name} — Steak Box`,
-      description: result.data.description
-        ? result.data.description.slice(0, 160)
-        : `Shop ${result.data.name} at Steak Box. Premium quality, delivered fresh.`,
+      title: `${product.name} — Steak Box`,
+      description: product.description
+        ? product.description.slice(0, 160)
+        : `Shop ${product.name} at Steak Box. Premium quality, delivered fresh.`,
     };
   } catch {
     return {
@@ -48,18 +81,10 @@ export default async function ProductDetailPage({
   params,
 }: ProductDetailPageProps) {
   const resolvedParams = await params;
-
   let product;
-  let images;
 
   try {
-    const [productResult, imagesResult] = await Promise.all([
-      productService.getById(resolvedParams.id),
-      productService.getImages(resolvedParams.id),
-    ]);
-
-    product = productResult.data;
-    images = imagesResult.data;
+    product = await getProduct(resolvedParams.id);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound();
@@ -68,6 +93,7 @@ export default async function ProductDetailPage({
     throw error;
   }
 
+  const imagesPromise = getProductImages(product.id);
   const isOutOfStock = product.stock <= 0;
 
   const trustSignals = [
@@ -105,11 +131,13 @@ export default async function ProductDetailPage({
       <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
         {/* Gallery */}
         <div className="animate-slide-in-left">
-          <ProductGallery
-            images={images}
-            productName={product.name}
-            primaryImageUrl={product.imageUrl}
-          />
+          <Suspense fallback={<ProductGallerySectionSkeleton />}>
+            <ProductGallerySection
+              imagesPromise={imagesPromise}
+              productName={product.name}
+              primaryImageUrl={product.imageUrl}
+            />
+          </Suspense>
         </div>
 
         {/* Product Info */}

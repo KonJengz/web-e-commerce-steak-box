@@ -1,14 +1,19 @@
 import Link from "next/link";
+import { cache, Suspense } from "react";
 import { ArrowRight, Boxes, Tags, TrendingUp, Package, Activity } from "lucide-react";
 
 import { AdminPageHero } from "@/components/admin/admin-page-hero";
+import {
+  AdminDashboardStatsSkeleton,
+  AdminRecentInventorySkeleton,
+} from "@/components/shared/loading-skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { categoryService } from "@/features/category/services/category.service";
 import { productService } from "@/features/product/services/product.service";
 import { formatCompactId, formatCurrency } from "@/components/account/account.utils";
 
-export default async function AdminDashboardPage() {
+const getAdminDashboardData = cache(async () => {
   const [categoriesResult, latestProductsResult, productCountResult, inStockResult] =
     await Promise.all([
       categoryService.getAll(),
@@ -28,10 +33,17 @@ export default async function AdminDashboardPage() {
       }),
     ]);
 
-  const categories = categoriesResult.data;
-  const latestProducts = latestProductsResult.data.items;
-  const totalProducts = productCountResult.data.total;
-  const inStockProducts = inStockResult.data.total;
+  return {
+    categories: categoriesResult.data,
+    inStockProducts: inStockResult.data.total,
+    latestProducts: latestProductsResult.data.items,
+    totalProducts: productCountResult.data.total,
+  };
+});
+
+async function AdminDashboardStats() {
+  const { categories, inStockProducts, totalProducts } =
+    await getAdminDashboardData();
 
   const stats = [
     {
@@ -61,6 +73,164 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
+    <section className="stagger-children grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {stats.map((stat) => {
+        const Icon = stat.icon;
+
+        return (
+          <article
+            key={stat.label}
+            className="hover-lift group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-sm"
+          >
+            <div className="pointer-events-none absolute -right-6 -bottom-6 size-24 rounded-full bg-primary/5 blur-[40px] transition-transform duration-500 group-hover:scale-150" />
+            <div className="relative">
+              <div className="mb-3 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Icon className="size-4" />
+              </div>
+              <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
+                {stat.label}
+              </p>
+              <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
+                {stat.value}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {stat.description}
+              </p>
+            </div>
+          </article>
+        );
+      })}
+    </section>
+  );
+}
+
+async function AdminDashboardRecentInventory() {
+  const { latestProducts } = await getAdminDashboardData();
+
+  return (
+    <section className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="glow-dot" />
+            <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
+              Recent Inventory
+            </p>
+          </div>
+          <h2 className="text-xl font-bold tracking-tight text-foreground">
+            Latest entries
+          </h2>
+        </div>
+
+        <Button asChild variant="outline" size="sm" className="rounded-full">
+          <Link href="/admin/products">View All</Link>
+        </Button>
+      </div>
+
+      <div className="mt-6 space-y-2">
+        {latestProducts.length > 0 ? (
+          latestProducts.map((product) => (
+            <article
+              key={product.id}
+              className="flex flex-col gap-3 rounded-xl border border-border/40 bg-muted/30 p-4 transition-all duration-200 hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    {product.name}
+                  </p>
+                  <Badge
+                    variant={product.isActive ? "secondary" : "outline"}
+                    className={
+                      product.isActive
+                        ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
+                        : undefined
+                    }
+                  >
+                    {product.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span>{formatCurrency(product.currentPrice)}</span>
+                  <span>Stock: {product.stock}</span>
+                  <span>{product.categoryName ?? "Uncategorized"}</span>
+                </div>
+              </div>
+
+              <p className="font-mono text-[11px] text-muted-foreground/60">
+                {formatCompactId(product.id)}
+              </p>
+            </article>
+          ))
+        ) : (
+          <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 px-5 py-8 text-center text-sm text-muted-foreground">
+            No products yet. Start by creating the first catalog item.
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function AdminDashboardQuickActions() {
+  return (
+    <section className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
+      <div className="space-y-1">
+        <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
+          Quick Actions
+        </p>
+        <h2 className="text-xl font-bold tracking-tight text-foreground">
+          What you can manage
+        </h2>
+      </div>
+
+      <div className="mt-6 space-y-3">
+        <Link
+          href="/admin/products"
+          className="hover-lift flex items-center gap-4 rounded-2xl border border-border/40 bg-muted/30 p-4 transition-all duration-200 hover:border-primary/20 hover:bg-muted/50"
+        >
+          <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Boxes className="size-5" />
+          </span>
+          <div className="flex-1 space-y-0.5">
+            <p className="text-sm font-semibold text-foreground">
+              Product catalog
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Create, filter, and manage products
+            </p>
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </Link>
+
+        <Link
+          href="/admin/categories"
+          className="hover-lift flex items-center gap-4 rounded-2xl border border-border/40 bg-muted/30 p-4 transition-all duration-200 hover:border-primary/20 hover:bg-muted/50"
+        >
+          <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Tags className="size-5" />
+          </span>
+          <div className="flex-1 space-y-0.5">
+            <p className="text-sm font-semibold text-foreground">
+              Category setup
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Create and organize taxonomy
+            </p>
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </Link>
+
+        <div className="rounded-2xl border border-dashed border-border/50 bg-muted/15 px-4 py-3 text-xs text-muted-foreground">
+          Orders and user admin will appear here when backend endpoints are ready.
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function AdminDashboardPage() {
+  return (
     <div className="space-y-6">
       <AdminPageHero
         badge="Dashboard"
@@ -83,153 +253,16 @@ export default async function AdminDashboardPage() {
         </Button>
       </AdminPageHero>
 
-      {/* Stats grid */}
-      <section className="stagger-children grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-
-          return (
-            <article
-              key={stat.label}
-              className="hover-lift group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-sm"
-            >
-              <div className="pointer-events-none absolute -right-6 -bottom-6 size-24 rounded-full bg-primary/5 blur-[40px] transition-transform duration-500 group-hover:scale-150" />
-              <div className="relative">
-                <div className="mb-3 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="size-4" />
-                </div>
-                <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
-                  {stat.label}
-                </p>
-                <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
-                  {stat.value}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {stat.description}
-                </p>
-              </div>
-            </article>
-          );
-        })}
-      </section>
+      <Suspense fallback={<AdminDashboardStatsSkeleton />}>
+        <AdminDashboardStats />
+      </Suspense>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-        {/* Recent products */}
-        <section className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="glow-dot" />
-                <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
-                  Recent Inventory
-                </p>
-              </div>
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
-                Latest entries
-              </h2>
-            </div>
+        <Suspense fallback={<AdminRecentInventorySkeleton />}>
+          <AdminDashboardRecentInventory />
+        </Suspense>
 
-            <Button asChild variant="outline" size="sm" className="rounded-full">
-              <Link href="/admin/products">View All</Link>
-            </Button>
-          </div>
-
-          <div className="mt-6 space-y-2">
-            {latestProducts.length > 0 ? (
-              latestProducts.map((product) => (
-                <article
-                  key={product.id}
-                  className="flex flex-col gap-3 rounded-xl border border-border/40 bg-muted/30 p-4 transition-all duration-200 hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">
-                        {product.name}
-                      </p>
-                      <Badge
-                        variant={product.isActive ? "secondary" : "outline"}
-                        className={
-                          product.isActive
-                            ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
-                            : undefined
-                        }
-                      >
-                        {product.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                      <span>{formatCurrency(product.currentPrice)}</span>
-                      <span>Stock: {product.stock}</span>
-                      <span>{product.categoryName ?? "Uncategorized"}</span>
-                    </div>
-                  </div>
-
-                  <p className="font-mono text-[11px] text-muted-foreground/60">
-                    {formatCompactId(product.id)}
-                  </p>
-                </article>
-              ))
-            ) : (
-              <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 px-5 py-8 text-center text-sm text-muted-foreground">
-                No products yet. Start by creating the first catalog item.
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Quick links */}
-        <section className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
-          <div className="space-y-1">
-            <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
-              Quick Actions
-            </p>
-            <h2 className="text-xl font-bold tracking-tight text-foreground">
-              What you can manage
-            </h2>
-          </div>
-
-          <div className="mt-6 space-y-3">
-            <Link
-              href="/admin/products"
-              className="hover-lift flex items-center gap-4 rounded-2xl border border-border/40 bg-muted/30 p-4 transition-all duration-200 hover:border-primary/20 hover:bg-muted/50"
-            >
-              <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Boxes className="size-5" />
-              </span>
-              <div className="flex-1 space-y-0.5">
-                <p className="text-sm font-semibold text-foreground">
-                  Product catalog
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Create, filter, and manage products
-                </p>
-              </div>
-              <ArrowRight className="size-4 text-muted-foreground" />
-            </Link>
-
-            <Link
-              href="/admin/categories"
-              className="hover-lift flex items-center gap-4 rounded-2xl border border-border/40 bg-muted/30 p-4 transition-all duration-200 hover:border-primary/20 hover:bg-muted/50"
-            >
-              <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Tags className="size-5" />
-              </span>
-              <div className="flex-1 space-y-0.5">
-                <p className="text-sm font-semibold text-foreground">
-                  Category setup
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Create and organize taxonomy
-                </p>
-              </div>
-              <ArrowRight className="size-4 text-muted-foreground" />
-            </Link>
-
-            <div className="rounded-2xl border border-dashed border-border/50 bg-muted/15 px-4 py-3 text-xs text-muted-foreground">
-              Orders and user admin will appear here when backend endpoints are ready.
-            </div>
-          </div>
-        </section>
+        <AdminDashboardQuickActions />
       </div>
     </div>
   );

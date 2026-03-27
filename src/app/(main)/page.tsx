@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Flame, Sparkles, Beef, TrendingUp } from "lucide-react";
+import { ChevronRight, Flame, Sparkles, Beef } from "lucide-react";
 import { Suspense } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { HeaderSearch } from "@/components/layout/header/header-search";
+import { CatalogContentSkeleton } from "@/components/shared/loading-skeletons";
 import { Pagination } from "@/components/shared/pagination";
 import { CategorySidebar } from "@/features/category/components/category-sidebar";
 import { ProductGrid } from "@/features/product/components/product-grid";
@@ -35,7 +36,13 @@ const getParam = (value: string | string[] | undefined): string => {
   return value ?? "";
 };
 
-export default async function HomePage({ searchParams }: HomePageProps) {
+interface HomeCatalogSectionProps {
+  searchParams: HomePageProps["searchParams"];
+}
+
+async function HomeCatalogSection({
+  searchParams,
+}: HomeCatalogSectionProps) {
   const resolvedParams = await searchParams;
   const searchQuery = getParam(resolvedParams.search);
   const sortValue = getParam(resolvedParams.sort);
@@ -65,6 +72,92 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   if (sortValue && sortValue !== "created_desc")
     paginationSearchParams.sort = sortValue;
 
+  return (
+    <>
+      {categories.length > 0 ? (
+        <section className="animate-fade-in-up mb-10 space-y-4" style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}>
+          <div className="flex items-center gap-3">
+            <div className="glow-dot" />
+            <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">
+              Shop by Category
+            </h2>
+          </div>
+          <div className="stagger-children flex flex-wrap gap-2.5">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/categories/${category.id}`}
+                className="hover-lift inline-flex items-center gap-1.5 rounded-2xl border border-border/60 bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
+              >
+                {category.name}
+                <ChevronRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <div className="grid gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
+        <aside className="hidden xl:block">
+          <div className="animate-slide-in-left sticky top-24 space-y-4">
+            <CategorySidebar categories={categories} />
+          </div>
+        </aside>
+
+        <section className="animate-fade-in-up space-y-6" style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Showing{" "}
+                <span className="font-medium text-foreground">
+                  {products.items.length}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-foreground">
+                  {products.total}
+                </span>{" "}
+                products
+                {searchQuery ? (
+                  <>
+                    {" "}
+                    for &ldquo;
+                    <span className="font-medium text-foreground">
+                      {searchQuery}
+                    </span>
+                    &rdquo;
+                  </>
+                ) : null}
+              </p>
+            </div>
+            <Suspense>
+              <ProductSortFilter basePath="/" />
+            </Suspense>
+          </div>
+
+          <ProductGrid
+            products={products.items}
+            emptyMessage={
+              searchQuery
+                ? `No products found for "${searchQuery}"`
+                : "No products available yet"
+            }
+          />
+
+          <div className="pt-6">
+            <Pagination
+              basePath="/"
+              currentPage={products.page}
+              totalPages={products.totalPages}
+              searchParams={paginationSearchParams}
+            />
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}
+
+export default function HomePage({ searchParams }: HomePageProps) {
   return (
     <>
       {/* Mobile search */}
@@ -118,8 +211,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
           <div className="animate-fade-in-up flex flex-wrap gap-3 pt-1" style={{ animationDelay: "0.4s", animationFillMode: "backwards" }}>
             <Badge className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-white backdrop-blur-sm">
-              <TrendingUp className="mr-1 size-3" />
-              {products.total} products
+              Chef-selected premium cuts
             </Badge>
             <Badge
               variant="outline"
@@ -132,92 +224,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
-      {/* Category Quick Links */}
-      {categories.length > 0 ? (
-        <section className="animate-fade-in-up mb-10 space-y-4" style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}>
-          <div className="flex items-center gap-3">
-            <div className="glow-dot" />
-            <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">
-              Shop by Category
-            </h2>
-          </div>
-          <div className="stagger-children flex flex-wrap gap-2.5">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/categories/${category.id}`}
-                className="hover-lift inline-flex items-center gap-1.5 rounded-2xl border border-border/60 bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
-              >
-                {category.name}
-                <ChevronRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {/* Main content */}
-      <div className="grid gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
-        {/* Sidebar */}
-        <aside className="hidden xl:block">
-          <div className="animate-slide-in-left sticky top-24 space-y-4">
-            <CategorySidebar categories={categories} />
-          </div>
-        </aside>
-
-        {/* Product listing */}
-        <section className="animate-fade-in-up space-y-6" style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}>
-          {/* Controls */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {products.items.length}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-foreground">
-                  {products.total}
-                </span>{" "}
-                products
-                {searchQuery ? (
-                  <>
-                    {" "}
-                    for &ldquo;
-                    <span className="font-medium text-foreground">
-                      {searchQuery}
-                    </span>
-                    &rdquo;
-                  </>
-                ) : null}
-              </p>
-            </div>
-            <Suspense>
-              <ProductSortFilter basePath="/" />
-            </Suspense>
-          </div>
-
-          {/* Grid */}
-          <ProductGrid
-            products={products.items}
-            emptyMessage={
-              searchQuery
-                ? `No products found for "${searchQuery}"`
-                : "No products available yet"
-            }
-          />
-
-          {/* Pagination */}
-          <div className="pt-6">
-            <Pagination
-              basePath="/"
-              currentPage={products.page}
-              totalPages={products.totalPages}
-              searchParams={paginationSearchParams}
-            />
-          </div>
-        </section>
-      </div>
+      <Suspense fallback={<CatalogContentSkeleton />}>
+        <HomeCatalogSection searchParams={searchParams} />
+      </Suspense>
     </>
   );
 }
