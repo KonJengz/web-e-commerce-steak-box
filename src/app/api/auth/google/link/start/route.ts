@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { applyResolvedSessionCookies } from "@/features/auth/services/auth-response-cookie.service";
 import { authService } from "@/features/auth/services/auth.service";
 import {
-  resolveRequestAuthSession,
-  type RequestAuthSession,
-} from "@/features/auth/services/request-auth-session.service";
+  executeWithServerAuthRetry,
+  isServerAuthRequiredError,
+} from "@/features/auth/services/server-auth-execution.service";
 import {
   buildLoginRedirectPath,
   resolveAuthRedirectTarget,
@@ -55,20 +54,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const redirectTo = normalizeSecurityRedirect(
     request.nextUrl.searchParams.get("redirectTo"),
   );
-  const session = await resolveRequestAuthSession(request);
-
-  if (!session) {
-    return buildLoginRedirect(request, redirectTo);
-  }
 
   try {
-    const result = await authService.startGoogleLink(session.accessToken, redirectTo);
-    const response = NextResponse.redirect(result.data.authorizeUrl);
-
-    applyResolvedSessionCookies(
-      response,
-      session as RequestAuthSession,
+    const result = await executeWithServerAuthRetry((accessToken) =>
+      authService.startGoogleLink(accessToken, redirectTo),
     );
+    const response = NextResponse.redirect(result.data.authorizeUrl);
 
     for (const setCookieHeader of getSetCookieHeaders(result.headers)) {
       response.headers.append("Set-Cookie", setCookieHeader);
@@ -76,11 +67,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return response;
   } catch (error) {
-    if (error instanceof ApiError) {
-      if (error.status === 401) {
-        return buildLoginRedirect(request, redirectTo);
-      }
+    if (isServerAuthRequiredError(error)) {
+      return buildLoginRedirect(request, redirectTo);
+    }
 
+    if (error instanceof ApiError) {
       return buildLinkErrorRedirect(request, redirectTo, mapLinkErrorCode(error));
     }
 

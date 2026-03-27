@@ -10,7 +10,10 @@ import {
 } from "@/features/address/schemas/address.schema";
 import { addressService } from "@/features/address/services/address.service";
 import type { UpdateAddressActionState } from "@/features/address/types/address.type";
-import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import {
+  executeWithServerAuthRetry,
+  isServerAuthRequiredError,
+} from "@/features/auth/services/server-auth-execution.service";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<UpdateAddressActionState> => {
@@ -25,12 +28,6 @@ export async function updateAddressAction(
   addressId: string,
   input: UpdateAddressInput,
 ): Promise<UpdateAddressActionState> {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    return buildUnauthorizedState();
-  }
-
   const normalizedAddressId = addressId.trim();
 
   if (!normalizedAddressId) {
@@ -51,7 +48,9 @@ export async function updateAddressAction(
   }
 
   try {
-    await addressService.update(accessToken, normalizedAddressId, validatedInput.data);
+    await executeWithServerAuthRetry((accessToken) =>
+      addressService.update(accessToken, normalizedAddressId, validatedInput.data),
+    );
 
     revalidatePath("/addresses");
     revalidatePath("/checkout");
@@ -65,11 +64,11 @@ export async function updateAddressAction(
       throw error;
     }
 
-    if (error instanceof ApiError) {
-      if (error.status === 401) {
-        return buildUnauthorizedState();
-      }
+    if (isServerAuthRequiredError(error)) {
+      return buildUnauthorizedState();
+    }
 
+    if (error instanceof ApiError) {
       return {
         message: error.message,
         success: false,

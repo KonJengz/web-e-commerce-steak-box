@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
-import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import {
+  executeWithServerAuthRetry,
+  isServerAuthRequiredError,
+} from "@/features/auth/services/server-auth-execution.service";
 import {
   requestEmailChangeSchema,
   verifyEmailChangeSchema,
@@ -93,12 +96,6 @@ const buildVerifyEmailChangeErrorState = (
 export async function requestEmailChangeAction(
   input: RequestEmailChangeInput,
 ): Promise<RequestEmailChangeActionState> {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    return buildUnauthorizedRequestState();
-  }
-
   const validatedInput = requestEmailChangeSchema.safeParse(input);
 
   if (!validatedInput.success) {
@@ -110,9 +107,8 @@ export async function requestEmailChangeAction(
   }
 
   try {
-    const result = await userService.requestEmailChange(
-      accessToken,
-      validatedInput.data,
+    const result = await executeWithServerAuthRetry((accessToken) =>
+      userService.requestEmailChange(accessToken, validatedInput.data),
     );
 
     return {
@@ -125,11 +121,11 @@ export async function requestEmailChangeAction(
       throw error;
     }
 
-    if (error instanceof ApiError) {
-      if (error.status === 401) {
-        return buildUnauthorizedRequestState();
-      }
+    if (isServerAuthRequiredError(error)) {
+      return buildUnauthorizedRequestState();
+    }
 
+    if (error instanceof ApiError) {
       return buildRequestEmailChangeErrorState(error);
     }
 
@@ -143,12 +139,6 @@ export async function requestEmailChangeAction(
 export async function verifyEmailChangeAction(
   input: VerifyEmailChangeInput,
 ): Promise<VerifyEmailChangeActionState> {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    return buildUnauthorizedVerifyState();
-  }
-
   const validatedInput = verifyEmailChangeSchema.safeParse(input);
 
   if (!validatedInput.success) {
@@ -160,9 +150,8 @@ export async function verifyEmailChangeAction(
   }
 
   try {
-    const result = await userService.verifyEmailChange(
-      accessToken,
-      validatedInput.data,
+    const result = await executeWithServerAuthRetry((accessToken) =>
+      userService.verifyEmailChange(accessToken, validatedInput.data),
     );
 
     revalidatePath("/(main)", "layout");
@@ -177,11 +166,11 @@ export async function verifyEmailChangeAction(
       throw error;
     }
 
-    if (error instanceof ApiError) {
-      if (error.status === 401) {
-        return buildUnauthorizedVerifyState();
-      }
+    if (isServerAuthRequiredError(error)) {
+      return buildUnauthorizedVerifyState();
+    }
 
+    if (error instanceof ApiError) {
       return buildVerifyEmailChangeErrorState(error);
     }
 

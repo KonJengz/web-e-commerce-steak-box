@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
-import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import {
+  executeWithServerAuthRetry,
+  isServerAuthRequiredError,
+} from "@/features/auth/services/server-auth-execution.service";
 import {
   createProductSchema,
   type CreateProductInput,
@@ -41,12 +44,6 @@ const buildApiErrorState = (error: ApiError): CreateProductActionState => {
 export async function createProductAction(
   input: CreateProductInput,
 ): Promise<CreateProductActionState> {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    return buildUnauthorizedState();
-  }
-
   const validatedInput = createProductSchema.safeParse(input);
 
   if (!validatedInput.success) {
@@ -58,7 +55,9 @@ export async function createProductAction(
   }
 
   try {
-    await productService.create(accessToken, validatedInput.data);
+    await executeWithServerAuthRetry((accessToken) =>
+      productService.create(accessToken, validatedInput.data),
+    );
 
     revalidatePath("/admin/products");
     revalidatePath("/admin/dashboard");
@@ -73,11 +72,11 @@ export async function createProductAction(
       throw error;
     }
 
-    if (error instanceof ApiError) {
-      if (error.status === 401) {
-        return buildUnauthorizedState();
-      }
+    if (isServerAuthRequiredError(error)) {
+      return buildUnauthorizedState();
+    }
 
+    if (error instanceof ApiError) {
       return buildApiErrorState(error);
     }
 

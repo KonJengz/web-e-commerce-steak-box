@@ -4,7 +4,10 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
 import { clearAuthSession } from "@/features/auth/services/auth-session.service";
-import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import {
+  executeWithServerAuthRetry,
+  isServerAuthRequiredError,
+} from "@/features/auth/services/server-auth-execution.service";
 import {
   updatePasswordSchema,
   type ChangePasswordInput,
@@ -80,12 +83,6 @@ const buildApiErrorState = (error: ApiError): UpdatePasswordActionState => {
 export async function updatePasswordAction(
   input: UpdatePasswordInput,
 ): Promise<UpdatePasswordActionState> {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    return buildUnauthorizedState();
-  }
-
   const validatedInput = updatePasswordSchema.safeParse(input);
 
   if (!validatedInput.success) {
@@ -105,13 +102,17 @@ export async function updatePasswordAction(
         newPassword: validatedInput.data.newPassword,
       };
 
-      await userService.changePassword(accessToken, changePasswordInput);
+      await executeWithServerAuthRetry((accessToken) =>
+        userService.changePassword(accessToken, changePasswordInput),
+      );
     } else {
       const setPasswordInput: SetPasswordInput = {
         newPassword: validatedInput.data.newPassword,
       };
 
-      await userService.setPassword(accessToken, setPasswordInput);
+      await executeWithServerAuthRetry((accessToken) =>
+        userService.setPassword(accessToken, setPasswordInput),
+      );
     }
 
     await clearAuthSession();
@@ -126,11 +127,11 @@ export async function updatePasswordAction(
       throw error;
     }
 
-    if (error instanceof ApiError) {
-      if (error.status === 401) {
-        return buildUnauthorizedState();
-      }
+    if (isServerAuthRequiredError(error)) {
+      return buildUnauthorizedState();
+    }
 
+    if (error instanceof ApiError) {
       return buildApiErrorState(error);
     }
 

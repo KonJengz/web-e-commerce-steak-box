@@ -5,7 +5,10 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 import { addressService } from "@/features/address/services/address.service";
 import type { DeleteAddressActionState } from "@/features/address/types/address.type";
-import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import {
+  executeWithServerAuthRetry,
+  isServerAuthRequiredError,
+} from "@/features/auth/services/server-auth-execution.service";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<DeleteAddressActionState> => {
@@ -19,12 +22,6 @@ const buildUnauthorizedState = async (): Promise<DeleteAddressActionState> => {
 export async function deleteAddressAction(
   addressId: string,
 ): Promise<DeleteAddressActionState> {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    return buildUnauthorizedState();
-  }
-
   const normalizedAddressId = addressId.trim();
 
   if (!normalizedAddressId) {
@@ -35,7 +32,9 @@ export async function deleteAddressAction(
   }
 
   try {
-    const result = await addressService.remove(accessToken, normalizedAddressId);
+    const result = await executeWithServerAuthRetry((accessToken) =>
+      addressService.remove(accessToken, normalizedAddressId),
+    );
 
     revalidatePath("/addresses");
     revalidatePath("/checkout");
@@ -49,11 +48,11 @@ export async function deleteAddressAction(
       throw error;
     }
 
-    if (error instanceof ApiError) {
-      if (error.status === 401) {
-        return buildUnauthorizedState();
-      }
+    if (isServerAuthRequiredError(error)) {
+      return buildUnauthorizedState();
+    }
 
+    if (error instanceof ApiError) {
       return {
         message: error.message,
         success: false,

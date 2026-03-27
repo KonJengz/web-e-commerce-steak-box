@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
-import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import {
+  executeWithServerAuthRetry,
+  isServerAuthRequiredError,
+} from "@/features/auth/services/server-auth-execution.service";
 import {
   updateProfileSchema,
 } from "@/features/user/schemas/profile.schema";
@@ -84,12 +87,6 @@ const buildApiErrorState = (error: ApiError): UpdateProfileActionState => {
 export async function updateProfileAction(
   formData: FormData,
 ): Promise<UpdateProfileActionState> {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    return buildUnauthorizedState();
-  }
-
   const validatedInput = updateProfileSchema.safeParse(
     getUpdateProfileInput(formData),
   );
@@ -103,9 +100,8 @@ export async function updateProfileAction(
   }
 
   try {
-    const result = await userService.updateProfile(
-      accessToken,
-      validatedInput.data,
+    const result = await executeWithServerAuthRetry((accessToken) =>
+      userService.updateProfile(accessToken, validatedInput.data),
     );
 
     revalidatePath("/(main)", "layout");
@@ -120,11 +116,11 @@ export async function updateProfileAction(
       throw error;
     }
 
-    if (error instanceof ApiError) {
-      if (error.status === 401) {
-        return buildUnauthorizedState();
-      }
+    if (isServerAuthRequiredError(error)) {
+      return buildUnauthorizedState();
+    }
 
+    if (error instanceof ApiError) {
       return buildApiErrorState(error);
     }
 

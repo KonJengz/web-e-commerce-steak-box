@@ -10,7 +10,10 @@ import {
 } from "@/features/address/schemas/address.schema";
 import { addressService } from "@/features/address/services/address.service";
 import type { CreateAddressActionState } from "@/features/address/types/address.type";
-import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
+import {
+  executeWithServerAuthRetry,
+  isServerAuthRequiredError,
+} from "@/features/auth/services/server-auth-execution.service";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<CreateAddressActionState> => {
@@ -24,12 +27,6 @@ const buildUnauthorizedState = async (): Promise<CreateAddressActionState> => {
 export async function createAddressAction(
   input: CreateAddressInput,
 ): Promise<CreateAddressActionState> {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    return buildUnauthorizedState();
-  }
-
   const validatedInput = createAddressSchema.safeParse(input);
 
   if (!validatedInput.success) {
@@ -41,7 +38,9 @@ export async function createAddressAction(
   }
 
   try {
-    await addressService.create(accessToken, validatedInput.data);
+    await executeWithServerAuthRetry((accessToken) =>
+      addressService.create(accessToken, validatedInput.data),
+    );
 
     revalidatePath("/addresses");
     revalidatePath("/checkout");
@@ -55,11 +54,11 @@ export async function createAddressAction(
       throw error;
     }
 
-    if (error instanceof ApiError) {
-      if (error.status === 401) {
-        return buildUnauthorizedState();
-      }
+    if (isServerAuthRequiredError(error)) {
+      return buildUnauthorizedState();
+    }
 
+    if (error instanceof ApiError) {
       return {
         message: error.message,
         success: false,
