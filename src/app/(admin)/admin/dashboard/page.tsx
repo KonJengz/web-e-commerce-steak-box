@@ -53,7 +53,8 @@ export default async function AdminDashboardPage() {
       </AdminPageHero>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-[1.75rem] border border-border/70 bg-card/95 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
+        <article className="group relative overflow-hidden rounded-[1.9rem] border border-emerald-500/15 bg-[linear-gradient(160deg,rgba(255,255,255,0.95),rgba(246,251,248,0.95))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
+          <div className="pointer-events-none absolute right-[-15%] bottom-[-35%] size-28 rounded-full bg-emerald-500/10 blur-[70px] transition-transform duration-500 group-hover:scale-110" />
           <p className="text-xs font-semibold tracking-[0.22em] text-emerald-600 uppercase">
             Total Products
           </p>
@@ -65,7 +66,8 @@ export default async function AdminDashboardPage() {
           </p>
         </article>
 
-        <article className="rounded-[1.75rem] border border-border/70 bg-card/95 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
+        <article className="group relative overflow-hidden rounded-[1.9rem] border border-emerald-500/15 bg-[linear-gradient(160deg,rgba(255,255,255,0.95),rgba(245,252,249,0.95))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
+          <div className="pointer-events-none absolute left-[-12%] top-[-25%] size-24 rounded-full bg-[#f6c168]/12 blur-[65px] transition-transform duration-500 group-hover:scale-110" />
           <p className="text-xs font-semibold tracking-[0.22em] text-emerald-600 uppercase">
             In Stock
           </p>
@@ -77,7 +79,8 @@ export default async function AdminDashboardPage() {
           </p>
         </article>
 
-        <article className="rounded-[1.75rem] border border-border/70 bg-card/95 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
+        <article className="group relative overflow-hidden rounded-[1.9rem] border border-emerald-500/15 bg-[linear-gradient(160deg,rgba(255,255,255,0.95),rgba(245,250,248,0.95))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
+          <div className="pointer-events-none absolute right-[-12%] top-[-25%] size-24 rounded-full bg-sky-400/12 blur-[65px] transition-transform duration-500 group-hover:scale-110" />
           <p className="text-xs font-semibold tracking-[0.22em] text-emerald-600 uppercase">
             Categories
           </p>
@@ -89,21 +92,22 @@ export default async function AdminDashboardPage() {
           </p>
         </article>
 
-        <article className="rounded-[1.75rem] border border-border/70 bg-card/95 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
-          <p className="text-xs font-semibold tracking-[0.22em] text-emerald-600 uppercase">
+        <article className="group relative overflow-hidden rounded-[1.9rem] border border-emerald-500/15 bg-[linear-gradient(160deg,rgba(13,22,19,0.98),rgba(12,19,17,0.94))] p-5 text-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+          <div className="pointer-events-none absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(142,242,197,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(142,242,197,0.35)_1px,transparent_1px)] [background-size:20px_20px]" />
+          <p className="text-xs font-semibold tracking-[0.22em] text-emerald-300 uppercase">
             API Surface
           </p>
-          <p className="mt-3 text-lg font-semibold tracking-tight text-foreground">
+          <p className="mt-3 text-lg font-semibold tracking-tight text-white">
             Products + Categories
           </p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 text-sm leading-6 text-white/65">
             Orders and user administration stay out of this menu until backend admin endpoints exist.
           </p>
         </article>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-        <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
+        <section className="rounded-[2rem] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(249,252,250,0.96))] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
               <p className="text-xs font-semibold tracking-[0.28em] text-emerald-600 uppercase">
@@ -129,7 +133,7 @@ export default async function AdminDashboardPage() {
               latestProducts.map((product) => (
                 <article
                   key={product.id}
-                  className="flex flex-col gap-4 rounded-[1.5rem] border border-border/70 bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 rounded-[1.5rem] border border-emerald-500/10 bg-background/60 p-4 transition-transform duration-300 hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
@@ -167,7 +171,7 @@ export default async function AdminDashboardPage() {
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
+        <section className="rounded-[2rem] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,251,249,0.96))] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
           <div className="space-y-2">
             <p className="text-xs font-semibold tracking-[0.28em] text-emerald-600 uppercase">
               Enabled Areas
@@ -178,7 +182,7 @@ export default async function AdminDashboardPage() {
           </div>
 
           <div className="mt-8 space-y-4">
-            <article className="rounded-[1.5rem] border border-border/70 bg-background/60 p-4">
+            <article className="rounded-[1.5rem] border border-emerald-500/10 bg-background/60 p-4">
               <div className="flex items-center gap-3">
                 <span className="inline-flex size-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
                   <Boxes className="size-5" />
@@ -194,7 +198,7 @@ export default async function AdminDashboardPage() {
               </div>
             </article>
 
-            <article className="rounded-[1.5rem] border border-border/70 bg-background/60 p-4">
+            <article className="rounded-[1.5rem] border border-emerald-500/10 bg-background/60 p-4">
               <div className="flex items-center gap-3">
                 <span className="inline-flex size-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
                   <Tags className="size-5" />
@@ -210,7 +214,7 @@ export default async function AdminDashboardPage() {
               </div>
             </article>
 
-            <div className="rounded-[1.5rem] border border-dashed border-border/70 bg-background/45 px-4 py-4 text-sm leading-7 text-muted-foreground">
+            <div className="rounded-[1.5rem] border border-dashed border-emerald-500/15 bg-background/45 px-4 py-4 text-sm leading-7 text-muted-foreground">
               Admin order moderation and user management are intentionally left out until the backend exposes dedicated admin endpoints for them.
             </div>
           </div>

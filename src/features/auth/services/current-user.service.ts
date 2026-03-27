@@ -50,14 +50,34 @@ export const getCurrentUser = cache(async (): Promise<UserProfile | null> => {
   }
 });
 
-export const requireAdminUser = async (
-  redirectToPath: string = "/admin",
+export const requireCurrentAccessToken = async (
+  redirectToPath: string,
+): Promise<string> => {
+  const accessToken = await getCurrentAccessToken();
+
+  if (!accessToken) {
+    redirect(buildLoginRedirectPath(redirectToPath));
+  }
+
+  return accessToken;
+};
+
+export const requireCurrentUser = async (
+  redirectToPath: string,
 ): Promise<UserProfile> => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
     redirect(buildLoginRedirectPath(redirectToPath));
   }
+
+  return currentUser;
+};
+
+export const requireAdminUser = async (
+  redirectToPath: string = "/admin",
+): Promise<UserProfile> => {
+  const currentUser = await requireCurrentUser(redirectToPath);
 
   if (currentUser.role !== "ADMIN") {
     redirect("/");

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { MapPinHouse } from "lucide-react";
-import { redirect } from "next/navigation";
 
 import { AccountPageHero } from "@/components/account/account-page-hero";
 import { Badge } from "@/components/ui/badge";
@@ -8,15 +7,10 @@ import { Button } from "@/components/ui/button";
 import { AddressCard } from "@/features/address/components/address-card";
 import { AddressCreateForm } from "@/features/address/components/address-create-form";
 import { addressService } from "@/features/address/services/address.service";
-import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
-import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
+import { requireCurrentAccessToken } from "@/features/auth/services/current-user.service";
 
 export default async function AddressesPage() {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    redirect(buildLoginRedirectPath("/addresses"));
-  }
+  const accessToken = await requireCurrentAccessToken("/addresses");
 
   const addresses = (await addressService.getAll(accessToken)).data;
   const sortedAddresses = [...addresses].sort((left, right) => {

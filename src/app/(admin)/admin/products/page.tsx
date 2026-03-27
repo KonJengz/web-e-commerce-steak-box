@@ -100,7 +100,7 @@ export default async function AdminProductsPage({
 
       <AdminProductCreateForm categories={categories} />
 
-      <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
+      <section className="rounded-[2rem] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,251,249,0.95))] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
             <p className="text-xs font-semibold tracking-[0.28em] text-emerald-600 uppercase">
@@ -116,16 +116,17 @@ export default async function AdminProductsPage({
             </div>
           </div>
 
-          <form className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
+          <form className="grid gap-3 rounded-[1.6rem] border border-emerald-500/10 bg-background/55 p-4 sm:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
             <Input
               name="query"
               defaultValue={searchQuery}
               placeholder="Search by product name"
+              className="border-emerald-500/10 bg-card/90"
             />
             <select
               name="category"
               defaultValue={selectedCategoryId}
-              className={cn(selectClassName)}
+              className={cn(selectClassName, "border-emerald-500/10 bg-card/90")}
             >
               <option value="">All categories</option>
               {categories.map((category) => (
@@ -148,7 +149,7 @@ export default async function AdminProductsPage({
             products.map((product) => (
               <article
                 key={product.id}
-                className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5"
+                className="rounded-[1.5rem] border border-emerald-500/10 bg-background/60 p-5 shadow-[0_18px_45px_rgba(0,0,0,0.03)] transition-transform duration-300 hover:-translate-y-0.5"
               >
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                   <div className="space-y-4">
@@ -174,7 +175,7 @@ export default async function AdminProductsPage({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-3">
-                      <div className="rounded-[1.25rem] border border-border/70 bg-card/80 px-4 py-3">
+                      <div className="rounded-[1.25rem] border border-emerald-500/10 bg-card/80 px-4 py-3">
                         <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                           Price
                         </p>
@@ -182,7 +183,7 @@ export default async function AdminProductsPage({
                           {formatCurrency(product.currentPrice)}
                         </p>
                       </div>
-                      <div className="rounded-[1.25rem] border border-border/70 bg-card/80 px-4 py-3">
+                      <div className="rounded-[1.25rem] border border-emerald-500/10 bg-card/80 px-4 py-3">
                         <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                           Stock
                         </p>
@@ -190,7 +191,7 @@ export default async function AdminProductsPage({
                           {product.stock}
                         </p>
                       </div>
-                      <div className="rounded-[1.25rem] border border-border/70 bg-card/80 px-4 py-3">
+                      <div className="rounded-[1.25rem] border border-emerald-500/10 bg-card/80 px-4 py-3">
                         <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                           Category
                         </p>

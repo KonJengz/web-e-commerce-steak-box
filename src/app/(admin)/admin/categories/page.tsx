@@ -26,7 +26,7 @@ export default async function AdminCategoriesPage() {
 
       <AdminCategoryCreateForm />
 
-      <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
+      <section className="rounded-[2rem] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,251,249,0.95))] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
         <div className="space-y-2">
           <p className="text-xs font-semibold tracking-[0.28em] text-emerald-600 uppercase">
             Category Directory
@@ -46,7 +46,7 @@ export default async function AdminCategoriesPage() {
             categories.map((category) => (
               <article
                 key={category.id}
-                className="rounded-[1.5rem] border border-border/70 bg-background/60 p-5"
+                className="rounded-[1.5rem] border border-emerald-500/10 bg-background/60 p-5 shadow-[0_18px_45px_rgba(0,0,0,0.03)] transition-transform duration-300 hover:-translate-y-0.5"
               >
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">

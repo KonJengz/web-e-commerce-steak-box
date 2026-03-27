@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
-import { redirect } from "next/navigation";
 
 import { AccountSidebarNav } from "@/components/account/account-sidebar-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getCurrentUser } from "@/features/auth/services/current-user.service";
-import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
+import { requireCurrentUser } from "@/features/auth/services/current-user.service";
 import { resolveUserAvatar } from "@/features/user/utils/avatar";
 
 interface AccountShellProps {
@@ -12,11 +10,7 @@ interface AccountShellProps {
 }
 
 export async function AccountShell({ children }: AccountShellProps) {
-  const currentUser = await getCurrentUser();
-
-  if (!currentUser) {
-    redirect(buildLoginRedirectPath("/profile"));
-  }
+  const currentUser = await requireCurrentUser("/profile");
 
   const avatar = resolveUserAvatar(currentUser.email, currentUser.image);
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { applyResolvedSessionCookies } from "@/features/auth/services/auth-response-cookie.service";
+import { clearAuthResponseCookies } from "@/features/auth/services/auth-response-cookie.service";
 import {
   buildRequestHeadersWithAuthSession,
   getRequestAccessToken,
@@ -139,14 +140,10 @@ export async function proxy(request: NextRequest) {
 
   if (isProtected) {
     if (!activeSession) {
-      return redirectToLogin(request);
+      return clearAuthResponseCookies(redirectToLogin(request));
     }
 
-    if (activeSession.refreshedSession) {
-      return createResponseWithResolvedSession(request, activeSession);
-    }
-
-    return createNextResponse();
+    return createResponseWithResolvedSession(request, activeSession);
   }
 
   if (isAuth) {
@@ -162,7 +159,11 @@ export async function proxy(request: NextRequest) {
   }
 
   if (hasAccessToken && !hasValidAccessToken && !hasRefreshToken) {
-    return createNextResponse();
+    return clearAuthResponseCookies(createNextResponse());
+  }
+
+  if (!activeSession && (hasAccessToken || hasRefreshToken)) {
+    return clearAuthResponseCookies(createNextResponse());
   }
 
   return createNextResponse();

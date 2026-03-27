@@ -3,9 +3,9 @@ import type { NextRequest } from "next/server";
 import { envServer } from "@/config/env.server";
 import {
   isAccessTokenExpired,
-  refreshAccessToken,
   type RefreshedAuthSession,
 } from "@/lib/auth-helpers";
+import { refreshAccessTokenSingleFlight } from "@/features/auth/services/auth-refresh-coordinator.service";
 
 export const REQUEST_ACCESS_TOKEN_HEADER_NAME = "x-auth-access-token";
 
@@ -46,7 +46,7 @@ export const resolveRequestAuthSession = async (
     return null;
   }
 
-  const refreshedSession = await refreshAccessToken(refreshToken);
+  const refreshedSession = await refreshAccessTokenSingleFlight(refreshToken);
 
   if (!refreshedSession) {
     return null;

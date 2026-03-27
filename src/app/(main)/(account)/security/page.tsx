@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
-import { redirect } from "next/navigation";
 
 import { AccountPageHero } from "@/components/account/account-page-hero";
-import { getCurrentUser } from "@/features/auth/services/current-user.service";
+import { requireCurrentUser } from "@/features/auth/services/current-user.service";
 import {
   GoogleLinkCard,
   type GoogleLinkNotice,
 } from "@/features/auth/components/google-link-card";
 import { authService } from "@/features/auth/services/auth.service";
 import { ProfilePasswordEditor } from "@/features/user/components/profile-password-editor";
-import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 
 export const metadata: Metadata = {
   title: "Security",
@@ -90,11 +88,7 @@ interface SecurityPageProps {
 export default async function SecurityPage({
   searchParams,
 }: SecurityPageProps) {
-  const profile = await getCurrentUser();
-
-  if (!profile) {
-    redirect(buildLoginRedirectPath("/security"));
-  }
+  const profile = await requireCurrentUser("/security");
 
   const resolvedSearchParams = await searchParams;
   const linkProviderParam = resolvedSearchParams.link_provider;

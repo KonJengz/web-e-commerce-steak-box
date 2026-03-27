@@ -3,16 +3,14 @@ import "server-only";
 import { cookies } from "next/headers";
 
 import { envServer } from "@/config/env.server";
+import { refreshAccessTokenSingleFlight as refreshAuthSessionSingleFlight } from "@/features/auth/services/auth-refresh-coordinator.service";
 import {
   isAccessTokenExpired,
-  refreshAccessToken,
   type RefreshedAuthSession,
 } from "@/lib/auth-helpers";
 import { ApiError } from "@/lib/api/error";
 
 const isProduction = process.env.NODE_ENV === "production";
-
-const refreshFlights = new Map<string, Promise<RefreshedAuthSession | null>>();
 
 interface ServerAuthTokens {
   accessToken: string | null;
@@ -83,19 +81,7 @@ const persistRefreshedSessionCookies = async (
 const refreshAccessTokenSingleFlight = async (
   refreshToken: string,
 ): Promise<RefreshedAuthSession | null> => {
-  const inFlightRefresh = refreshFlights.get(refreshToken);
-
-  if (inFlightRefresh) {
-    return inFlightRefresh;
-  }
-
-  const refreshPromise = refreshAccessToken(refreshToken).finally(() => {
-    refreshFlights.delete(refreshToken);
-  });
-
-  refreshFlights.set(refreshToken, refreshPromise);
-
-  return refreshPromise;
+  return refreshAuthSessionSingleFlight(refreshToken);
 };
 
 const refreshServerAuthSession = async (

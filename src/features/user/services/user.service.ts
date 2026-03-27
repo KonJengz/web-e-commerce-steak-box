@@ -14,6 +14,7 @@ import type { ApiResult } from "@/types";
 interface MeApiResponse {
   created_at: string;
   email: string;
+  has_password: boolean;
   id: string;
   image: string | null;
   is_active: boolean;
@@ -30,6 +31,7 @@ const mapUserProfile = (data: MeApiResponse): UserProfile => {
   return {
     createdAt: data.created_at,
     email: data.email,
+    hasPassword: data.has_password,
     id: data.id,
     image: data.image,
     isActive: data.is_active,

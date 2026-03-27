@@ -82,6 +82,7 @@ const buildApiErrorState = (error: ApiError): UpdatePasswordActionState => {
 
 export async function updatePasswordAction(
   input: UpdatePasswordInput,
+  hasPassword: boolean,
 ): Promise<UpdatePasswordActionState> {
   const validatedInput = updatePasswordSchema.safeParse(input);
 
@@ -95,8 +96,18 @@ export async function updatePasswordAction(
 
   const currentPassword = validatedInput.data.currentPassword;
 
+  if (hasPassword && currentPassword.length === 0) {
+    return {
+      fieldErrors: {
+        currentPassword: ["Current password is required."],
+      },
+      message: "Enter your current password to change it.",
+      success: false,
+    };
+  }
+
   try {
-    if (currentPassword.length > 0) {
+    if (hasPassword) {
       const changePasswordInput: ChangePasswordInput = {
         currentPassword,
         newPassword: validatedInput.data.newPassword,
@@ -118,7 +129,9 @@ export async function updatePasswordAction(
     await clearAuthSession();
 
     return {
-      message: "Password updated. Please sign in again.",
+      message: hasPassword
+        ? "Password changed. Please sign in again."
+        : "Password set. Please sign in again.",
       redirectToLogin: true,
       success: true,
     };

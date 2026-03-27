@@ -10,6 +10,7 @@ export interface User {
 
 export interface UserProfile extends User {
   createdAt: string;
+  hasPassword: boolean;
   isActive: boolean;
   isVerified: boolean;
 }

@@ -38,6 +38,11 @@ export function ProfilePasswordEditor({
   profile,
   redirectPath = "/profile",
 }: ProfilePasswordEditorProps) {
+  const hasPassword = profile.hasPassword;
+  const actionLabel = hasPassword ? "Change Password" : "Set Password";
+  const submitLabel = hasPassword
+    ? "Change Password and Sign Out"
+    : "Set Password and Sign Out";
   const router = useRouter();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isPending, startTransition] = useTransition();
@@ -115,8 +120,16 @@ export function ProfilePasswordEditor({
     setSubmissionState(null);
     const loginRedirectPath = buildLoginRedirectPath(redirectPath);
 
+    if (hasPassword && values.currentPassword.length === 0) {
+      setError("currentPassword", {
+        message: "Current password is required.",
+        type: "manual",
+      });
+      return;
+    }
+
     startTransition(async () => {
-      const result = await updatePasswordAction(values);
+      const result = await updatePasswordAction(values, hasPassword);
 
       if (!result.success) {
         setSubmissionState(result);
@@ -210,7 +223,9 @@ export function ProfilePasswordEditor({
               Password
             </h3>
             <p className="text-sm leading-6 text-muted-foreground">
-              Add a password for social login accounts or change the existing one.
+              {hasPassword
+                ? "Change the password currently attached to this account."
+                : "Set a password for accounts that currently sign in with social login only."}
             </p>
           </div>
         </div>
@@ -223,7 +238,7 @@ export function ProfilePasswordEditor({
             onClick={() => setIsEditing(true)}
           >
             <PencilLine className="size-4" />
-            Edit
+            {actionLabel}
           </Button>
         ) : null}
       </div>
@@ -237,12 +252,14 @@ export function ProfilePasswordEditor({
               </span>
               <div className="space-y-1">
                 <p className="text-base font-medium text-foreground">
-                  Manage access for {profile.email}
+                  {hasPassword
+                    ? `Password login is active for ${profile.email}`
+                    : `No password is set yet for ${profile.email}`}
                 </p>
                 <p className="text-sm leading-6 text-muted-foreground">
-                  If you usually sign in with Google or GitHub, you can set a password
-                  here for the first time. Saving also signs you out so the new
-                  credentials take effect cleanly.
+                  {hasPassword
+                    ? "Use your current password to switch to a new one. Saving signs you out so the updated credentials take effect cleanly."
+                    : "If you usually sign in with Google or GitHub, you can set a password here for the first time. Saving signs you out so the new credentials take effect cleanly."}
                 </p>
               </div>
             </div>
@@ -260,12 +277,13 @@ export function ProfilePasswordEditor({
             </div>
           ) : null}
 
-          {renderPasswordField(
-            "currentPassword",
-            "Current Password",
-            "Leave blank if this account has never had a password",
-            "Leave this blank if you only sign in with Google or GitHub and have never set a password before.",
-          )}
+          {hasPassword
+            ? renderPasswordField(
+                "currentPassword",
+                "Current Password",
+                "Enter your current password",
+              )
+            : null}
 
           {renderPasswordField(
             "newPassword",
@@ -301,7 +319,7 @@ export function ProfilePasswordEditor({
                   Saving...
                 </>
               ) : (
-                "Save and Sign Out"
+                submitLabel
               )}
             </Button>
           </div>

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Package2, ReceiptText } from "lucide-react";
-import { redirect } from "next/navigation";
 
 import { AccountPageHero } from "@/components/account/account-page-hero";
 import {
@@ -10,8 +9,7 @@ import {
 } from "@/components/account/account.utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getCurrentAccessToken } from "@/features/auth/services/current-user.service";
-import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
+import { requireCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import { orderService } from "@/features/order/services/order.service";
 
 interface OrdersPageProps {
@@ -21,11 +19,7 @@ interface OrdersPageProps {
 export default async function OrdersPage({
   searchParams,
 }: OrdersPageProps) {
-  const accessToken = await getCurrentAccessToken();
-
-  if (!accessToken) {
-    redirect(buildLoginRedirectPath("/orders"));
-  }
+  const accessToken = await requireCurrentAccessToken("/orders");
 
   const resolvedSearchParams = await searchParams;
   const pageParam = resolvedSearchParams.page;
