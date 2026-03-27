@@ -1,10 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, PackagePlus } from "lucide-react";
+import { ImagePlus, Loader2, PackagePlus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -14,6 +14,9 @@ import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { createProductAction } from "@/features/product/actions/create-product.action";
 import {
   createProductSchema,
+  PRODUCT_IMAGE_ACCEPT,
+  PRODUCT_IMAGE_MAX_COUNT,
+  PRODUCT_IMAGE_MAX_SIZE_MB,
   type CreateProductFormValues,
   type CreateProductInput,
 } from "@/features/product/schemas/product.schema";
@@ -36,14 +39,25 @@ const defaultValues: CreateProductFormValues = {
   categoryId: "",
   currentPrice: "",
   description: "",
+  images: [],
   name: "",
   stock: "",
+};
+const emptySelectedImages: File[] = [];
+
+const formatImageSize = (size: number): string => {
+  if (size >= 1024 * 1024) {
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  return `${Math.max(1, Math.round(size / 1024))} KB`;
 };
 
 export function AdminProductCreateForm({
   categories,
 }: AdminProductCreateFormProps) {
   const router = useRouter();
+  const [fileInputKey, setFileInputKey] = useState<number>(0);
   const [isPending, startTransition] = useTransition();
   const [submissionState, setSubmissionState] =
     useState<CreateProductActionState | null>(null);
@@ -52,6 +66,14 @@ export function AdminProductCreateForm({
       defaultValues,
       resolver: zodResolver(createProductSchema),
     });
+  const watchedImages = useWatch({
+    control,
+    name: "images",
+  });
+  const selectedImages = watchedImages ?? emptySelectedImages;
+  const imagePreviewUrls = useMemo(() => {
+    return selectedImages.map((image) => URL.createObjectURL(image));
+  }, [selectedImages]);
 
   useEffect(() => {
     if (!submissionState?.success || !submissionState.message) {
@@ -73,10 +95,30 @@ export function AdminProductCreateForm({
     };
   }, [submissionState]);
 
+  useEffect(() => {
+    return () => {
+      imagePreviewUrls.forEach((previewUrl) => {
+        URL.revokeObjectURL(previewUrl);
+      });
+    };
+  }, [imagePreviewUrls]);
+
+  const resetFormFields = (): void => {
+    clearErrors();
+    reset(defaultValues);
+    setFileInputKey((currentKey) => currentKey + 1);
+  };
+
+  const resetForm = (): void => {
+    resetFormFields();
+    setSubmissionState(null);
+  };
+
   const applyServerErrors = (state: CreateProductActionState): void => {
     const categoryIdError = state.fieldErrors?.categoryId?.[0];
     const currentPriceError = state.fieldErrors?.currentPrice?.[0];
     const descriptionError = state.fieldErrors?.description?.[0];
+    const imagesError = state.fieldErrors?.images?.[0];
     const nameError = state.fieldErrors?.name?.[0];
     const stockError = state.fieldErrors?.stock?.[0];
 
@@ -114,14 +156,32 @@ export function AdminProductCreateForm({
         type: "server",
       });
     }
+
+    if (imagesError) {
+      setError("images", {
+        message: imagesError,
+        type: "server",
+      });
+    }
   };
 
   const handleCreateProduct = (values: CreateProductInput): void => {
     clearErrors();
     setSubmissionState(null);
 
+    const formData = new FormData();
+
+    formData.set("categoryId", values.categoryId);
+    formData.set("currentPrice", String(values.currentPrice));
+    formData.set("description", values.description);
+    values.images.forEach((image) => {
+      formData.append("images", image);
+    });
+    formData.set("name", values.name);
+    formData.set("stock", String(values.stock));
+
     startTransition(async () => {
-      const result = await createProductAction(values);
+      const result = await createProductAction(formData);
 
       setSubmissionState(result);
 
@@ -140,7 +200,7 @@ export function AdminProductCreateForm({
         return;
       }
 
-      reset(defaultValues);
+      resetFormFields();
       router.refresh();
     });
   };
@@ -157,7 +217,9 @@ export function AdminProductCreateForm({
               Add a product to the catalog
             </h2>
             <p className="text-sm leading-7 text-muted-foreground">
-              Start with the core catalog fields. Image and gallery tools can sit on this page later without changing the route structure.
+              Create the core product record and attach up to{" "}
+              {PRODUCT_IMAGE_MAX_COUNT} images in the same flow. The first image
+              becomes the cover image automatically.
             </p>
           </div>
         </div>
@@ -176,7 +238,9 @@ export function AdminProductCreateForm({
           <div
             className={
               submissionState.success
-                ? "rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300"
+                ? submissionState.warning
+                  ? "rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-800 dark:text-amber-300"
+                  : "rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300"
                 : "rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive"
             }
           >
@@ -306,17 +370,133 @@ export function AdminProductCreateForm({
           )}
         />
 
+        <Controller
+          control={control}
+          name="images"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <FieldLabel htmlFor={field.name}>Product Images</FieldLabel>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    Upload up to {PRODUCT_IMAGE_MAX_COUNT} JPG, PNG, or WEBP
+                    images. Each image must be {PRODUCT_IMAGE_MAX_SIZE_MB} MB or
+                    smaller.
+                  </p>
+                </div>
+
+                {selectedImages.length > 0 ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    disabled={isPending}
+                    onClick={() => {
+                      setSubmissionState(null);
+                      clearErrors("images");
+                      field.onChange([]);
+                      setFileInputKey((currentKey) => currentKey + 1);
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                    Clear
+                  </Button>
+                ) : null}
+              </div>
+
+              <Input
+                key={fileInputKey}
+                id={field.name}
+                name={field.name}
+                type="file"
+                accept={PRODUCT_IMAGE_ACCEPT}
+                multiple
+                aria-invalid={fieldState.invalid}
+                className="h-auto rounded-2xl border-border/70 bg-card/85 px-4 py-3 file:mr-3 file:rounded-full file:bg-primary/10 file:px-3 file:py-1.5 file:text-primary"
+                disabled={isPending}
+                ref={field.ref}
+                onBlur={field.onBlur}
+                onChange={(event) => {
+                  setSubmissionState(null);
+                  clearErrors("images");
+                  field.onChange(Array.from(event.target.files ?? []));
+                }}
+              />
+
+              <FieldError errors={[fieldState.error]} />
+
+              {selectedImages.length > 0 ? (
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {selectedImages.map((image, index) => (
+                    <article
+                      key={`${image.name}:${image.size}:${index}`}
+                      className="overflow-hidden rounded-[1.5rem] border border-border/70 bg-background/65"
+                    >
+                      <div className="aspect-square overflow-hidden bg-muted/30">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={imagePreviewUrls[index]}
+                          alt={image.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+
+                      <div className="space-y-2 p-4">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase",
+                              index === 0
+                                ? "bg-primary/12 text-primary"
+                                : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {index === 0 ? "Primary" : `Gallery ${index}`}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="line-clamp-1 text-sm font-medium text-foreground">
+                            {image.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatImageSize(image.size)}
+                          </p>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-[1.5rem] border border-dashed border-border/70 bg-muted/15 px-4 py-5 text-sm leading-6 text-muted-foreground">
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <ImagePlus className="size-4" />
+                    </span>
+                    <div>
+                      <p className="font-medium text-foreground">
+                        No images selected yet
+                      </p>
+                      <p>
+                        Add at least one image if you want a cover image at
+                        creation time.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Field>
+          )}
+        />
+
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
           <Button
             type="button"
             variant="outline"
             className="rounded-full"
             disabled={isPending}
-            onClick={() => {
-              clearErrors();
-              setSubmissionState(null);
-              reset(defaultValues);
-            }}
+            onClick={resetForm}
           >
             Reset
           </Button>

@@ -1,5 +1,15 @@
 import { z } from "zod";
 
+const PRODUCT_IMAGE_ACCEPTED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+export const PRODUCT_IMAGE_ACCEPT = PRODUCT_IMAGE_ACCEPTED_TYPES.join(",");
+export const PRODUCT_IMAGE_MAX_COUNT = 4;
+export const PRODUCT_IMAGE_MAX_SIZE_MB = 5;
+
 const categoryIdSchema = z
   .string()
   .trim()
@@ -27,13 +37,45 @@ const stockSchema = z.coerce
   .int("Stock must be a whole number.")
   .min(0, "Stock cannot be negative.");
 
+const isFileLike = (value: unknown): value is File => {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as File).name === "string" &&
+    typeof (value as File).size === "number" &&
+    typeof (value as File).type === "string"
+  );
+};
+
+const productImageSchema = z
+  .custom<File>((value) => isFileLike(value), {
+    message: "Please choose a valid image file.",
+  })
+  .refine((file) => PRODUCT_IMAGE_ACCEPTED_TYPES.includes(file.type as (typeof PRODUCT_IMAGE_ACCEPTED_TYPES)[number]), {
+    message: "Please choose JPG, PNG, or WEBP images only.",
+  })
+  .refine(
+    (file) => file.size <= PRODUCT_IMAGE_MAX_SIZE_MB * 1024 * 1024,
+    {
+      message: `Each image must be ${PRODUCT_IMAGE_MAX_SIZE_MB} MB or smaller.`,
+    },
+  );
+
 export const createProductSchema = z.object({
   categoryId: categoryIdSchema,
   currentPrice: currentPriceSchema,
   description: descriptionSchema,
+  images: z
+    .array(productImageSchema)
+    .max(
+      PRODUCT_IMAGE_MAX_COUNT,
+      `You can upload up to ${PRODUCT_IMAGE_MAX_COUNT} product images.`,
+    )
+    .default([]),
   name: nameSchema,
   stock: stockSchema,
 });
 
 export type CreateProductFormValues = z.input<typeof createProductSchema>;
 export type CreateProductInput = z.output<typeof createProductSchema>;
+export type CreateProductCoreInput = Omit<CreateProductInput, "images">;

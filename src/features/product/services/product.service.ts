@@ -1,12 +1,13 @@
 import "server-only";
 
-import type { CreateProductInput } from "@/features/product/schemas/product.schema";
+import type { CreateProductCoreInput } from "@/features/product/schemas/product.schema";
 import type {
   ProductDetail,
   ProductImage,
   ProductListResult,
   ProductQueryOptions,
   ProductSummary,
+  ProductUploadedImage,
 } from "@/features/product/types/product.type";
 import { api } from "@/lib/api/client";
 import type { ApiResult } from "@/types";
@@ -57,6 +58,11 @@ interface ProductMutationApiResponse {
   id: string;
 }
 
+interface ProductUploadImageApiResponse {
+  image_public_id: string;
+  image_url: string;
+}
+
 const mapProductSummary = (
   product: ProductListItemApiResponse,
 ): ProductSummary => {
@@ -100,6 +106,15 @@ const mapProductImage = (
     isPrimary: image.is_primary,
     productId: image.product_id,
     sortOrder: image.sort_order,
+  };
+};
+
+const mapUploadedProductImage = (
+  image: ProductUploadImageApiResponse,
+): ProductUploadedImage => {
+  return {
+    imagePublicId: image.image_public_id,
+    imageUrl: image.image_url,
   };
 };
 
@@ -188,7 +203,8 @@ const getImages = async (
 
 const create = async (
   accessToken: string,
-  input: CreateProductInput,
+  input: CreateProductCoreInput,
+  primaryImage?: ProductUploadedImage,
 ): Promise<ApiResult<ProductMutationApiResponse>> => {
   return api.post<ProductMutationApiResponse>(
     "/api/products",
@@ -196,8 +212,54 @@ const create = async (
       category_id: input.categoryId,
       current_price: input.currentPrice,
       description: input.description.trim(),
+      image_public_id: primaryImage?.imagePublicId,
+      image_url: primaryImage?.imageUrl,
       name: input.name.trim(),
       stock: input.stock,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+};
+
+const uploadImage = async (
+  accessToken: string,
+  image: File,
+): Promise<ApiResult<ProductUploadedImage>> => {
+  const formData = new FormData();
+
+  formData.set("image", image);
+
+  const result = await api.post<ProductUploadImageApiResponse>(
+    "/api/products/upload-image",
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: mapUploadedProductImage(result.data),
+  };
+};
+
+const addImage = async (
+  accessToken: string,
+  productId: string,
+  image: ProductUploadedImage,
+): Promise<ApiResult<unknown>> => {
+  return api.post<unknown>(
+    `/api/products/${productId}/images`,
+    {
+      image_public_id: image.imagePublicId,
+      image_url: image.imageUrl,
+      is_primary: false,
     },
     {
       headers: {
@@ -219,9 +281,11 @@ const remove = async (
 };
 
 export const productService = {
+  addImage,
   create,
   getAll,
   getById,
   getImages,
   remove,
+  uploadImage,
 };

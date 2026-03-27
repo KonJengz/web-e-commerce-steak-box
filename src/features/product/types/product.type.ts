@@ -34,6 +34,11 @@ export interface ProductImage {
   sortOrder: number;
 }
 
+export interface ProductUploadedImage {
+  imagePublicId: string;
+  imageUrl: string;
+}
+
 export interface ProductQueryOptions {
   categoryId?: string;
   inStock?: boolean;
@@ -50,6 +55,7 @@ export interface CreateProductActionState {
     categoryId?: string[];
     currentPrice?: string[];
     description?: string[];
+    images?: string[];
     name?: string[];
     stock?: string[];
   };
@@ -57,6 +63,7 @@ export interface CreateProductActionState {
   requiresAdmin?: boolean;
   requiresReauthentication?: boolean;
   success: boolean;
+  warning?: boolean;
 }
 
 export interface DeleteProductActionState {
