@@ -1,0 +1,59 @@
+import type { NextRequest } from "next/server";
+
+import {
+  buildFallbackAvatarSvg,
+  isProxyableAvatarUrl,
+} from "@/features/user/utils/avatar";
+
+const SUCCESS_CACHE_CONTROL =
+  "public, max-age=3600, stale-while-revalidate=86400";
+const FALLBACK_CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=300";
+
+const buildFallbackResponse = (seed: string): Response => {
+  return new Response(buildFallbackAvatarSvg(seed), {
+    headers: {
+      "Cache-Control": FALLBACK_CACHE_CONTROL,
+      "Content-Type": "image/svg+xml; charset=utf-8",
+      "X-Content-Type-Options": "nosniff",
+    },
+    status: 200,
+  });
+};
+
+export async function GET(request: NextRequest): Promise<Response> {
+  const source = request.nextUrl.searchParams.get("src")?.trim();
+  const seed = request.nextUrl.searchParams.get("seed")?.trim() || "User";
+
+  if (!source || !isProxyableAvatarUrl(source)) {
+    return buildFallbackResponse(seed);
+  }
+
+  try {
+    const upstreamResponse = await fetch(source, {
+      headers: {
+        Accept: "image/avif,image/webp,image/*,*/*;q=0.8",
+      },
+      next: {
+        revalidate: 3600,
+      },
+      redirect: "follow",
+    });
+
+    const contentType = upstreamResponse.headers.get("content-type");
+
+    if (!upstreamResponse.ok || !contentType?.startsWith("image/")) {
+      return buildFallbackResponse(seed);
+    }
+
+    return new Response(upstreamResponse.body, {
+      headers: {
+        "Cache-Control": SUCCESS_CACHE_CONTROL,
+        "Content-Type": contentType,
+        "X-Content-Type-Options": "nosniff",
+      },
+      status: 200,
+    });
+  } catch {
+    return buildFallbackResponse(seed);
+  }
+}

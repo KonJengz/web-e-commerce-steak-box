@@ -15,6 +15,7 @@ export const config = {
 
 const protectedRoutes = [
   "/profile",
+  "/security",
   "/addresses",
   "/orders",
   "/checkout",

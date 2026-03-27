@@ -7,7 +7,7 @@ interface AccountPageHeroProps {
   children?: ReactNode;
   description: string;
   title: string;
-  variant: "addresses" | "cart" | "orders" | "profile";
+  variant: "addresses" | "cart" | "orders" | "profile" | "security";
 }
 
 export function AccountPageHero({

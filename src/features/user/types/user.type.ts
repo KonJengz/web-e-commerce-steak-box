@@ -46,3 +46,15 @@ export interface VerifyEmailChangeActionState {
   requiresReauthentication?: boolean;
   success: boolean;
 }
+
+export interface UpdatePasswordActionState {
+  fieldErrors?: {
+    confirmPassword?: string[];
+    currentPassword?: string[];
+    newPassword?: string[];
+  };
+  message?: string;
+  redirectToLogin?: boolean;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}

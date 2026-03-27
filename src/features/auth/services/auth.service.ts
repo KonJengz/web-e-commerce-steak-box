@@ -46,6 +46,14 @@ const mapAuthResponse = (
   };
 };
 
+interface OAuthLinkStartApiResponse {
+  authorize_url: string;
+}
+
+interface OAuthLinkStartResponse {
+  authorizeUrl: string;
+}
+
 const login = async (data: LoginInput): Promise<ApiResult<AuthResponse>> => {
   const result = await api.post<AuthApiResponse>("/api/auth/login", data);
 
@@ -128,6 +136,30 @@ const exchangeOAuthTicket = async (
   return mapAuthResponse(result);
 };
 
+const startGoogleLink = async (
+  accessToken: string,
+  redirectTo?: string | null,
+): Promise<ApiResult<OAuthLinkStartResponse>> => {
+  const result = await api.post<OAuthLinkStartApiResponse>(
+    "/api/auth/google/link/start",
+    {
+      redirect_to: normalizeOAuthRedirectTarget(redirectTo),
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: {
+      authorizeUrl: result.data.authorize_url,
+    },
+  };
+};
+
 const buildGoogleStartHref = (redirectTo?: string | null): string => {
   const exchangeUrl = new URL(
     "/login/oauth/callback",
@@ -144,7 +176,17 @@ const buildGoogleStartHref = (redirectTo?: string | null): string => {
   return startUrl.toString();
 };
 
+const buildGoogleLinkStartHref = (redirectTo?: string | null): string => {
+  const normalizedRedirect = normalizeOAuthRedirectTarget(redirectTo);
+  const searchParams = new URLSearchParams({
+    redirectTo: normalizedRedirect,
+  });
+
+  return `/api/auth/google/link/start?${searchParams.toString()}`;
+};
+
 export const authService = {
+  buildGoogleLinkStartHref,
   buildGoogleStartHref,
   exchangeOAuthTicket,
   forgotPassword,
@@ -154,5 +196,6 @@ export const authService = {
   register,
   resetPassword,
   resendVerification,
+  startGoogleLink,
   verifyEmail,
 };

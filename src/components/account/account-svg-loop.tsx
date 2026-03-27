@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 interface AccountSvgLoopProps {
   className?: string;
-  variant: "addresses" | "cart" | "orders" | "profile";
+  variant: "addresses" | "cart" | "orders" | "profile" | "security";
 }
 
 export function AccountSvgLoop({
@@ -150,6 +150,91 @@ export function AccountSvgLoop({
             repeatCount="indefinite"
           />
         </path>
+      </svg>
+    );
+  }
+
+  if (variant === "security") {
+    return (
+      <svg
+        viewBox="0 0 260 260"
+        className={cn("h-full w-full", className)}
+        fill="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="security-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffd27d" />
+            <stop offset="100%" stopColor="#d96e32" />
+          </linearGradient>
+        </defs>
+        <circle
+          cx="130"
+          cy="130"
+          r="92"
+          stroke="url(#security-glow)"
+          strokeWidth="2.5"
+          strokeDasharray="12 12"
+          opacity="0.45"
+        >
+          <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="0 130 130"
+            to="360 130 130"
+            dur="15s"
+            repeatCount="indefinite"
+          />
+        </circle>
+        <path
+          d="M130 54 188 78v42c0 44-27 67-58 86-31-19-58-42-58-86V78l58-24Z"
+          fill="#211111"
+          stroke="#f6c168"
+          strokeWidth="3"
+        >
+          <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="translate"
+            values="0 0;0 -3;0 0"
+            dur="4.4s"
+            repeatCount="indefinite"
+          />
+        </path>
+        <rect
+          x="108"
+          y="110"
+          width="44"
+          height="40"
+          rx="10"
+          fill="#f6c168"
+          fillOpacity="0.16"
+          stroke="#f6c168"
+          strokeOpacity="0.7"
+          strokeWidth="2"
+        />
+        <path
+          d="M116 108v-8c0-8 6-14 14-14s14 6 14 14v8"
+          stroke="#f6c168"
+          strokeWidth="6"
+          strokeLinecap="round"
+        />
+        <circle cx="130" cy="128" r="5" fill="#f6c168">
+          <animate
+            attributeName="opacity"
+            values="1;0.35;1"
+            dur="2.6s"
+            repeatCount="indefinite"
+          />
+        </circle>
+        <path
+          d="M130 128v10"
+          stroke="#f6c168"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+        <circle cx="130" cy="130" r="106" stroke="#fff5e1" strokeOpacity="0.1" />
       </svg>
     );
   }

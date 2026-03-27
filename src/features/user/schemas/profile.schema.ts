@@ -18,6 +18,13 @@ const nameSchema = z
   .trim()
   .min(1, "Name is required.")
   .max(100, "Name must be at most 100 characters.");
+const passwordSchema = z
+  .string()
+  .min(8, "New password must be at least 8 characters.")
+  .max(128, "New password must be at most 128 characters.");
+const currentPasswordSchema = z
+  .string()
+  .max(128, "Current password must be at most 128 characters.");
 
 const isFile = (value: unknown): value is File => {
   return typeof File !== "undefined" && value instanceof File;
@@ -98,6 +105,43 @@ export const verifyEmailChangeCodeSchema = z.object({
 export type VerifyEmailChangeCodeInput = z.infer<
   typeof verifyEmailChangeCodeSchema
 >;
+
+export const updatePasswordSchema = z
+  .object({
+    confirmPassword: z
+      .string()
+      .min(1, "Please confirm your new password.")
+      .max(128, "Confirmation password must be at most 128 characters."),
+    currentPassword: currentPasswordSchema,
+    newPassword: passwordSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "New password and confirmation must match.",
+    path: ["confirmPassword"],
+  })
+  .refine(
+    (data) =>
+      data.currentPassword.length === 0 || data.currentPassword !== data.newPassword,
+    {
+      message: "New password must be different from your current password.",
+      path: ["newPassword"],
+    },
+  );
+
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: currentPasswordSchema.min(1, "Current password is required."),
+  newPassword: passwordSchema,
+});
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+export const setPasswordSchema = z.object({
+  newPassword: passwordSchema,
+});
+
+export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
 
 export const PROFILE_IMAGE_ACCEPT = PROFILE_IMAGE_TYPES.join(",");
 export const PROFILE_IMAGE_MAX_SIZE_MB = PROFILE_IMAGE_MAX_SIZE / (1024 * 1024);

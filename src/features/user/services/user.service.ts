@@ -1,7 +1,9 @@
 import "server-only";
 
 import type {
+  ChangePasswordInput,
   RequestEmailChangeInput,
+  SetPasswordInput,
   UpdateProfileInput,
   VerifyEmailChangeInput,
 } from "@/features/user/schemas/profile.schema";
@@ -111,9 +113,46 @@ const verifyEmailChange = async (
   };
 };
 
+const changePassword = async (
+  accessToken: string,
+  input: ChangePasswordInput,
+): Promise<ApiResult<MessageApiResponse>> => {
+  return api.put<MessageApiResponse>(
+    "/api/users/me/password",
+    {
+      current_password: input.currentPassword,
+      new_password: input.newPassword,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+};
+
+const setPassword = async (
+  accessToken: string,
+  input: SetPasswordInput,
+): Promise<ApiResult<MessageApiResponse>> => {
+  return api.post<MessageApiResponse>(
+    "/api/users/me/set-password",
+    {
+      new_password: input.newPassword,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+};
+
 export const userService = {
+  changePassword,
   getMe,
   requestEmailChange,
+  setPassword,
   updateProfile,
   verifyEmailChange,
 };

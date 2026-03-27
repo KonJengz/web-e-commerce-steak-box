@@ -11,7 +11,7 @@ const splitSetCookieHeader = (header: string): string[] => {
   return header.split(/,(?=\s*[A-Za-z0-9!#$%&'*+.^_`|~-]+=)/);
 };
 
-const getSetCookieHeaders = (headers: Headers): string[] => {
+export const getSetCookieHeaders = (headers: Headers): string[] => {
   const headersWithGetSetCookie = headers as Headers & {
     getSetCookie?: () => string[];
   };

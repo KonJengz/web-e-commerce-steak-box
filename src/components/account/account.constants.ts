@@ -1,6 +1,7 @@
 import {
   MapPin,
   Package,
+  ShieldCheck,
   User,
   type LucideIcon,
 } from "lucide-react";
@@ -16,6 +17,11 @@ export const accountNavItems: readonly AccountNavItem[] = [
     href: "/profile",
     icon: User,
     label: "Profile",
+  },
+  {
+    href: "/security",
+    icon: ShieldCheck,
+    label: "Security",
   },
   {
     href: "/orders",
