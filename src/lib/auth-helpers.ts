@@ -1,6 +1,5 @@
 import { envServer } from "@/config/env.server";
 import { authService } from "@/features/auth/services/auth.service";
-import type { UserRole } from "@/features/user/types/user.type";
 import { ApiError } from "@/lib/api/error";
 
 export interface RefreshedAuthSession {
@@ -49,10 +48,6 @@ export const getCookieValueFromSetCookieHeaders = (
 
 interface JwtPayload {
   exp?: number;
-  role?: unknown;
-  user?: {
-    role?: unknown;
-  };
 }
 
 const decodeJwtPayload = (token: string): JwtPayload | null => {
@@ -79,10 +74,6 @@ const decodeJwtPayload = (token: string): JwtPayload | null => {
   }
 };
 
-const isUserRole = (value: unknown): value is UserRole => {
-  return value === "ADMIN" || value === "USER";
-};
-
 export const isAccessTokenExpired = (token: string): boolean => {
   const payload = decodeJwtPayload(token);
 
@@ -91,24 +82,6 @@ export const isAccessTokenExpired = (token: string): boolean => {
   }
 
   return payload.exp * 1000 <= Date.now() + 5_000;
-};
-
-export const getAccessTokenRole = (token: string): UserRole | null => {
-  const payload = decodeJwtPayload(token);
-
-  if (!payload) {
-    return null;
-  }
-
-  if (isUserRole(payload.role)) {
-    return payload.role;
-  }
-
-  if (isUserRole(payload.user?.role)) {
-    return payload.user.role;
-  }
-
-  return null;
 };
 
 export const refreshAccessToken = async (

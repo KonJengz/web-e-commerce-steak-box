@@ -12,7 +12,6 @@ import {
   type RequestAuthSession,
 } from "@/features/auth/services/request-auth-session.service";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
-import { getAccessTokenRole } from "@/lib/auth-helpers";
 
 export const config = {
   matcher: [
@@ -39,10 +38,6 @@ const matchesPath = (pathname: string, route: string): boolean => {
 
 const isProtectedRoute = (pathname: string): boolean => {
   return protectedRoutes.some((route) => matchesPath(pathname, route));
-};
-
-const isAdminRoute = (pathname: string): boolean => {
-  return matchesPath(pathname, "/admin");
 };
 
 const isAuthRoute = (pathname: string): boolean => {
@@ -130,7 +125,6 @@ export async function proxy(request: NextRequest) {
   const hasRefreshToken = Boolean(refreshToken);
   const hasValidAccessToken = hasValidRequestAccessToken(request);
   const isProtected = isProtectedRoute(pathname);
-  const isAdmin = isAdminRoute(pathname);
   const isAuth = isAuthRoute(pathname);
   const resolvedSession =
     !hasValidAccessToken && hasRefreshToken
@@ -147,14 +141,6 @@ export async function proxy(request: NextRequest) {
   if (isProtected) {
     if (!activeSession) {
       return clearAuthResponseCookies(redirectToLogin(request));
-    }
-
-    if (isAdmin) {
-      const accessTokenRole = getAccessTokenRole(activeSession.accessToken);
-
-      if (accessTokenRole === "USER") {
-        return applyResolvedSessionToRedirect(redirectTo(request, "/"), activeSession);
-      }
     }
 
     return createResponseWithResolvedSession(request, activeSession);
