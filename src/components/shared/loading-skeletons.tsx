@@ -6,6 +6,9 @@ const accountNavKeys = Array.from({ length: 5 }, (_, index) => index);
 const detailStatKeys = Array.from({ length: 3 }, (_, index) => index);
 const summaryCardKeys = Array.from({ length: 3 }, (_, index) => index);
 const adminListKeys = Array.from({ length: 4 }, (_, index) => index);
+const authHighlightKeys = Array.from({ length: 3 }, (_, index) => index);
+const orderListKeys = Array.from({ length: 3 }, (_, index) => index);
+const addressCardKeys = Array.from({ length: 4 }, (_, index) => index);
 
 function HeroSkeleton() {
   return (
@@ -288,6 +291,62 @@ export function CartPageSkeleton() {
   );
 }
 
+export function CheckoutPageSkeleton() {
+  return (
+    <div className="space-y-6 py-6 sm:py-10">
+      <HeroSkeleton />
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="grid gap-4">
+          {Array.from({ length: 2 }, (_, index) => (
+            <article
+              key={index}
+              className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]"
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <Skeleton className="size-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-36" />
+                  <Skeleton className="h-4 w-56" />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                {summaryCardKeys.map((key) => (
+                  <div
+                    key={key}
+                    className="rounded-[1.25rem] border border-border/60 bg-background/55 px-4 py-3"
+                  >
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="mt-2 h-6 w-20" />
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <aside className="space-y-4 xl:sticky xl:top-24">
+          <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+            <div className="mb-4 flex items-center gap-3">
+              <Skeleton className="size-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-28" />
+                <Skeleton className="h-4 w-44" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-11 w-full rounded-full" />
+              <Skeleton className="h-11 w-full rounded-full" />
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 export function CatalogResultsSkeleton() {
   return (
     <div className="grid gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
@@ -412,6 +471,252 @@ export function AccountPageSkeleton() {
   );
 }
 
+export function ProfilePageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <HeroSkeleton />
+
+      <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] xl:items-start">
+          <div className="space-y-4">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-8 w-56" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <div className="rounded-[1.5rem] border border-border/70 bg-background/60 px-4 py-4">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="mt-2 h-5 w-52" />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+            {Array.from({ length: 2 }, (_, index) => (
+              <div
+                key={index}
+                className="rounded-[1.5rem] border border-border/70 bg-background/65 p-4"
+              >
+                <Skeleton className="mb-3 size-10 rounded-full" />
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="mt-2 h-5 w-40" />
+                <Skeleton className="mt-2 h-4 w-32" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-4 xl:grid-cols-2">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div
+              key={index}
+              className="rounded-[1.75rem] border border-border/70 bg-background/70 p-5"
+            >
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="mt-4 h-11 w-full rounded-xl" />
+              <Skeleton className="mt-3 h-11 w-full rounded-xl" />
+              <Skeleton className="mt-4 h-10 w-32 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export function AddressesPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <HeroSkeleton />
+
+      <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-52" />
+            <Skeleton className="h-4 w-full max-w-2xl" />
+          </div>
+          <Skeleton className="size-12 rounded-full" />
+        </div>
+
+        <div className="mt-8 grid gap-5 xl:grid-cols-2">
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-2xl xl:col-span-2" />
+        </div>
+      </section>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        {addressCardKeys.map((key) => (
+          <article
+            key={key}
+            className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-4 w-52" />
+              </div>
+              <Skeleton className="h-7 w-24 rounded-full" />
+            </div>
+
+            <div className="mt-5 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-4/5" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function OrdersPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <HeroSkeleton />
+
+      <div className="grid gap-4">
+        {orderListKeys.map((key) => (
+          <article
+            key={key}
+            className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]"
+          >
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Skeleton className="h-6 w-36" />
+                  <Skeleton className="h-7 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-40" />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+                {summaryCardKeys.map((summaryKey) => (
+                  <div
+                    key={summaryKey}
+                    className="rounded-[1.25rem] border border-border/60 bg-background/60 px-4 py-3"
+                  >
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="mt-2 h-5 w-24" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Skeleton className="h-4 w-40" />
+        <div className="flex gap-3">
+          <Skeleton className="h-10 w-28 rounded-full" />
+          <Skeleton className="h-10 w-24 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function SecurityPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <HeroSkeleton />
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        {Array.from({ length: 2 }, (_, index) => (
+          <section
+            key={index}
+            className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-full max-w-md" />
+              </div>
+              <Skeleton className="size-12 rounded-full" />
+            </div>
+
+            <div className="mt-8 space-y-4">
+              <Skeleton className="h-11 w-full rounded-xl" />
+              <Skeleton className="h-11 w-full rounded-xl" />
+              <Skeleton className="h-11 w-full rounded-xl" />
+              <Skeleton className="h-10 w-36 rounded-full" />
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function AuthPageSkeleton() {
+  return (
+    <div className="py-6 sm:py-10">
+      <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
+        <section className="relative overflow-hidden rounded-[2.5rem] border border-border/70 bg-[linear-gradient(145deg,#2d1f1f_0%,#1a1617_45%,#0f0d0e_100%)] p-6 text-primary-foreground shadow-[0_40px_140px_rgba(0,0,0,0.6)] sm:p-10 lg:p-12">
+          <div className="pointer-events-none absolute inset-0 opacity-40">
+            <div className="absolute top-[-10%] right-[-10%] size-[50%] rounded-full bg-primary/20 blur-[120px]" />
+            <div className="absolute bottom-[-10%] left-[-10%] size-[50%] rounded-full bg-[#c9ab79]/10 blur-[100px]" />
+          </div>
+
+          <div className="relative flex h-full flex-col justify-between gap-12">
+            <div className="space-y-8">
+              <Skeleton className="h-9 w-40 rounded-full bg-white/10" />
+              <Skeleton className="h-16 w-40 bg-white/10" />
+              <div className="space-y-4">
+                <Skeleton className="h-12 w-full max-w-xl bg-white/12" />
+                <Skeleton className="h-12 w-4/5 max-w-lg bg-white/12" />
+                <Skeleton className="h-5 w-full max-w-lg bg-white/10" />
+                <Skeleton className="h-5 w-5/6 max-w-md bg-white/10" />
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              {authHighlightKeys.map((key) => (
+                <div
+                  key={key}
+                  className="rounded-[2rem] border border-white/8 bg-white/4 p-5"
+                >
+                  <div className="flex items-center gap-5">
+                    <Skeleton className="size-12 rounded-[1.25rem] bg-white/10" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-40 bg-white/12" />
+                      <Skeleton className="h-4 w-full bg-white/10" />
+                      <Skeleton className="h-4 w-4/5 bg-white/10" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between border-t border-white/10 pt-8">
+              <Skeleton className="h-4 w-32 bg-white/10" />
+              <Skeleton className="h-5 w-28 bg-white/12" />
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
+          <div className="space-y-4">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-full max-w-md" />
+          </div>
+
+          <div className="mt-8 space-y-4">
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-full" />
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
 export function AdminShellSkeleton() {
   return (
     <div className="min-h-full">
@@ -524,6 +829,89 @@ export function AdminPageSkeleton() {
         </div>
       </section>
     </div>
+  );
+}
+
+export function AdminProductCreateSectionSkeleton() {
+  return (
+    <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-4 w-full max-w-2xl" />
+        </div>
+        <Skeleton className="size-12 rounded-full" />
+      </div>
+
+      <div className="mt-8 space-y-5">
+        <div className="grid gap-5 xl:grid-cols-2">
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-36 w-full rounded-xl xl:col-span-2" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+        </div>
+        <Skeleton className="h-10 w-36 rounded-full" />
+      </div>
+    </section>
+  );
+}
+
+export function AdminProductDirectorySkeleton() {
+  return (
+    <section className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-56" />
+        </div>
+
+        <div className="flex flex-wrap gap-3 rounded-xl border border-border/40 bg-muted/30 p-3">
+          <Skeleton className="h-10 w-56 rounded-xl" />
+          <Skeleton className="h-10 w-44 rounded-xl" />
+          <Skeleton className="h-10 w-24 rounded-full" />
+          <Skeleton className="h-10 w-20 rounded-full" />
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-3">
+        {adminListKeys.map((key) => (
+          <article
+            key={key}
+            className="rounded-xl border border-border/40 bg-muted/20 p-5"
+          >
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="space-y-3">
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-24" />
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {summaryCardKeys.map((summaryKey) => (
+                    <div
+                      key={summaryKey}
+                      className="rounded-lg border border-border/30 bg-card px-3 py-2"
+                    >
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="mt-2 h-5 w-20" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Skeleton className="h-10 w-24 rounded-full" />
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Skeleton className="h-4 w-28" />
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-24 rounded-full" />
+          <Skeleton className="h-10 w-20 rounded-full" />
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -1,5 +1,5 @@
-import { CartPageSkeleton } from "@/components/shared/loading-skeletons";
+import { CheckoutPageSkeleton } from "@/components/shared/loading-skeletons";
 
 export default function Loading() {
-  return <CartPageSkeleton />;
+  return <CheckoutPageSkeleton />;
 }

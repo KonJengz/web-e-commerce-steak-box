@@ -27,6 +27,13 @@ Base URLs:
 - backend ใช้ refresh token rotation แบบ token family และรองรับ concurrent refresh ซ้ำ token เดิมแบบ idempotent ภายในหน้าต่างสั้น ๆ ประมาณ 5 วินาทีเท่านั้น
 - frontend ยังควรทำ `single-flight refresh` เอง และ retry original request ได้แค่ 1 รอบหลัง refresh สำเร็จ
 
+**Security & Role Validation:**
+
+- ระบบ Backend จะทำการตรวจสอบ **Role** และ **Account Status (is_active)** จาก Database โดยตรงทุกครั้งที่มีการเรียกใช้ request (Real-time Verification)
+- แม้ว่าใน JWT จะมี Claim `role` อยู่ แต่ Backend จะยึดข้อมูลจาก Database เป็นหลักเสมอเพื่อความปลอดภัยสูงสุด
+- หาก User ถูกระงับการใช้งาน (Banned) หรือถูกเปลี่ยน Role (เช่น จาก Admin เป็น User) จะมีผลทันทีใน request ถัดไป โดยไม่ต้องรอให้ Token หมดอายุ
+- Frontend สามารถใช้ข้อมูลจาก `GET /api/users/me` เป็นหลักในการตัดสินใจแสดงผล UI ตามสิทธิ์ (Role) และสถานะการตั้งรหัสผ่าน (`has_password`) ของผู้ใช้
+
 **Recommended Frontend Auth Flow:**
 
 1. สมัครด้วย `POST /api/auth/register`
@@ -1133,7 +1140,10 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 
 **Headers:** `Authorization: Bearer <access_token>` (ADMIN only)
 
-**หมายเหตุ:** ถ้าจะส่งรูปหลักตอนสร้าง product ต้องใช้ค่าที่ได้จาก `/api/products/upload-image` ของ admin คนเดียวกัน และต้องส่ง `image_url` กับ `image_public_id` มาด้วยกัน
+**หมายเหตุ:**
+
+- ถ้าจะส่งรูปหลักตอนสร้าง product ต้องใช้ค่าที่ได้จาก `/api/products/upload-image` ของ admin คนเดียวกัน และต้องส่ง `image_url` กับ `image_public_id` มาด้วยกัน
+- 1 product สามารถมีรูปได้สูงสุด **4 รูป** (รวมรูปหลักและรูปใน gallery)
 
 **Request Body:**
 
@@ -1176,7 +1186,11 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 
 **Headers:** `Authorization: Bearer <access_token>` (ADMIN only)
 
-**หมายเหตุ:** ต้องใช้ค่าที่ได้จาก `/api/products/upload-image` ของ admin คนเดียวกันก่อนเสมอ ถ้า `is_primary = true` รูปนี้จะกลายเป็นรูปหลักใหม่ แต่รูปหลักเดิมจะยังอยู่ใน gallery
+**หมายเหตุ:**
+
+- ต้องใช้ค่าที่ได้จาก `/api/products/upload-image` ของ admin คนเดียวกันก่อนเสมอ
+- ถ้า `is_primary = true` รูปนี้จะกลายเป็นรูปหลักใหม่ แต่รูปหลักเดิมจะยังอยู่ใน gallery
+- 1 product สามารถมีรูปได้สูงสุด **4 รูป** (หากครบแล้วจะเพิ่มไม่ได้อีกจนกว่าจะลบรูปเก่าออก)
 
 **Request Body:**
 
