@@ -1,6 +1,6 @@
 export interface Category {
   createdAt: string;
-  description: string;
+  description: string | null;
   id: string;
   name: string;
   updatedAt: string;
@@ -21,6 +21,13 @@ export interface CreateCategoryActionState {
 
 export interface UpdateCategoryActionState {
   fieldErrors?: CategoryFieldErrors;
+  message?: string;
+  requiresAdmin?: boolean;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}
+
+export interface DeleteCategoryActionState {
   message?: string;
   requiresAdmin?: boolean;
   requiresReauthentication?: boolean;

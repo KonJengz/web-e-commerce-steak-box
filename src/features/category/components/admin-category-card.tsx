@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, PencilLine } from "lucide-react";
+import { Loader2, PencilLine, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -10,6 +10,7 @@ import { formatAccountDate } from "@/components/account/account.utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
+import { deleteCategoryAction } from "@/features/category/actions/delete-category.action";
 import { updateCategoryAction } from "@/features/category/actions/update-category.action";
 import { CategoryFormFields } from "@/features/category/components/category-form-fields";
 import {
@@ -18,10 +19,12 @@ import {
 } from "@/features/category/schemas/category.schema";
 import type {
   Category,
+  DeleteCategoryActionState,
   UpdateCategoryActionState,
 } from "@/features/category/types/category.type";
 
 interface AdminCategoryCardProps {
+  assignedProductCount: number;
   category: Category;
 }
 
@@ -32,12 +35,23 @@ const getCategoryFormValues = (category: Category): UpdateCategoryInput => {
   };
 };
 
-export function AdminCategoryCard({ category }: AdminCategoryCardProps) {
+const getAssignedProductLabel = (count: number): string => {
+  return `${count} linked product${count === 1 ? "" : "s"}`;
+};
+
+export function AdminCategoryCard({
+  assignedProductCount,
+  category,
+}: AdminCategoryCardProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, startSaveTransition] = useTransition();
+  const [isDeleting, startDeleteTransition] = useTransition();
   const [updateState, setUpdateState] =
     useState<UpdateCategoryActionState | null>(null);
+  const [deleteState, setDeleteState] =
+    useState<DeleteCategoryActionState | null>(null);
+  const isDeleteBlocked = assignedProductCount > 0;
   const { control, clearErrors, handleSubmit, reset, setError } =
     useForm<UpdateCategoryInput>({
       defaultValues: getCategoryFormValues(category),
@@ -70,12 +84,14 @@ export function AdminCategoryCard({ category }: AdminCategoryCardProps) {
   const handleCancelEdit = (): void => {
     clearErrors();
     reset(getCategoryFormValues(category));
+    setDeleteState(null);
     setUpdateState(null);
     setIsEditing(false);
   };
 
   const handleUpdateCategory = (values: UpdateCategoryInput): void => {
     clearErrors();
+    setDeleteState(null);
     setUpdateState(null);
 
     startSaveTransition(async () => {
@@ -102,10 +118,48 @@ export function AdminCategoryCard({ category }: AdminCategoryCardProps) {
     });
   };
 
+  const handleDeleteCategory = (): void => {
+    if (isDeleteBlocked) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete "${category.name}"? This cannot be undone.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleteState(null);
+    setUpdateState(null);
+
+    startDeleteTransition(async () => {
+      const result = await deleteCategoryAction(category.id);
+
+      if (!result.success) {
+        setDeleteState(result);
+
+        if (result.requiresReauthentication) {
+          router.replace(buildLoginRedirectPath("/admin/categories"));
+          return;
+        }
+
+        if (result.requiresAdmin) {
+          router.replace("/");
+        }
+
+        return;
+      }
+
+      router.refresh();
+    });
+  };
+
   if (isEditing) {
     return (
       <article className="rounded-[1.65rem] border border-primary/18 bg-background/98 p-5 shadow-[0_16px_48px_rgba(0,0,0,0.08)]">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
             <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-primary">
               Edit Category
@@ -115,9 +169,17 @@ export function AdminCategoryCard({ category }: AdminCategoryCardProps) {
             </h3>
           </div>
 
-          <Badge variant="outline" className="text-xs">
-            Saved {formatAccountDate(category.updatedAt)}
-          </Badge>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline" className="text-xs">
+              Saved {formatAccountDate(category.updatedAt)}
+            </Badge>
+            <Badge
+              variant="secondary"
+              className="h-auto rounded-full border border-border/60 bg-muted/25 px-3 py-1"
+            >
+              {getAssignedProductLabel(assignedProductCount)}
+            </Badge>
+          </div>
         </div>
 
         <form
@@ -133,7 +195,7 @@ export function AdminCategoryCard({ category }: AdminCategoryCardProps) {
 
           <CategoryFormFields
             control={control}
-            disabled={isSaving}
+            disabled={isSaving || isDeleting}
             idPrefix={`edit-category-${category.id}`}
           />
 
@@ -142,12 +204,16 @@ export function AdminCategoryCard({ category }: AdminCategoryCardProps) {
               type="button"
               variant="outline"
               className="rounded-full"
-              disabled={isSaving}
+              disabled={isSaving || isDeleting}
               onClick={handleCancelEdit}
             >
               Cancel
             </Button>
-            <Button type="submit" className="rounded-full" disabled={isSaving}>
+            <Button
+              type="submit"
+              className="rounded-full"
+              disabled={isSaving || isDeleting}
+            >
               {isSaving ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
@@ -166,7 +232,7 @@ export function AdminCategoryCard({ category }: AdminCategoryCardProps) {
   return (
     <article className="hover-lift rounded-[1.65rem] border border-border/50 bg-card/95 p-5 shadow-[0_16px_48px_rgba(0,0,0,0.05)] transition-all duration-200">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 space-y-2">
+        <div className="min-w-0 space-y-3">
           <div className="flex flex-wrap items-center gap-3">
             <h3 className="text-base font-semibold tracking-tight text-foreground">
               {category.name}
@@ -179,21 +245,79 @@ export function AdminCategoryCard({ category }: AdminCategoryCardProps) {
           <p className="text-sm leading-6 text-muted-foreground">
             {category.description || "No description yet."}
           </p>
+
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant="secondary"
+              className="h-auto rounded-full border border-border/60 bg-muted/25 px-3 py-1"
+            >
+              {getAssignedProductLabel(assignedProductCount)}
+            </Badge>
+            <Badge
+              variant="secondary"
+              className={
+                isDeleteBlocked
+                  ? "h-auto rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300"
+                  : "h-auto rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300"
+              }
+            >
+              {isDeleteBlocked ? "Still assigned" : "No assigned products"}
+            </Badge>
+          </div>
+
+          {isDeleteBlocked ? (
+            <p className="text-xs leading-5 text-amber-700 dark:text-amber-300">
+              Move assigned products out of this category before deleting it.
+            </p>
+          ) : (
+            <p className="text-xs leading-5 text-emerald-700 dark:text-emerald-300">
+              This category is currently safe to delete.
+            </p>
+          )}
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="rounded-full"
-          onClick={() => {
-            setUpdateState(null);
-            setIsEditing(true);
-          }}
-        >
-          <PencilLine className="size-4" />
-          Edit
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-full"
+            disabled={isDeleting}
+            onClick={() => {
+              setDeleteState(null);
+              setUpdateState(null);
+              setIsEditing(true);
+            }}
+          >
+            <PencilLine className="size-4" />
+            Edit
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            className="rounded-full"
+            disabled={isDeleting || isDeleteBlocked}
+            onClick={handleDeleteCategory}
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="size-4" />
+                Delete
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+
+      {deleteState?.message ? (
+        <div className="mt-4 rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive">
+          {deleteState.message}
+        </div>
+      ) : null}
     </article>
   );
 }

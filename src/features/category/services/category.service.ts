@@ -10,10 +10,14 @@ import type { ApiResult } from "@/types";
 
 interface CategoryApiResponse {
   created_at: string;
-  description: string;
+  description: string | null;
   id: string;
   name: string;
   updated_at: string;
+}
+
+interface DeleteCategoryApiResponse {
+  message: string;
 }
 
 const mapCategory = (category: CategoryApiResponse): Category => {
@@ -82,8 +86,20 @@ const update = async (
   };
 };
 
+const remove = async (
+  accessToken: string,
+  categoryId: string,
+): Promise<ApiResult<DeleteCategoryApiResponse>> => {
+  return api.delete<DeleteCategoryApiResponse>(`/api/categories/${categoryId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+};
+
 export const categoryService = {
   create,
   getAll,
+  remove,
   update,
 };

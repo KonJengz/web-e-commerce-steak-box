@@ -1892,6 +1892,15 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
       "updated_at": "2026-03-27T10:30:00Z"
     }
   ],
+  "summary": {
+    "all": 1,
+    "pending": 0,
+    "paid": 1,
+    "shipped": 0,
+    "delivered": 0,
+    "cancelled": 0,
+    "tracked": 0
+  },
   "total": 1,
   "page": 1,
   "limit": 20,
@@ -1944,6 +1953,14 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 
 - `page` (number): default 1
 - `limit` (number): default 20
+- `status` (string, optional): `PENDING`, `PAID`, `SHIPPED`, `DELIVERED`, `CANCELLED`
+- `search` (string, optional): ค้นหาแบบ case-insensitive prefix จาก `user_name`, `user_email`, `tracking_number`; ถ้าเป็น UUID เต็มจะ match `order_id` ตรง ๆ ด้วย
+
+**Example:**
+
+```text
+GET /api/orders/admin?page=1&limit=20&status=PAID&search=jane
+```
 
 **Response 200:**
 
@@ -1975,6 +1992,10 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 - ใช้เส้นนี้ทำ admin order table ได้เลย
 - `tracking_number` อาจเป็น `null`
 - `updated_at` เปลี่ยนเมื่อ admin อัปเดต status หรือ tracking
+- `status` เหมาะกับ tab/filter เช่น Pending / Paid / Shipped
+- `search` ตั้งใจให้ใช้กับ queue UI โดยไม่ต้องยิงหลาย endpoint
+- `summary` คือ counts จาก backend สำหรับ queue tabs/cards โดยจะอิง `search` ปัจจุบัน แต่ไม่ล็อกตาม `status` filter
+- ถ้า frontend ส่ง `status` ที่ไม่อยู่ใน enum ระบบจะตอบ `400`
 
 ---
 

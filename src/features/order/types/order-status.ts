@@ -48,6 +48,22 @@ export const normalizeOrderStatus = (value: string): OrderStatus => {
   return "PENDING";
 };
 
+export const normalizeOptionalOrderStatus = (
+  value: string | null | undefined,
+): OrderStatus | null => {
+  const normalizedValue = value?.trim().toUpperCase();
+
+  if (!normalizedValue) {
+    return null;
+  }
+
+  if (ORDER_STATUS_SET.has(normalizedValue)) {
+    return normalizedValue as OrderStatus;
+  }
+
+  return null;
+};
+
 export const getOrderStatusLabel = (status: OrderStatus): string => {
   return ORDER_STATUS_META[status].label;
 };

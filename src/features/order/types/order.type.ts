@@ -34,6 +34,16 @@ export interface AdminOrderDetail extends AdminOrder {
   items: OrderItem[];
 }
 
+export interface AdminOrderSummary {
+  all: number;
+  cancelled: number;
+  delivered: number;
+  paid: number;
+  pending: number;
+  shipped: number;
+  tracked: number;
+}
+
 export interface UpdateAdminOrderActionState {
   fieldErrors?: {
     status?: string[];
@@ -47,4 +57,6 @@ export interface UpdateAdminOrderActionState {
 }
 
 export type OrderListResult = PaginatedResponse<Order>;
-export type AdminOrderListResult = PaginatedResponse<AdminOrder>;
+export interface AdminOrderListResult extends PaginatedResponse<AdminOrder> {
+  summary: AdminOrderSummary;
+}

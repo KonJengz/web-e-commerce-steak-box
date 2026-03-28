@@ -1,10 +1,15 @@
 import "server-only";
 
 import type { UpdateAdminOrderValues } from "@/features/order/schemas/order.schema";
-import { normalizeOrderStatus } from "@/features/order/types/order-status";
+import {
+  normalizeOrderStatus,
+  type OrderStatus,
+} from "@/features/order/types/order-status";
 import type {
   AdminOrder,
   AdminOrderDetail,
+  AdminOrderListResult,
+  AdminOrderSummary,
   Order,
   OrderDetail,
   OrderItem,
@@ -57,13 +62,29 @@ interface AdminOrdersApiResponse {
   data: AdminOrderApiResponse[];
   limit: number;
   page: number;
+  summary: AdminOrderSummaryApiResponse;
   total: number;
   total_pages: number;
+}
+
+interface AdminOrderSummaryApiResponse {
+  all: number;
+  cancelled: number;
+  delivered: number;
+  paid: number;
+  pending: number;
+  shipped: number;
+  tracked: number;
 }
 
 interface GetOrdersOptions {
   limit?: number;
   page?: number;
+}
+
+interface GetAdminOrdersOptions extends GetOrdersOptions {
+  search?: string;
+  status?: OrderStatus;
 }
 
 const mapOrderItem = (orderItem: OrderItemApiResponse): OrderItem => {
@@ -114,6 +135,20 @@ const mapAdminOrderDetail = (
   };
 };
 
+const mapAdminOrderSummary = (
+  summary: AdminOrderSummaryApiResponse,
+): AdminOrderSummary => {
+  return {
+    all: summary.all,
+    cancelled: summary.cancelled,
+    delivered: summary.delivered,
+    paid: summary.paid,
+    pending: summary.pending,
+    shipped: summary.shipped,
+    tracked: summary.tracked,
+  };
+};
+
 const buildOrdersQueryString = (options: GetOrdersOptions): string => {
   const page = options.page ?? 1;
   const limit = options.limit ?? 20;
@@ -122,6 +157,20 @@ const buildOrdersQueryString = (options: GetOrdersOptions): string => {
     limit: String(limit),
     page: String(page),
   }).toString();
+};
+
+const buildAdminOrdersQueryString = (options: GetAdminOrdersOptions): string => {
+  const searchParams = new URLSearchParams(buildOrdersQueryString(options));
+
+  if (options.status) {
+    searchParams.set("status", options.status);
+  }
+
+  if (options.search?.trim()) {
+    searchParams.set("search", options.search.trim());
+  }
+
+  return searchParams.toString();
 };
 
 const getAll = async (
@@ -167,10 +216,10 @@ const getById = async (
 
 const getAdminAll = async (
   accessToken: string,
-  options: GetOrdersOptions = {},
-): Promise<ApiResult<PaginatedResponse<AdminOrder>>> => {
+  options: GetAdminOrdersOptions = {},
+): Promise<ApiResult<AdminOrderListResult>> => {
   const result = await api.get<AdminOrdersApiResponse>(
-    `/api/orders/admin?${buildOrdersQueryString(options)}`,
+    `/api/orders/admin?${buildAdminOrdersQueryString(options)}`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -184,6 +233,7 @@ const getAdminAll = async (
       items: result.data.data.map(mapAdminOrder),
       limit: result.data.limit,
       page: result.data.page,
+      summary: mapAdminOrderSummary(result.data.summary),
       total: result.data.total,
       totalPages: result.data.total_pages,
     },

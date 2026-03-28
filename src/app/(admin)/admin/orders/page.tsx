@@ -19,12 +19,20 @@ import { Pagination } from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
 import { requireAdminUser, requireCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import { buildSessionRefreshPath } from "@/features/auth/utils/auth-redirect";
+import { AdminOrderQueueFilters } from "@/features/order/components/admin-order-queue-filters";
 import { AdminOrderStatusForm } from "@/features/order/components/admin-order-status-form";
 import { OrderStatusBadge } from "@/features/order/components/order-status-badge";
 import { orderService } from "@/features/order/services/order.service";
-import { ORDER_STATUS_META, type OrderStatus } from "@/features/order/types/order-status";
+import {
+  ORDER_STATUS_META,
+  normalizeOptionalOrderStatus,
+  type OrderStatus,
+} from "@/features/order/types/order-status";
+import {
+  buildAdminOrdersHref,
+  buildAdminOrdersPaginationSearchParams,
+} from "@/features/order/utils/admin-order-query";
 import type {
-  AdminOrder,
   AdminOrderDetail,
   AdminOrderListResult,
 } from "@/features/order/types/order.type";
@@ -37,6 +45,8 @@ interface AdminOrdersPageProps {
   searchParams: Promise<{
     order?: string | string[] | undefined;
     page?: string | string[] | undefined;
+    search?: string | string[] | undefined;
+    status?: string | string[] | undefined;
   }>;
 }
 
@@ -56,28 +66,6 @@ const isUuidLike = (value: string): boolean => {
   );
 };
 
-const buildAdminOrdersHref = ({
-  currentPage,
-  selectedOrderId,
-}: {
-  currentPage: number;
-  selectedOrderId?: string | null;
-}): string => {
-  const searchParams = new URLSearchParams();
-
-  if (selectedOrderId) {
-    searchParams.set("order", selectedOrderId);
-  }
-
-  if (currentPage > 1) {
-    searchParams.set("page", String(currentPage));
-  }
-
-  const queryString = searchParams.toString();
-
-  return queryString ? `/admin/orders?${queryString}` : "/admin/orders";
-};
-
 const handleAdminOrdersApiError = (
   error: unknown,
   redirectPath: string,
@@ -95,26 +83,40 @@ const handleAdminOrdersApiError = (
   throw error;
 };
 
-const countOrdersByStatus = (
-  orders: AdminOrder[],
-  status: OrderStatus,
-): number => {
-  return orders.filter((order) => order.status === status).length;
-};
-
 function QueueSummaryCard({
+  className,
   label,
+  labelClassName,
   value,
+  valueClassName,
 }: {
+  className?: string;
   label: string;
+  labelClassName?: string;
   value: string;
+  valueClassName?: string;
 }) {
   return (
-    <div className="rounded-[1.2rem] border border-border/60 bg-background/72 px-4 py-3">
-      <p className="text-[10px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
+    <div
+      className={cn(
+        "rounded-[1.2rem] border border-border/60 bg-background/72 px-4 py-3",
+        className,
+      )}
+    >
+      <p
+        className={cn(
+          "text-[10px] font-semibold tracking-[0.22em] uppercase text-muted-foreground",
+          labelClassName,
+        )}
+      >
         {label}
       </p>
-      <p className="mt-2 text-lg font-semibold tracking-tight text-foreground">
+      <p
+        className={cn(
+          "mt-2 text-lg font-semibold tracking-tight text-foreground",
+          valueClassName,
+        )}
+      >
         {value}
       </p>
     </div>
@@ -124,20 +126,20 @@ function QueueSummaryCard({
 function QueueSection({
   currentPage,
   ordersPage,
+  searchQuery,
   selectedOrderId,
+  selectedStatus,
 }: {
   currentPage: number;
   ordersPage: AdminOrderListResult;
+  searchQuery: string;
   selectedOrderId: string | null;
+  selectedStatus: OrderStatus | null;
 }) {
-  const pendingCount = countOrdersByStatus(ordersPage.items, "PENDING");
-  const paidCount = countOrdersByStatus(ordersPage.items, "PAID");
-  const shippedCount = countOrdersByStatus(ordersPage.items, "SHIPPED");
-
   return (
     <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
-      <div className="flex flex-col gap-5 border-b border-border/60 pb-5 xl:flex-row xl:items-end xl:justify-between">
-        <div className="space-y-2">
+      <div className="grid gap-5 border-b border-border/60 pb-5 2xl:grid-cols-[minmax(0,1fr)_auto] 2xl:items-end">
+        <div className="max-w-2xl space-y-2">
           <div className="flex items-center gap-2">
             <div className="glow-dot" />
             <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
@@ -155,11 +157,33 @@ function QueueSection({
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          <QueueSummaryCard label="Pending" value={String(pendingCount)} />
-          <QueueSummaryCard label="Paid" value={String(paidCount)} />
-          <QueueSummaryCard label="Shipped" value={String(shippedCount)} />
+        <div className="flex flex-wrap gap-3 2xl:max-w-[28rem] 2xl:justify-end">
+          <QueueSummaryCard
+            className="min-w-[8.4rem] flex-1 sm:flex-none"
+            label="Pending"
+            labelClassName="whitespace-nowrap tracking-[0.18em]"
+            value={String(ordersPage.summary.pending)}
+            valueClassName="text-3xl leading-none tabular-nums"
+          />
+          <QueueSummaryCard
+            className="min-w-[8.4rem] flex-1 sm:flex-none"
+            label="Paid"
+            labelClassName="whitespace-nowrap tracking-[0.18em]"
+            value={String(ordersPage.summary.paid)}
+            valueClassName="text-3xl leading-none tabular-nums"
+          />
+          <QueueSummaryCard
+            className="min-w-[8.4rem] flex-1 sm:flex-none"
+            label="Shipped"
+            labelClassName="whitespace-nowrap tracking-[0.18em]"
+            value={String(ordersPage.summary.shipped)}
+            valueClassName="text-3xl leading-none tabular-nums"
+          />
         </div>
+      </div>
+
+      <div className="mt-5">
+        <AdminOrderQueueFilters summary={ordersPage.summary} />
       </div>
 
       <div className="mt-5 space-y-3">
@@ -172,7 +196,9 @@ function QueueSection({
                 key={order.id}
                 href={buildAdminOrdersHref({
                   currentPage,
+                  searchQuery,
                   selectedOrderId: order.id,
+                  status: selectedStatus,
                 })}
                 scroll={false}
                 className={cn(
@@ -243,6 +269,10 @@ function QueueSection({
         <Pagination
           basePath="/admin/orders"
           currentPage={currentPage}
+          searchParams={buildAdminOrdersPaginationSearchParams({
+            searchQuery,
+            status: selectedStatus,
+          })}
           totalPages={ordersPage.totalPages}
         />
       </div>
@@ -253,9 +283,13 @@ function QueueSection({
 function SelectedOrderInspector({
   currentPage,
   order,
+  searchQuery,
+  selectedStatus,
 }: {
   currentPage: number;
   order: AdminOrderDetail | null;
+  searchQuery: string;
+  selectedStatus: OrderStatus | null;
 }) {
   if (!order) {
     return (
@@ -278,7 +312,9 @@ function SelectedOrderInspector({
 
   const redirectPath = buildAdminOrdersHref({
     currentPage,
+    searchQuery,
     selectedOrderId: order.id,
+    status: selectedStatus,
   });
 
   return (
@@ -412,12 +448,18 @@ export default async function AdminOrdersPage({
   );
   const currentPage = Number.isFinite(pageValue) && pageValue > 0 ? pageValue : 1;
   const selectedOrderParam = getFirstSearchParam(resolvedSearchParams.order);
+  const searchQuery = getFirstSearchParam(resolvedSearchParams.search);
+  const selectedStatus = normalizeOptionalOrderStatus(
+    getFirstSearchParam(resolvedSearchParams.status),
+  );
   const requestedOrderId = isUuidLike(selectedOrderParam)
     ? selectedOrderParam
     : null;
   const requestPath = buildAdminOrdersHref({
     currentPage,
+    searchQuery,
     selectedOrderId: requestedOrderId,
+    status: selectedStatus,
   });
 
   await requireAdminUser(requestPath);
@@ -427,6 +469,8 @@ export default async function AdminOrdersPage({
       const result = await orderService.getAdminAll(accessToken, {
         limit: ADMIN_ORDERS_PER_PAGE,
         page: currentPage,
+        search: searchQuery || undefined,
+        status: selectedStatus ?? undefined,
       });
 
       return result.data;
@@ -463,10 +507,6 @@ export default async function AdminOrdersPage({
     }
   }
 
-  const trackedOrdersCount = ordersPage.items.filter(
-    (order) => order.trackingNumber,
-  ).length;
-
   return (
     <div className="space-y-6">
       <AdminPageHero
@@ -487,12 +527,28 @@ export default async function AdminOrdersPage({
         >
           Page {ordersPage.page} of {ordersPage.totalPages}
         </Badge>
+        {selectedStatus ? (
+          <Badge
+            variant="secondary"
+            className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+          >
+            Filter {selectedStatus}
+          </Badge>
+        ) : null}
+        {searchQuery ? (
+          <Badge
+            variant="secondary"
+            className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+          >
+            Search “{searchQuery}”
+          </Badge>
+        ) : null}
         <Badge
           variant="secondary"
           className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
         >
           <Truck className="mr-1 size-3.5" />
-          {trackedOrdersCount} with tracking
+          {ordersPage.summary.tracked} with tracking
         </Badge>
       </AdminPageHero>
 
@@ -500,9 +556,16 @@ export default async function AdminOrdersPage({
         <QueueSection
           currentPage={currentPage}
           ordersPage={ordersPage}
+          searchQuery={searchQuery}
           selectedOrderId={effectiveSelectedOrderId}
+          selectedStatus={selectedStatus}
         />
-        <SelectedOrderInspector currentPage={currentPage} order={selectedOrder} />
+        <SelectedOrderInspector
+          currentPage={currentPage}
+          order={selectedOrder}
+          searchQuery={searchQuery}
+          selectedStatus={selectedStatus}
+        />
       </div>
     </div>
   );
