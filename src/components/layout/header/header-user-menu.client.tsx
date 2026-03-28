@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { LogOut, Loader2 } from "lucide-react";
 
@@ -26,7 +25,6 @@ interface HeaderUserMenuProps {
 }
 
 export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const adminMenuItems: HeaderUserMenuItem[] =
     user.role === "ADMIN" ? [headerAdminMenuItem] : [];
@@ -34,7 +32,6 @@ export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
   const handleLogout = (): void => {
     startTransition(async () => {
       await logoutAction();
-      router.refresh();
     });
   };
 

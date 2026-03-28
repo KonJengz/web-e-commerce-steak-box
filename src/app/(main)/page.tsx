@@ -40,9 +40,7 @@ interface HomeCatalogSectionProps {
   searchParams: HomePageProps["searchParams"];
 }
 
-async function HomeCatalogSection({
-  searchParams,
-}: HomeCatalogSectionProps) {
+async function HomeCatalogSection({ searchParams }: HomeCatalogSectionProps) {
   const resolvedParams = await searchParams;
   const searchQuery = getParam(resolvedParams.search);
   const sortValue = getParam(resolvedParams.sort);
@@ -55,8 +53,7 @@ async function HomeCatalogSection({
     limit: 12,
     page: currentPage,
     search: searchQuery || undefined,
-    sort:
-      (sortValue as ProductQueryOptions["sort"]) || "created_desc",
+    sort: (sortValue as ProductQueryOptions["sort"]) || "created_desc",
   };
 
   const [productsResult, categoriesResult] = await Promise.all([
@@ -75,7 +72,10 @@ async function HomeCatalogSection({
   return (
     <>
       {categories.length > 0 ? (
-        <section className="animate-fade-in-up mb-10 space-y-4" style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}>
+        <section
+          className="animate-fade-in-up mb-10 space-y-4"
+          style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}
+        >
           <div className="flex items-center gap-3">
             <div className="glow-dot" />
             <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">
@@ -104,7 +104,10 @@ async function HomeCatalogSection({
           </div>
         </aside>
 
-        <section className="animate-fade-in-up space-y-6" style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}>
+        <section
+          className="animate-fade-in-up space-y-6"
+          style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}
+        >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-muted-foreground">
@@ -185,31 +188,45 @@ export default function HomePage({ searchParams }: HomePageProps) {
         </div>
 
         {/* Grid pattern overlay */}
-        <div className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.03]"
           style={{
-            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)",
+            backgroundImage:
+              "radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)",
             backgroundSize: "32px 32px",
           }}
         />
 
         <div className="relative space-y-6 lg:max-w-3xl">
-          <div className="animate-fade-in-up inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-1.5 text-[11px] font-semibold tracking-[0.24em] uppercase text-[#f6c168] backdrop-blur-sm" style={{ animationDelay: "0.1s" }}>
+          <div
+            className="animate-fade-in-up inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-1.5 text-[11px] font-semibold tracking-[0.24em] uppercase text-[#f6c168] backdrop-blur-sm"
+            style={{ animationDelay: "0.1s" }}
+          >
             <Flame className="size-3.5 animate-wiggle" />
             Fresh Cuts Daily
           </div>
 
           <div className="space-y-5">
-            <h1 className="animate-fade-in-up text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl" style={{ animationDelay: "0.2s", animationFillMode: "backwards" }}>
+            <h1
+              className="animate-fade-in-up text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
+              style={{ animationDelay: "0.2s", animationFillMode: "backwards" }}
+            >
               Premium Steaks,{" "}
               <span className="gradient-text">Delivered Fresh.</span>
             </h1>
-            <p className="animate-fade-in-up max-w-xl text-base leading-7 text-white/55 sm:text-lg" style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}>
+            <p
+              className="animate-fade-in-up max-w-xl text-base leading-7 text-white/55 sm:text-lg"
+              style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}
+            >
               Hand-picked cuts from certified farms. Browse our collection,
               build your box, and have it delivered right to your kitchen.
             </p>
           </div>
 
-          <div className="animate-fade-in-up flex flex-wrap gap-3 pt-1" style={{ animationDelay: "0.4s", animationFillMode: "backwards" }}>
+          <div
+            className="animate-fade-in-up flex flex-wrap gap-3 pt-1"
+            style={{ animationDelay: "0.4s", animationFillMode: "backwards" }}
+          >
             <Badge className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-white backdrop-blur-sm">
               Chef-selected premium cuts
             </Badge>
