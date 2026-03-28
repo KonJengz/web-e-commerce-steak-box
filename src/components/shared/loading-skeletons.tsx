@@ -989,9 +989,111 @@ export function AdminProductDirectorySkeleton() {
   );
 }
 
+export function AdminOrdersPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <HeroSkeleton />
+
+      <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+        <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+          <div className="flex flex-col gap-5 border-b border-border/60 pb-5 xl:flex-row xl:items-end xl:justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-4 w-full max-w-lg" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {summaryCardKeys.map((key) => (
+                <div
+                  key={key}
+                  className="rounded-[1.25rem] border border-border/60 bg-background/55 px-4 py-3"
+                >
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="mt-2 h-6 w-20" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {adminListKeys.map((key) => (
+              <article
+                key={key}
+                className="rounded-[1.6rem] border border-border/60 bg-muted/20 p-5"
+              >
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-36" />
+                    </div>
+                    <Skeleton className="h-7 w-28 rounded-full" />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {summaryCardKeys.map((summaryKey) => (
+                      <div
+                        key={summaryKey}
+                        className="rounded-[1.1rem] border border-border/60 bg-background/55 px-4 py-3"
+                      >
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="mt-2 h-5 w-24" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <aside className="space-y-4 2xl:sticky 2xl:top-24">
+          <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-56" />
+              <Skeleton className="h-4 w-full max-w-sm" />
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {summaryCardKeys.map((key) => (
+                <div
+                  key={key}
+                  className="rounded-[1.25rem] border border-border/60 bg-background/55 px-4 py-3"
+                >
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="mt-2 h-6 w-28" />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {orderListKeys.map((key) => (
+                <div
+                  key={key}
+                  className="rounded-[1.25rem] border border-border/60 bg-muted/20 px-4 py-4"
+                >
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="mt-3 h-4 w-full" />
+                  <Skeleton className="mt-2 h-4 w-5/6" />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <Skeleton className="h-11 w-full rounded-xl" />
+              <Skeleton className="h-11 w-full rounded-xl" />
+              <Skeleton className="h-11 w-full rounded-full" />
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 export function AdminDashboardStatsSkeleton() {
   return (
-    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
+    <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.55fr)_360px]">
       <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
         <div className="border-b border-border/60 px-6 py-6 sm:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -1005,7 +1107,7 @@ export function AdminDashboardStatsSkeleton() {
         </div>
 
         <div className="px-6 py-6 sm:px-8">
-          <div className="grid gap-px overflow-hidden rounded-[1.6rem] border border-border/60 bg-border/60 md:grid-cols-2 2xl:grid-cols-4">
+          <div className="grid gap-px overflow-hidden rounded-[1.6rem] border border-border/60 bg-border/60 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }, (_, index) => (
               <div key={index} className="bg-background/98 px-5 py-5">
                 <div className="flex items-start justify-between gap-4">
@@ -1020,7 +1122,7 @@ export function AdminDashboardStatsSkeleton() {
             ))}
           </div>
 
-          <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="mt-6 grid gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
             <section className="rounded-[1.6rem] border border-border/60 bg-muted/15 p-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-2">
@@ -1096,7 +1198,7 @@ export function AdminDashboardStatsSkeleton() {
 
 export function AdminRecentInventorySkeleton() {
   return (
-    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_340px]">
+    <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.45fr)_340px]">
       <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
         <div className="flex flex-col gap-4 border-b border-border/60 px-6 py-6 lg:flex-row lg:items-end lg:justify-between sm:px-8">
           <div className="space-y-2">

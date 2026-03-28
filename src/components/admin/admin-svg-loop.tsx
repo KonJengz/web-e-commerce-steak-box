@@ -2,10 +2,82 @@ import { cn } from "@/lib/utils";
 
 interface AdminSvgLoopProps {
   className?: string;
-  variant: "categories" | "dashboard" | "products";
+  variant: "categories" | "dashboard" | "orders" | "products";
 }
 
 export function AdminSvgLoop({ className, variant }: AdminSvgLoopProps) {
+  if (variant === "orders") {
+    return (
+      <svg
+        viewBox="0 0 260 260"
+        className={cn("h-full w-full", className)}
+        fill="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="admin-orders" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f6c168" />
+            <stop offset="100%" stopColor="#79d4ff" />
+          </linearGradient>
+        </defs>
+        <circle
+          cx="130"
+          cy="130"
+          r="92"
+          stroke="url(#admin-orders)"
+          strokeWidth="2.5"
+          strokeDasharray="14 10"
+          opacity="0.4"
+        >
+          <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="0 130 130"
+            to="360 130 130"
+            dur="18s"
+            repeatCount="indefinite"
+          />
+        </circle>
+        <path
+          d="M84 92h92c11.046 0 20 8.954 20 20v44c0 11.046-8.954 20-20 20H84c-11.046 0-20-8.954-20-20v-44c0-11.046 8.954-20 20-20Z"
+          fill="#111a18"
+          stroke="#f6c168"
+          strokeOpacity="0.6"
+          strokeWidth="2.5"
+        />
+        <path
+          d="M84 120h92M96 146h38M96 164h54"
+          stroke="#f6f2e5"
+          strokeOpacity="0.78"
+          strokeLinecap="round"
+          strokeWidth="6"
+        />
+        <path
+          d="M170 151c0-13.255 10.745-24 24-24"
+          stroke="#79d4ff"
+          strokeLinecap="round"
+          strokeWidth="5"
+        >
+          <animate
+            attributeName="opacity"
+            values="0.35;1;0.35"
+            dur="2.8s"
+            repeatCount="indefinite"
+          />
+        </path>
+        <circle cx="194" cy="127" r="6" fill="#79d4ff">
+          <animate
+            attributeName="r"
+            values="5;7;5"
+            dur="2.8s"
+            repeatCount="indefinite"
+          />
+        </circle>
+      </svg>
+    );
+  }
+
   if (variant === "products") {
     return (
       <svg

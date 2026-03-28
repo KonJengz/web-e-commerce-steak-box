@@ -1,9 +1,14 @@
+import type { PaginatedResponse } from "@/types";
+import type { OrderStatus } from "@/features/order/types/order-status";
+
 export interface Order {
   createdAt: string;
   id: string;
   shippingAddressId: string | null;
-  status: string;
+  status: OrderStatus;
   totalAmount: string;
+  trackingNumber: string | null;
+  updatedAt: string;
   userId: string;
 }
 
@@ -19,3 +24,27 @@ export interface OrderItem {
 export interface OrderDetail extends Order {
   items: OrderItem[];
 }
+
+export interface AdminOrder extends Order {
+  userEmail: string;
+  userName: string;
+}
+
+export interface AdminOrderDetail extends AdminOrder {
+  items: OrderItem[];
+}
+
+export interface UpdateAdminOrderActionState {
+  fieldErrors?: {
+    status?: string[];
+    trackingNumber?: string[];
+  };
+  message?: string;
+  order?: AdminOrderDetail;
+  requiresAdmin?: boolean;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}
+
+export type OrderListResult = PaginatedResponse<Order>;
+export type AdminOrderListResult = PaginatedResponse<AdminOrder>;

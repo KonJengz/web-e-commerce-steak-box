@@ -7,7 +7,7 @@ interface AdminPageHeroProps {
   children?: ReactNode;
   description: string;
   title: string;
-  variant: "categories" | "dashboard" | "products";
+  variant: "categories" | "dashboard" | "orders" | "products";
 }
 
 export function AdminPageHero({

@@ -9,12 +9,19 @@ const categoryNameSchema = z
 const categoryDescriptionSchema = z
   .string()
   .trim()
-  .min(1, "Category description is required.")
   .max(500, "Category description must be at most 500 characters.");
 
-export const createCategorySchema = z.object({
+export const categoryFormSchema = z.object({
   description: categoryDescriptionSchema,
   name: categoryNameSchema,
 });
 
-export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
+export const createCategorySchema = categoryFormSchema;
+
+export const updateCategorySchema = categoryFormSchema;
+
+export type CategoryFormInput = z.infer<typeof categoryFormSchema>;
+
+export type CreateCategoryInput = CategoryFormInput;
+
+export type UpdateCategoryInput = CategoryFormInput;

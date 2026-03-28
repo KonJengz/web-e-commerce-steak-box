@@ -1477,6 +1477,33 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 ]
 ```
 
+### GET `/api/categories/{id}`
+
+ดู category รายการเดียว (public)
+
+**Response 200:**
+
+```json
+{
+  "id": "category-uuid",
+  "name": "Smartphones",
+  "description": "Mobile devices",
+  "created_at": "2026-03-25T00:00:00Z",
+  "updated_at": "2026-03-25T00:00:00Z"
+}
+```
+
+**Error Example: category not found**
+
+```json
+{
+  "error": {
+    "status": 404,
+    "message": "Category not found"
+  }
+}
+```
+
 ### POST `/api/categories` 🔒 ADMIN
 
 สร้าง category ใหม่
@@ -1511,6 +1538,80 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
   "error": {
     "status": 400,
     "message": "Category already exists"
+  }
+}
+```
+
+**Behavior Notes:**
+
+- ระบบ trim `name` และ `description` ก่อนบันทึก
+- `description` ถ้าส่งเป็น string ว่างหรือมีแต่ space จะถูกเก็บเป็น `null`
+- ชื่อ category ซ้ำกันแบบไม่สนตัวพิมพ์เล็กใหญ่ไม่ได้ เช่น `Smartphones` กับ `smartphones`
+
+### PUT `/api/categories/{id}` 🔒 ADMIN
+
+แก้ไข category
+
+**Headers:** `Authorization: Bearer <access_token>` (ADMIN only)
+
+**Request Body:**
+
+```json
+{
+  "name": "Smartphones & Tablets",
+  "description": "Phones, tablets, and accessories"
+}
+```
+
+**Response 200:**
+
+```json
+{
+  "id": "category-uuid",
+  "name": "Smartphones & Tablets",
+  "description": "Phones, tablets, and accessories",
+  "created_at": "2026-03-25T00:00:00Z",
+  "updated_at": "2026-03-29T02:15:00Z"
+}
+```
+
+**Error Example: duplicate category name**
+
+```json
+{
+  "error": {
+    "status": 400,
+    "message": "Category already exists"
+  }
+}
+```
+
+### DELETE `/api/categories/{id}` 🔒 ADMIN
+
+ลบ category
+
+**Headers:** `Authorization: Bearer <access_token>` (ADMIN only)
+
+**Response 200:**
+
+```json
+{
+  "message": "Category deleted successfully"
+}
+```
+
+**Behavior Notes:**
+
+- ระบบจะไม่ลบ category ถ้ายังมี product ผูก `category_id` นี้อยู่
+- ให้ย้าย product เหล่านั้นไป category อื่น หรือ clear category ออกจาก product ก่อนค่อยลบ
+
+**Error Example: category still in use**
+
+```json
+{
+  "error": {
+    "status": 409,
+    "message": "Cannot delete category while products are assigned to it"
   }
 }
 ```
@@ -1695,6 +1796,28 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 
 ## Orders
 
+### Order Status Values
+
+- `PENDING`: สร้าง order แล้ว รอ admin ตรวจสอบ/ยืนยันการชำระเงิน
+- `PAID`: admin ยืนยันการชำระเงินแล้ว
+- `SHIPPED`: จัดส่งแล้ว ต้องมี `tracking_number`
+- `DELIVERED`: ส่งสำเร็จแล้ว
+- `CANCELLED`: ยกเลิกแล้ว
+
+**Admin transition rules:**
+
+- `PENDING -> PAID` หรือ `PENDING -> CANCELLED`
+- `PAID -> SHIPPED` หรือ `PAID -> CANCELLED`
+- `SHIPPED -> DELIVERED`
+- อนุญาตให้ส่ง status เดิมซ้ำได้ เช่น `SHIPPED -> SHIPPED` เพื่ออัปเดต `tracking_number`
+- `DELIVERED` และ `CANCELLED` ถือเป็น final state
+
+**Tracking Number Rules:**
+
+- `tracking_number` ใช้ได้เฉพาะเมื่อ status เป็น `SHIPPED` หรือ `DELIVERED`
+- ถ้า admin เปลี่ยน status เป็น `SHIPPED` ระบบต้องมี `tracking_number`
+- เมื่อ admin ตั้งหรือเปลี่ยน `tracking_number` ระบบจะส่งอีเมลแจ้ง user แบบ background task
+
 ### POST `/api/orders`
 
 สร้าง order (snapshot ราคา ณ ตอนสั่ง)
@@ -1715,7 +1838,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 }
 ```
 
-**Response 201:**
+**Response 200:**
 
 ```json
 {
@@ -1724,7 +1847,9 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
   "shipping_address_id": "address-uuid",
   "total_amount": "79800.00",
   "status": "PENDING",
+  "tracking_number": null,
   "created_at": "2026-03-27T10:30:00Z",
+  "updated_at": "2026-03-27T10:30:00Z",
   "items": [
     {
       "id": "order-item-uuid",
@@ -1762,7 +1887,9 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
       "shipping_address_id": "address-uuid",
       "total_amount": "79800.00",
       "status": "PENDING",
-      "created_at": "2026-03-27T10:30:00Z"
+      "tracking_number": null,
+      "created_at": "2026-03-27T10:30:00Z",
+      "updated_at": "2026-03-27T10:30:00Z"
     }
   ],
   "total": 1,
@@ -1789,7 +1916,9 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
   "shipping_address_id": "address-uuid",
   "total_amount": "79800.00",
   "status": "PENDING",
+  "tracking_number": null,
   "created_at": "2026-03-27T10:30:00Z",
+  "updated_at": "2026-03-27T10:30:00Z",
   "items": [
     {
       "id": "order-item-uuid",
@@ -1800,5 +1929,185 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
       "price_at_purchase": "39900.00"
     }
   ]
+}
+```
+
+---
+
+### GET `/api/orders/admin`
+
+ดูรายการ order ทั้งหมดสำหรับฝั่ง admin
+
+**Headers:** `Authorization: Bearer <admin_access_token>`
+
+**Query Parameters:**
+
+- `page` (number): default 1
+- `limit` (number): default 20
+
+**Response 200:**
+
+```json
+{
+  "data": [
+    {
+      "id": "order-uuid",
+      "user_id": "user-uuid",
+      "user_name": "Jane Doe",
+      "user_email": "jane@example.com",
+      "shipping_address_id": "address-uuid",
+      "total_amount": "79800.00",
+      "status": "PAID",
+      "tracking_number": null,
+      "created_at": "2026-03-27T10:30:00Z",
+      "updated_at": "2026-03-27T11:15:00Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 20,
+  "total_pages": 1
+}
+```
+
+**Frontend Notes:**
+
+- ใช้เส้นนี้ทำ admin order table ได้เลย
+- `tracking_number` อาจเป็น `null`
+- `updated_at` เปลี่ยนเมื่อ admin อัปเดต status หรือ tracking
+
+---
+
+### GET `/api/orders/admin/{id}`
+
+ดูรายละเอียด order รายการเดียวสำหรับ admin
+
+**Headers:** `Authorization: Bearer <admin_access_token>`
+
+**Response 200:**
+
+```json
+{
+  "id": "order-uuid",
+  "user_id": "user-uuid",
+  "user_name": "Jane Doe",
+  "user_email": "jane@example.com",
+  "shipping_address_id": "address-uuid",
+  "total_amount": "79800.00",
+  "status": "PAID",
+  "tracking_number": null,
+  "created_at": "2026-03-27T10:30:00Z",
+  "updated_at": "2026-03-27T11:15:00Z",
+  "items": [
+    {
+      "id": "order-item-uuid",
+      "order_id": "order-uuid",
+      "product_id": "product-uuid",
+      "product_name_at_purchase": "iPhone 16",
+      "quantity": 2,
+      "price_at_purchase": "39900.00"
+    }
+  ]
+}
+```
+
+---
+
+### PUT `/api/orders/admin/{id}`
+
+admin อัปเดต status ของ order และใส่ `tracking_number` ได้จากเส้นเดียว
+
+**Headers:** `Authorization: Bearer <admin_access_token>`
+
+**Request Body Example: mark paid**
+
+```json
+{
+  "status": "PAID"
+}
+```
+
+**Request Body Example: mark shipped**
+
+```json
+{
+  "status": "SHIPPED",
+  "tracking_number": "TH1234567890"
+}
+```
+
+**Request Body Example: update tracking while already shipped**
+
+```json
+{
+  "status": "SHIPPED",
+  "tracking_number": "TH9999999999"
+}
+```
+
+**Response 200:**
+
+```json
+{
+  "id": "order-uuid",
+  "user_id": "user-uuid",
+  "user_name": "Jane Doe",
+  "user_email": "jane@example.com",
+  "shipping_address_id": "address-uuid",
+  "total_amount": "79800.00",
+  "status": "SHIPPED",
+  "tracking_number": "TH1234567890",
+  "created_at": "2026-03-27T10:30:00Z",
+  "updated_at": "2026-03-27T12:00:00Z",
+  "items": [
+    {
+      "id": "order-item-uuid",
+      "order_id": "order-uuid",
+      "product_id": "product-uuid",
+      "product_name_at_purchase": "iPhone 16",
+      "quantity": 2,
+      "price_at_purchase": "39900.00"
+    }
+  ]
+}
+```
+
+**Behavior Notes:**
+
+- ถ้า `tracking_number` ถูกตั้งหรือเปลี่ยน ระบบจะส่งอีเมลแจ้งลูกค้าแบบ async หลัง update สำเร็จ
+- ถ้า `status = SHIPPED` แต่ไม่ส่ง `tracking_number` และ order เดิมยังไม่มี tracking ระบบจะตอบ `400`
+- ถ้า `tracking_number` ถูกส่งมาพร้อม status ที่ไม่ใช่ `SHIPPED` หรือ `DELIVERED` ระบบจะตอบ `400`
+- ถ้า transition ไม่ถูกต้อง เช่น `PENDING -> SHIPPED` หรือ `DELIVERED -> PAID` ระบบจะตอบ `400`
+
+**Error Example: invalid status transition**
+
+```json
+{
+  "error": {
+    "status": 400,
+    "message": "Cannot change order status from PENDING to SHIPPED"
+  }
+}
+```
+
+**Error Example: shipped without tracking**
+
+```json
+{
+  "error": {
+    "status": 400,
+    "message": "Tracking number is required when marking an order as SHIPPED"
+  }
+}
+```
+
+**Error Example: tracking on unsupported status**
+
+```json
+{
+  "error": {
+    "status": 400,
+    "message": "Tracking number can only be set when the order status is SHIPPED or DELIVERED"
+  }
 }
 ```

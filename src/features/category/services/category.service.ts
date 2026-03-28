@@ -1,6 +1,9 @@
 import "server-only";
 
-import type { CreateCategoryInput } from "@/features/category/schemas/category.schema";
+import type {
+  CreateCategoryInput,
+  UpdateCategoryInput,
+} from "@/features/category/schemas/category.schema";
 import type { Category } from "@/features/category/types/category.type";
 import { api } from "@/lib/api/client";
 import type { ApiResult } from "@/types";
@@ -55,7 +58,32 @@ const create = async (
   };
 };
 
+const update = async (
+  accessToken: string,
+  categoryId: string,
+  input: UpdateCategoryInput,
+): Promise<ApiResult<Category>> => {
+  const result = await api.put<CategoryApiResponse>(
+    `/api/categories/${categoryId}`,
+    {
+      description: input.description.trim(),
+      name: input.name.trim(),
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: mapCategory(result.data),
+  };
+};
+
 export const categoryService = {
   create,
   getAll,
+  update,
 };

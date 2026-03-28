@@ -155,9 +155,9 @@ function MetricStripItem({
   value,
 }: DashboardMetric): JSX.Element {
   return (
-    <article className="bg-background/98 px-5 py-5">
+    <article className="min-w-0 bg-background/98 px-5 py-5">
       <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
             {label}
           </p>
@@ -169,19 +169,21 @@ function MetricStripItem({
           <Icon className="size-5" />
         </div>
       </div>
-      <p className="mt-4 text-sm leading-6 text-muted-foreground">{hint}</p>
+      <p className="mt-4 max-w-[22ch] text-[13px] leading-5 text-muted-foreground">
+        {hint}
+      </p>
     </article>
   );
 }
 
 function SignalRow({ hint, label, value }: DashboardSignal): JSX.Element {
   return (
-    <article className="flex items-start justify-between gap-4 rounded-[1.25rem] border border-border/60 bg-background/96 px-4 py-3.5">
-      <div className="space-y-1">
+    <article className="flex flex-col gap-3 rounded-[1.25rem] border border-border/60 bg-background/96 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0 space-y-1">
         <p className="text-sm font-medium text-foreground">{label}</p>
         <p className="text-xs leading-5 text-muted-foreground">{hint}</p>
       </div>
-      <p className="text-sm font-semibold tracking-tight text-foreground">
+      <p className="shrink-0 text-sm font-semibold tracking-tight text-foreground">
         {value}
       </p>
     </article>
@@ -236,7 +238,7 @@ function ProductStatusBadge({
       className={cn(
         "h-auto rounded-full px-3 py-1",
         isActive
-          ? "border border-primary/20 bg-primary/10 text-primary"
+          ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
           : "border border-border/60 bg-muted/30 text-muted-foreground",
       )}
     >
@@ -274,7 +276,7 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
       hint:
         dashboardData.totalProducts === 0
           ? "No products are in the catalog yet."
-          : "Total product records currently visible to the storefront.",
+          : "Products currently tracked in the catalog.",
       icon: Boxes,
       label: "Products",
       value: formatCount(dashboardData.totalProducts),
@@ -282,8 +284,8 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
     {
       hint:
         dashboardData.inStockProducts === 0
-          ? "Nothing is available for purchase right now."
-          : "Products that still have sellable stock right now.",
+          ? "Nothing is sellable right now."
+          : "Products with sellable stock right now.",
       icon: TrendingUp,
       label: "In Stock",
       value: formatCount(dashboardData.inStockProducts),
@@ -291,8 +293,8 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
     {
       hint:
         dashboardData.outOfStockProducts === 0
-          ? "No catalog items need a restock pass."
-          : "Items that will need restocking before they can convert again.",
+          ? "No products need a restock pass."
+          : "Products that need replenishment next.",
       icon: AlertTriangle,
       label: "Needs Restock",
       value: formatCount(dashboardData.outOfStockProducts),
@@ -300,8 +302,8 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
     {
       hint:
         dashboardData.categories.length === 0
-          ? "Start the taxonomy before expanding the catalog."
-          : "Storefront categories available for merchandising and filters.",
+          ? "Create the first category before scaling."
+          : "Categories used for filters and merchandising.",
       icon: Tags,
       label: "Categories",
       value: formatCount(dashboardData.categories.length),
@@ -310,28 +312,28 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
 
   const signals = [
     {
-      hint: `Products with ${LOW_STOCK_THRESHOLD} units or fewer in the newest batch.`,
+      hint: `Newest products with ${LOW_STOCK_THRESHOLD} units or fewer.`,
       label: "Recent low stock",
       value: formatCount(dashboardData.recentLowStockCount),
     },
     {
-      hint: "Newest products that still need a category assignment.",
+      hint: "Newest products that still need a category.",
       label: "Recent uncategorized",
       value: formatCount(dashboardData.recentUncategorizedCount),
     },
     {
-      hint: `Distinct categories represented across the latest ${dashboardData.latestProducts.length || RECENT_PRODUCTS_LIMIT} products.`,
+      hint: `Distinct categories across the latest ${dashboardData.latestProducts.length || RECENT_PRODUCTS_LIMIT} products.`,
       label: "Recent category spread",
       value: formatCount(dashboardData.recentCategorySpread),
     },
   ] satisfies DashboardSignal[];
 
   return (
-    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
+    <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.55fr)_360px]">
       <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
         <div className="border-b border-border/60 px-6 py-6 sm:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-2">
               <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
                 Catalog Pulse
               </p>
@@ -340,8 +342,8 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
                   Inventory health and taxonomy in one surface
                 </h2>
                 <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
-                  The strip below shows live catalog coverage, while the signals
-                  highlight where the latest products still need attention.
+                  Read coverage first, then scan the latest issues that still
+                  need attention.
                 </p>
               </div>
             </div>
@@ -358,13 +360,13 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
         </div>
 
         <div className="px-6 py-6 sm:px-8">
-          <div className="grid gap-px overflow-hidden rounded-[1.6rem] border border-border/60 bg-border/60 md:grid-cols-2 2xl:grid-cols-4">
+          <div className="grid gap-px overflow-hidden rounded-[1.6rem] border border-border/60 bg-border/60 sm:grid-cols-2 xl:grid-cols-4">
             {metrics.map((metric) => (
               <MetricStripItem key={metric.label} {...metric} />
             ))}
           </div>
 
-          <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="mt-6 grid gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
             <section className="rounded-[1.6rem] border border-border/60 bg-muted/15 p-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
@@ -392,8 +394,8 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
 
               <p className="mt-4 text-sm leading-7 text-muted-foreground">
                 {dashboardData.outOfStockProducts === 0
-                  ? "Every tracked product currently has inventory. The next pass can focus on assortment and recent launches."
-                  : `${formatCount(dashboardData.outOfStockProducts)} products are currently out of stock and should move into the next replenishment pass.`}
+                  ? "Everything currently has stock."
+                  : `${formatCount(dashboardData.outOfStockProducts)} products are out of stock right now.`}
               </p>
             </section>
 
@@ -432,8 +434,7 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
               Route the next admin move
             </h2>
             <p className="text-sm leading-7 text-white/65">
-              Move straight from monitoring into inventory work, category cleanup,
-              or a fresh product launch without leaving the surface.
+              Jump straight from monitoring into the next task.
             </p>
           </div>
 
@@ -447,7 +448,7 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
                   Review inventory list
                 </p>
                 <p className="text-xs leading-5 text-white/55">
-                  Check availability, edits, and gallery changes in one place.
+                  Check stock, edits, and gallery changes.
                 </p>
               </div>
               <ArrowRight className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
@@ -460,7 +461,7 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
               <div className="space-y-1">
                 <p className="text-sm font-medium text-white">Add a new product</p>
                 <p className="text-xs leading-5 text-white/55">
-                  Start a new SKU with media, stock, and category data.
+                  Start a new SKU with media and stock.
                 </p>
               </div>
               <ArrowRight className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
@@ -475,7 +476,7 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
                   Adjust category structure
                 </p>
                 <p className="text-xs leading-5 text-white/55">
-                  Keep filters, taxonomy, and merchandising clean as the catalog grows.
+                  Keep taxonomy and filters clean.
                 </p>
               </div>
               <ArrowRight className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
@@ -505,7 +506,7 @@ async function AdminDashboardWorkspace(): Promise<JSX.Element> {
   const dashboardData = await getAdminDashboardData();
 
   return (
-    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_340px]">
+    <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.45fr)_340px]">
       <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
         <div className="flex flex-col gap-4 border-b border-border/60 px-6 py-6 lg:flex-row lg:items-end lg:justify-between sm:px-8">
           <div className="space-y-2">
@@ -517,8 +518,8 @@ async function AdminDashboardWorkspace(): Promise<JSX.Element> {
                 Newest catalog entries at a glance
               </h2>
               <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
-                Scan images, pricing, stock posture, and activity state without
-                opening the full product directory.
+                Scan image, price, stock, and state before opening the full
+                directory.
               </p>
             </div>
           </div>
@@ -600,8 +601,8 @@ async function AdminDashboardWorkspace(): Promise<JSX.Element> {
                 No products have been added yet.
               </p>
               <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Start the catalog from the product directory, then this workspace
-                will surface the latest items and inventory signals here.
+                Create the first product, then the latest inventory will appear
+                here automatically.
               </p>
               <Button asChild size="lg" className="mt-6 rounded-full">
                 <Link href="/admin/products">Create the first product</Link>
@@ -622,8 +623,7 @@ async function AdminDashboardWorkspace(): Promise<JSX.Element> {
                 Categories moving most recently
               </h2>
               <p className="text-sm leading-7 text-muted-foreground">
-                Keep the structure fresh before the storefront filters start
-                drifting away from the catalog.
+                Keep taxonomy aligned before storefront filters drift.
               </p>
             </div>
           </div>
@@ -657,7 +657,7 @@ async function AdminDashboardWorkspace(): Promise<JSX.Element> {
               </div>
             ) : (
               <div className="rounded-[1.4rem] border border-dashed border-border/60 bg-muted/15 px-4 py-8 text-center text-sm text-muted-foreground">
-                No categories exist yet. Create the first one before scaling the catalog.
+                No categories yet. Create the first one before scaling the catalog.
               </div>
             )}
 
@@ -697,7 +697,7 @@ export default function AdminDashboardPage(): JSX.Element {
       <AdminPageHero
         badge="Dashboard"
         title="Monitor catalog health and route the next admin action"
-        description="Track coverage, review the newest inventory, and move straight into the right management surface from one dashboard."
+        description="Track coverage, review the newest inventory, and jump into the right management surface."
         variant="dashboard"
       >
         <Suspense

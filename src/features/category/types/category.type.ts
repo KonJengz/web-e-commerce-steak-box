@@ -6,11 +6,21 @@ export interface Category {
   updatedAt: string;
 }
 
+export interface CategoryFieldErrors {
+  description?: string[];
+  name?: string[];
+}
+
 export interface CreateCategoryActionState {
-  fieldErrors?: {
-    description?: string[];
-    name?: string[];
-  };
+  fieldErrors?: CategoryFieldErrors;
+  message?: string;
+  requiresAdmin?: boolean;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}
+
+export interface UpdateCategoryActionState {
+  fieldErrors?: CategoryFieldErrors;
   message?: string;
   requiresAdmin?: boolean;
   requiresReauthentication?: boolean;

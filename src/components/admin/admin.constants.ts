@@ -1,6 +1,7 @@
 import {
   Boxes,
   LayoutDashboard,
+  ReceiptText,
   Tags,
   type LucideIcon,
 } from "lucide-react";
@@ -21,6 +22,11 @@ export const adminNavItems: readonly AdminNavItem[] = [
     href: "/admin/products",
     icon: Boxes,
     label: "Products",
+  },
+  {
+    href: "/admin/orders",
+    icon: ReceiptText,
+    label: "Orders",
   },
   {
     href: "/admin/categories",
