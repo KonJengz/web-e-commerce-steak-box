@@ -31,7 +31,8 @@ export function HeaderUserMenu({ user }: HeaderUserMenuProps) {
 
   const handleLogout = (): void => {
     startTransition(async () => {
-      await logoutAction();
+      const result = await logoutAction();
+      window.location.assign(result.redirectTo);
     });
   };
 

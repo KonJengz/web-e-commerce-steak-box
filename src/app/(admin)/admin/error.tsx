@@ -23,7 +23,8 @@ export default function AdminErrorPage({
 
   const handleLogout = (): void => {
     startLogoutTransition(async () => {
-      await logoutAction();
+      const result = await logoutAction();
+      window.location.assign(result.redirectTo);
     });
   };
 

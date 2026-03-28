@@ -1,8 +1,6 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { redirect } from "next/navigation";
 
 import { envServer } from "@/config/env.server";
 import { clearAuthSession } from "@/features/auth/services/auth-session.service";
@@ -15,7 +13,13 @@ import {
   isAccessTokenExpired,
 } from "@/lib/auth-helpers";
 
-export async function logoutAction(): Promise<void> {
+const LOGOUT_REDIRECT_PATH = "/login?forceLogin=1";
+
+export interface LogoutActionResult {
+  redirectTo: string;
+}
+
+export async function logoutAction(): Promise<LogoutActionResult> {
   try {
     const cookieStore = await cookies();
     const storedAccessToken =
@@ -50,13 +54,11 @@ export async function logoutAction(): Promise<void> {
     }
 
     await clearAuthSession();
-    redirect("/login");
   } catch (error) {
-    if (isRedirectError(error)) {
-      throw error;
-    }
-
     console.error("Logout action failed:", error);
-    redirect("/login");
   }
+
+  return {
+    redirectTo: LOGOUT_REDIRECT_PATH,
+  };
 }
