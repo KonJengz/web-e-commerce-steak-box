@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { LogOut, Store } from "lucide-react";
+import { Store } from "lucide-react";
 
 import { AdminSidebarNav } from "@/components/admin/admin-sidebar-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { adminGhostButtonClassName } from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
 import { requireAdminUser } from "@/features/auth/services/current-user.service";
 import { resolveUserAvatar } from "@/features/user/utils/avatar";
@@ -42,7 +43,7 @@ export async function AdminShell({ children }: AdminShellProps) {
                 asChild
                 variant="ghost"
                 size="sm"
-                className="hidden rounded-full text-muted-foreground hover:text-foreground sm:inline-flex"
+                className={`hidden sm:inline-flex ${adminGhostButtonClassName}`}
               >
                 <Link href="/">
                   <Store className="mr-1 size-3.5" />

@@ -4,6 +4,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { adminDestructiveButtonClassName } from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { deleteProductAction } from "@/features/product/actions/delete-product.action";
@@ -60,7 +61,7 @@ export function AdminProductDeleteButton({
         type="button"
         variant="destructive"
         size="sm"
-        className="rounded-full"
+        className={adminDestructiveButtonClassName}
         disabled={isPending}
         onClick={handleDelete}
       >

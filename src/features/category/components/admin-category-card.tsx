@@ -9,9 +9,15 @@ import { useForm } from "react-hook-form";
 import { formatAccountDate } from "@/components/account/account.utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  adminDestructiveButtonClassName,
+  adminOutlineButtonClassName,
+  adminPrimaryButtonClassName,
+} from "@/components/ui/admin-action-styles";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { deleteCategoryAction } from "@/features/category/actions/delete-category.action";
 import { updateCategoryAction } from "@/features/category/actions/update-category.action";
+import { CategoryDeleteDialog } from "@/features/category/components/category-delete-dialog";
 import { CategoryFormFields } from "@/features/category/components/category-form-fields";
 import {
   updateCategorySchema,
@@ -44,6 +50,7 @@ export function AdminCategoryCard({
   category,
 }: AdminCategoryCardProps) {
   const router = useRouter();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, startSaveTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
@@ -123,14 +130,6 @@ export function AdminCategoryCard({
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete "${category.name}"? This cannot be undone.`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     setDeleteState(null);
     setUpdateState(null);
 
@@ -152,6 +151,7 @@ export function AdminCategoryCard({
         return;
       }
 
+      setIsDeleteDialogOpen(false);
       router.refresh();
     });
   };
@@ -203,7 +203,7 @@ export function AdminCategoryCard({
             <Button
               type="button"
               variant="outline"
-              className="rounded-full"
+              className={adminOutlineButtonClassName}
               disabled={isSaving || isDeleting}
               onClick={handleCancelEdit}
             >
@@ -211,7 +211,7 @@ export function AdminCategoryCard({
             </Button>
             <Button
               type="submit"
-              className="rounded-full"
+              className={adminPrimaryButtonClassName}
               disabled={isSaving || isDeleting}
             >
               {isSaving ? (
@@ -280,7 +280,7 @@ export function AdminCategoryCard({
           <Button
             type="button"
             variant="outline"
-            className="rounded-full"
+            className={adminOutlineButtonClassName}
             disabled={isDeleting}
             onClick={() => {
               setDeleteState(null);
@@ -294,9 +294,13 @@ export function AdminCategoryCard({
           <Button
             type="button"
             variant="destructive"
-            className="rounded-full"
+            className={adminDestructiveButtonClassName}
             disabled={isDeleting || isDeleteBlocked}
-            onClick={handleDeleteCategory}
+            onClick={() => {
+              setDeleteState(null);
+              setUpdateState(null);
+              setIsDeleteDialogOpen(true);
+            }}
           >
             {isDeleting ? (
               <>
@@ -313,11 +317,21 @@ export function AdminCategoryCard({
         </div>
       </div>
 
-      {deleteState?.message ? (
-        <div className="mt-4 rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive">
-          {deleteState.message}
-        </div>
-      ) : null}
+      <CategoryDeleteDialog
+        category={category}
+        isPending={isDeleting}
+        linkedProductCount={assignedProductCount}
+        message={deleteState?.message}
+        open={isDeleteDialogOpen}
+        onConfirm={handleDeleteCategory}
+        onOpenChange={(open) => {
+          setIsDeleteDialogOpen(open);
+
+          if (!open && !isDeleting) {
+            setDeleteState(null);
+          }
+        }}
+      />
     </article>
   );
 }

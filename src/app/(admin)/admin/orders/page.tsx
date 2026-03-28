@@ -43,6 +43,7 @@ import type {
   AdminOrderListResult,
 } from "@/features/order/types/order.type";
 import { EMPTY_ADMIN_ORDER_SUMMARY } from "@/features/order/types/order.type";
+import type { ReactNode } from "react";
 import { ApiError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 
@@ -198,6 +199,25 @@ function QueueSummaryCard({
   );
 }
 
+function QueueMetaItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-1">
+      <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-muted-foreground">
+        {label}
+      </p>
+      <div className="min-w-0 text-sm font-medium leading-6 text-foreground">
+        {value}
+      </div>
+    </div>
+  );
+}
+
 async function HeroBadges({
   accessToken,
   requestState,
@@ -342,7 +362,7 @@ function QueueSection({
                 )}
               >
                 <div className="flex flex-col gap-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0 space-y-1.5">
                       <p className="text-xs font-medium text-muted-foreground">
                         {order.userName} · {order.userEmail}
@@ -355,24 +375,42 @@ function QueueSection({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground lg:shrink-0">
                       <span>{formatAccountDateTime(order.updatedAt)}</span>
                       <ArrowRight className="size-4" />
                     </div>
                   </div>
 
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <QueueSummaryCard
+                  <div className="grid gap-4 border-t border-border/50 pt-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <QueueMetaItem
                       label="Total"
-                      value={formatCurrency(order.totalAmount)}
+                      value={
+                        <span className="text-base font-semibold tracking-tight text-foreground">
+                          {formatCurrency(order.totalAmount)}
+                        </span>
+                      }
                     />
-                    <QueueSummaryCard
+                    <QueueMetaItem
                       label="Placed"
-                      value={formatAccountDateTime(order.createdAt)}
+                      value={
+                        <span className="text-sm text-foreground">
+                          {formatAccountDateTime(order.createdAt)}
+                        </span>
+                      }
                     />
-                    <QueueSummaryCard
+                    <QueueMetaItem
                       label="Tracking"
-                      value={order.trackingNumber ?? "Pending"}
+                      value={
+                        order.trackingNumber ? (
+                          <span className="font-mono text-sm text-foreground">
+                            {order.trackingNumber}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            Pending assignment
+                          </span>
+                        )
+                      }
                     />
                   </div>
                 </div>

@@ -6,9 +6,18 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
+import {
+  adminOutlineButtonClassName,
+  adminPrimaryButtonClassName,
+} from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
+import {
+  adminSurfaceInputClassName,
+  adminSurfaceSelectClassName,
+} from "@/components/ui/admin-control-styles";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { updateAdminOrderAction } from "@/features/order/actions/update-admin-order.action";
 import {
@@ -26,12 +35,7 @@ import type {
   AdminOrderDetail,
   UpdateAdminOrderActionState,
 } from "@/features/order/types/order.type";
-import { cn } from "@/lib/utils";
-
 const SUCCESS_NOTICE_DURATION_MS = 3000;
-
-const selectClassName =
-  "flex h-11 w-full rounded-xl border border-border/50 bg-muted/30 px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40";
 
 const buildDefaultValues = (
   order: AdminOrderDetail,
@@ -245,11 +249,11 @@ export function AdminOrderStatusForm({
           render={({ field, fieldState }) => (
             <Field>
               <FieldLabel htmlFor={field.name}>Order status</FieldLabel>
-              <select
+              <NativeSelect
                 {...field}
                 id={field.name}
                 aria-invalid={fieldState.invalid}
-                className={cn(selectClassName)}
+                className={adminSurfaceSelectClassName}
                 disabled={isPending || isCancelledState}
               >
                 {availableStatuses.map((status) => (
@@ -257,7 +261,7 @@ export function AdminOrderStatusForm({
                     {getOrderStatusLabel(status)}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               <FieldError errors={[fieldState.error]} />
             </Field>
           )}
@@ -278,6 +282,7 @@ export function AdminOrderStatusForm({
                     : "Available once the order is shipped"
                 }
                 aria-invalid={fieldState.invalid}
+                className={adminSurfaceInputClassName}
                 disabled={isPending || isCancelledState || !canEditTracking}
               />
               <FieldError errors={[fieldState.error]} />
@@ -301,7 +306,7 @@ export function AdminOrderStatusForm({
           <Button
             type="button"
             variant="outline"
-            className="rounded-full"
+            className={adminOutlineButtonClassName}
             disabled={isPending}
             onClick={() => {
               clearErrors();
@@ -313,7 +318,7 @@ export function AdminOrderStatusForm({
           </Button>
           <Button
             type="submit"
-            className="rounded-full"
+            className={adminPrimaryButtonClassName}
             disabled={isPending || isCancelledState || !formState.isDirty}
           >
             {isPending ? (

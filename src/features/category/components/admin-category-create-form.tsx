@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
+import {
+  adminOutlineButtonClassName,
+  adminPrimaryButtonClassName,
+} from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { createCategoryAction } from "@/features/category/actions/create-category.action";
@@ -151,7 +155,7 @@ export function AdminCategoryCreateForm() {
           <Button
             type="button"
             variant="outline"
-            className="rounded-full"
+            className={adminOutlineButtonClassName}
             disabled={isPending}
             onClick={() => {
               clearErrors();
@@ -161,7 +165,11 @@ export function AdminCategoryCreateForm() {
           >
             Reset
           </Button>
-          <Button type="submit" className="rounded-full" disabled={isPending}>
+          <Button
+            type="submit"
+            className={adminPrimaryButtonClassName}
+            disabled={isPending}
+          >
             {isPending ? (
               <>
                 <Loader2 className="size-4 animate-spin" />

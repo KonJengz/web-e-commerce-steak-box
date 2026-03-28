@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   useCallback,
@@ -10,8 +10,14 @@ import {
   useTransition,
 } from "react";
 
+import { adminOutlineButtonClassName } from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
+import {
+  adminSurfaceInputClassName,
+  adminSurfaceSelectClassName,
+} from "@/components/ui/admin-control-styles";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   CATEGORY_DIRECTORY_SORT_OPTIONS,
   CATEGORY_USAGE_FILTER_OPTIONS,
@@ -28,9 +34,6 @@ interface AdminCategoryDirectoryFiltersProps {
 }
 
 const SEARCH_DEBOUNCE_MS = 450;
-
-const selectClassName =
-  "flex h-10 w-full rounded-xl border border-border/50 bg-background/80 px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export function AdminCategoryDirectoryFilters({
   filteredCount,
@@ -234,7 +237,10 @@ export function AdminCategoryDirectoryFilters({
               name="query"
               value={query}
               placeholder="Search category name or description"
-              className="h-11 border-border/50 bg-background/80 pl-10"
+              className={cn(
+                adminSurfaceInputClassName,
+                "bg-background/80 pl-10",
+              )}
               onChange={(event) => {
                 setQuery(event.target.value);
               }}
@@ -269,26 +275,28 @@ export function AdminCategoryDirectoryFilters({
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="relative w-full min-w-44 sm:w-52">
-                <SlidersHorizontal className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                <select
-                  value={selectedSort}
-                  onChange={handleSortChange}
-                  className={cn(selectClassName, "h-11 pl-10")}
-                  disabled={isPending}
-                >
-                  {CATEGORY_DIRECTORY_SORT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <NativeSelect
+                value={selectedSort}
+                onChange={handleSortChange}
+                className={cn(
+                  adminSurfaceSelectClassName,
+                  "overflow-hidden text-ellipsis whitespace-nowrap bg-background/80",
+                )}
+                wrapperClassName="w-full min-w-44 sm:w-52"
+                disabled={isPending}
+                aria-label="Sort categories"
+              >
+                {CATEGORY_DIRECTORY_SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </NativeSelect>
 
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 rounded-full"
+                className={cn(adminOutlineButtonClassName, "h-11")}
                 disabled={!hasActiveFilters || isPending}
                 onClick={handleClear}
               >

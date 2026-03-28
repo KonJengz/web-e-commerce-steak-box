@@ -3,6 +3,7 @@
 import { LogOut } from "lucide-react";
 import { useTransition } from "react";
 
+import { adminDangerGhostButtonClassName } from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/features/auth/actions/logout.action";
 
@@ -23,7 +24,7 @@ export function AdminLogoutButton() {
       onClick={handleLogout}
       disabled={isPending}
       aria-label="Sign out"
-      className="size-9 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+      className={`${adminDangerGhostButtonClassName} size-9`}
     >
       <LogOut className="size-4" />
     </Button>

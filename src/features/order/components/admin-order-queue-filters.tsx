@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
+import { adminGhostButtonClassName } from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -207,8 +208,8 @@ export function AdminOrderQueueFilters({
   const hasActiveFilters = currentSearch.length > 0 || !isAllFilter(currentStatus);
 
   return (
-    <div className="space-y-4 rounded-[1.5rem] border border-border/60 bg-muted/18 p-4">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+    <div className="space-y-4 rounded-[1.6rem] border border-border/60 bg-muted/16 p-4 sm:p-5">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_15rem] xl:items-center">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -217,31 +218,40 @@ export function AdminOrderQueueFilters({
               setQuery(event.target.value);
             }}
             placeholder="Search by customer, email, tracking, or exact order ID"
-            className="pl-9"
+            className="h-11 border-border/60 bg-background/80 pl-9"
             aria-label="Search orders"
           />
         </div>
 
-        <div className="flex items-center justify-between gap-3 xl:shrink-0">
-          <p className="text-xs font-medium text-muted-foreground">
-            {isPending ? "Refreshing queue..." : "Queue filters"}
-          </p>
+        <div className="flex items-center justify-between gap-3 xl:border-l xl:border-border/50 xl:pl-4">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground">
+              Queue Filters
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {isPending ? "Refreshing results..." : "Search and status stay synced."}
+            </p>
+          </div>
           {hasActiveFilters ? (
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="rounded-full"
+              className={adminGhostButtonClassName}
               onClick={handleClear}
             >
               <X className="size-4" />
               Clear
             </Button>
-          ) : null}
+          ) : (
+            <span className="text-xs text-muted-foreground/70">
+              All states visible
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2.5">
         {orderStatusFilterValues.map((status) => {
           const isActive = selectedStatus === status;
           const label = isAllFilter(status)

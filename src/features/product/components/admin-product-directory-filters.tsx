@@ -11,7 +11,13 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  adminSurfaceInputClassName,
+  adminSurfaceSelectClassName,
+} from "@/components/ui/admin-control-styles";
+import { adminOutlineButtonClassName } from "@/components/ui/admin-action-styles";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { Category } from "@/features/category/types/category.type";
 import {
   DEFAULT_PRODUCT_DIRECTORY_VIEW,
@@ -30,9 +36,6 @@ interface AdminProductDirectoryFiltersProps {
 }
 
 const SEARCH_DEBOUNCE_MS = 600;
-
-const selectClassName =
-  "flex h-10 w-full rounded-xl border border-border/50 bg-muted/30 px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export function AdminProductDirectoryFilters({
   categories,
@@ -294,16 +297,17 @@ export function AdminProductDirectoryFilters({
         name="query"
         value={query}
         placeholder="Search by name"
-        className="min-w-40 flex-1 border-border/40 bg-card text-sm"
+        className={cn(adminSurfaceInputClassName, "min-w-40 flex-1 bg-card")}
         onChange={(event) => {
           setQuery(event.target.value);
         }}
       />
 
-      <select
+      <NativeSelect
         value={selectedCategory}
         onChange={handleCategoryChange}
-        className={cn(selectClassName, "w-44")}
+        className={adminSurfaceSelectClassName}
+        wrapperClassName="w-44"
         disabled={isPending}
       >
         <option value="">All categories</option>
@@ -312,12 +316,13 @@ export function AdminProductDirectoryFilters({
             {category.name}
           </option>
         ))}
-      </select>
+      </NativeSelect>
 
-      <select
+      <NativeSelect
         value={selectedSort}
         onChange={handleSortChange}
-        className={cn(selectClassName, "w-44")}
+        className={adminSurfaceSelectClassName}
+        wrapperClassName="w-44"
         disabled={isPending}
       >
         {PRODUCT_SORT_OPTIONS.map((option) => (
@@ -325,7 +330,7 @@ export function AdminProductDirectoryFilters({
             {option.label}
           </option>
         ))}
-      </select>
+      </NativeSelect>
 
       <div className="inline-flex items-center rounded-full border border-border/60 bg-card/85 p-1">
         {PRODUCT_DIRECTORY_VIEW_OPTIONS.map((option) => {
@@ -356,8 +361,7 @@ export function AdminProductDirectoryFilters({
       <Button
         type="button"
         variant="outline"
-        size="sm"
-        className="rounded-full"
+        className={cn(adminOutlineButtonClassName, "h-10")}
         disabled={isPending}
         onClick={handleClear}
       >

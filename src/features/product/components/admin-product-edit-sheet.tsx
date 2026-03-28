@@ -22,6 +22,10 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  adminOutlineButtonClassName,
+  adminPrimaryButtonClassName,
+} from "@/components/ui/admin-action-styles";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -32,6 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { Category } from "@/features/category/types/category.type";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import {
@@ -42,6 +47,7 @@ import {
 } from "@/features/product/actions/product-gallery.action";
 import { updateProductAction } from "@/features/product/actions/update-product.action";
 import {
+  adminProductInputClassName,
   adminProductSelectClassName,
   adminProductTextareaClassName,
 } from "@/features/product/components/admin-product-form.styles";
@@ -1374,6 +1380,7 @@ export function AdminProductEditSheet({
                         id={field.name}
                         placeholder="For example, Dry-Aged Ribeye"
                         aria-invalid={fieldState.invalid}
+                        className={cn(adminProductInputClassName)}
                         disabled={isBusy}
                       />
                       <FieldError errors={[fieldState.error]} />
@@ -1387,7 +1394,7 @@ export function AdminProductEditSheet({
                   render={({ field, fieldState }) => (
                     <Field>
                       <FieldLabel htmlFor={field.name}>Category</FieldLabel>
-                      <select
+                      <NativeSelect
                         {...field}
                         id={field.name}
                         aria-invalid={fieldState.invalid}
@@ -1404,7 +1411,7 @@ export function AdminProductEditSheet({
                             {category.name}
                           </option>
                         ))}
-                      </select>
+                      </NativeSelect>
                       <FieldError errors={[fieldState.error]} />
                       <p className="text-xs leading-5 text-muted-foreground">
                         The current API can reassign category, but it cannot
@@ -1436,6 +1443,7 @@ export function AdminProductEditSheet({
                         }
                         placeholder="0.00"
                         aria-invalid={fieldState.invalid}
+                        className={cn(adminProductInputClassName)}
                         disabled={isBusy}
                       />
                       <FieldError errors={[fieldState.error]} />
@@ -1463,6 +1471,7 @@ export function AdminProductEditSheet({
                         }
                         placeholder="0"
                         aria-invalid={fieldState.invalid}
+                        className={cn(adminProductInputClassName)}
                         disabled={isBusy}
                       />
                       <FieldError errors={[fieldState.error]} />
@@ -1476,7 +1485,7 @@ export function AdminProductEditSheet({
                   render={({ field, fieldState }) => (
                     <Field className="lg:col-span-2">
                       <FieldLabel htmlFor={field.name}>Visibility</FieldLabel>
-                      <select
+                      <NativeSelect
                         {...field}
                         id={field.name}
                         aria-invalid={fieldState.invalid}
@@ -1485,7 +1494,7 @@ export function AdminProductEditSheet({
                       >
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
-                      </select>
+                      </NativeSelect>
                       <FieldError errors={[fieldState.error]} />
                     </Field>
                   )}
@@ -1522,7 +1531,7 @@ export function AdminProductEditSheet({
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-full"
+                  className={adminOutlineButtonClassName}
                   disabled={isBusy}
                   onClick={() => handleOpenChange(false)}
                 >
@@ -1531,7 +1540,7 @@ export function AdminProductEditSheet({
                 <Button
                   type="submit"
                   size="lg"
-                  className="rounded-full px-5 shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
+                  className={adminPrimaryButtonClassName}
                   disabled={isBusy}
                 >
                   {isSavingProduct ? (

@@ -6,13 +6,19 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
+import {
+  adminOutlineButtonClassName,
+  adminPrimaryButtonClassName,
+} from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { Category } from "@/features/category/types/category.type";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { createProductAction } from "@/features/product/actions/create-product.action";
 import {
+  adminProductInputClassName,
   adminProductSelectClassName,
   adminProductTextareaClassName,
 } from "@/features/product/components/admin-product-form.styles";
@@ -258,6 +264,7 @@ export function AdminProductCreateForm({
                   id={field.name}
                   placeholder="For example, Dry-Aged Ribeye"
                   aria-invalid={fieldState.invalid}
+                  className={cn(adminProductInputClassName)}
                   disabled={isPending}
                 />
                 <FieldError errors={[fieldState.error]} />
@@ -271,7 +278,7 @@ export function AdminProductCreateForm({
             render={({ field, fieldState }) => (
               <Field>
                 <FieldLabel htmlFor={field.name}>Category</FieldLabel>
-                <select
+                <NativeSelect
                   {...field}
                   id={field.name}
                   aria-invalid={fieldState.invalid}
@@ -288,7 +295,7 @@ export function AdminProductCreateForm({
                       {category.name}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
                 <FieldError errors={[fieldState.error]} />
               </Field>
             )}
@@ -314,6 +321,7 @@ export function AdminProductCreateForm({
                   }
                   placeholder="0.00"
                   aria-invalid={fieldState.invalid}
+                  className={cn(adminProductInputClassName)}
                   disabled={isPending}
                 />
                 <FieldError errors={[fieldState.error]} />
@@ -341,6 +349,7 @@ export function AdminProductCreateForm({
                   }
                   placeholder="0"
                   aria-invalid={fieldState.invalid}
+                  className={cn(adminProductInputClassName)}
                   disabled={isPending}
                 />
                 <FieldError errors={[fieldState.error]} />
@@ -492,7 +501,7 @@ export function AdminProductCreateForm({
           <Button
             type="button"
             variant="outline"
-            className="rounded-full"
+            className={adminOutlineButtonClassName}
             disabled={isPending}
             onClick={resetForm}
           >
@@ -500,7 +509,7 @@ export function AdminProductCreateForm({
           </Button>
           <Button
             type="submit"
-            className="rounded-full"
+            className={adminPrimaryButtonClassName}
             disabled={isPending || categories.length === 0}
           >
             {isPending ? (
