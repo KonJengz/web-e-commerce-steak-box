@@ -1,8 +1,8 @@
 import { envServer } from "@/config/env.server";
 
-export const APP_REFRESH_TOKEN_COOKIE_NAME = `__bff_${envServer.REFRESH_TOKEN_COOKIE_NAME}`;
 export const BACKEND_REFRESH_TOKEN_COOKIE_NAME =
   envServer.REFRESH_TOKEN_COOKIE_NAME;
+export const APP_REFRESH_TOKEN_COOKIE_NAME = BACKEND_REFRESH_TOKEN_COOKIE_NAME;
 export const BACKEND_REFRESH_TOKEN_COOKIE_PATH = "/";
 export const LEGACY_BACKEND_REFRESH_TOKEN_COOKIE_PATH = "/api/auth";
 
@@ -53,9 +53,8 @@ export const normalizeCookieValue = (
 export const getStoredRefreshTokenValue = (
   cookieStore: AuthCookieReader,
 ): string | null => {
-  return (
-    normalizeCookieValue(cookieStore.get(APP_REFRESH_TOKEN_COOKIE_NAME)?.value) ??
-    normalizeCookieValue(cookieStore.get(BACKEND_REFRESH_TOKEN_COOKIE_NAME)?.value)
+  return normalizeCookieValue(
+    cookieStore.get(BACKEND_REFRESH_TOKEN_COOKIE_NAME)?.value,
   );
 };
 
