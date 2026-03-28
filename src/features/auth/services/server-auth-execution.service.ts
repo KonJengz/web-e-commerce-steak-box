@@ -6,12 +6,18 @@ import { envServer } from "@/config/env.server";
 import { refreshAccessTokenSingleFlight as refreshAuthSessionSingleFlight } from "@/features/auth/services/auth-refresh-coordinator.service";
 import { userService } from "@/features/user/services/user.service";
 import {
+  buildAccessTokenCookie,
+  buildAppRefreshTokenCookie,
+  buildClearedAppRefreshTokenCookie,
+  buildClearedBackendRefreshTokenCookie,
+  getStoredRefreshTokenValue,
+  LEGACY_BACKEND_REFRESH_TOKEN_COOKIE_PATH,
+} from "@/features/auth/utils/auth-cookie";
+import {
   isAccessTokenExpired,
   type RefreshedAuthSession,
 } from "@/lib/auth-helpers";
 import { ApiError } from "@/lib/api/error";
-
-const isProduction = process.env.NODE_ENV === "production";
 
 interface ServerAuthTokens {
   accessToken: string | null;
@@ -42,7 +48,7 @@ const readServerAuthTokens = async (): Promise<ServerAuthTokens> => {
 
   return {
     accessToken: cookieStore.get(envServer.ACCESS_TOKEN_COOKIE_NAME)?.value ?? null,
-    refreshToken: cookieStore.get(envServer.REFRESH_TOKEN_COOKIE_NAME)?.value ?? null,
+    refreshToken: getStoredRefreshTokenValue(cookieStore),
   };
 };
 
@@ -50,40 +56,23 @@ const persistRefreshedSessionCookies = async (
   refreshedSession: RefreshedAuthSession,
 ): Promise<void> => {
   const cookieStore = await cookies();
-
-  cookieStore.set({
-    httpOnly: true,
-    maxAge: envServer.ACCESS_TOKEN_MAX_AGE,
-    name: envServer.ACCESS_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "lax",
-    secure: isProduction,
-    value: refreshedSession.accessToken,
-  });
+  cookieStore.set(buildAccessTokenCookie(refreshedSession.accessToken));
 
   if (refreshedSession.refreshToken) {
-    cookieStore.set({
-      httpOnly: true,
-      maxAge: envServer.REFRESH_TOKEN_MAX_AGE,
-      name: envServer.REFRESH_TOKEN_COOKIE_NAME,
-      path: "/",
-      sameSite: "strict",
-      secure: isProduction,
-      value: refreshedSession.refreshToken,
-    });
+    cookieStore.set(
+      buildClearedAppRefreshTokenCookie(LEGACY_BACKEND_REFRESH_TOKEN_COOKIE_PATH),
+    );
+    cookieStore.set(buildClearedBackendRefreshTokenCookie());
+    cookieStore.set(buildAppRefreshTokenCookie(refreshedSession.refreshToken));
 
     return;
   }
 
-  cookieStore.set({
-    httpOnly: true,
-    maxAge: 0,
-    name: envServer.REFRESH_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "strict",
-    secure: isProduction,
-    value: "",
-  });
+  cookieStore.set(
+    buildClearedAppRefreshTokenCookie(LEGACY_BACKEND_REFRESH_TOKEN_COOKIE_PATH),
+  );
+  cookieStore.set(buildClearedAppRefreshTokenCookie());
+  cookieStore.set(buildClearedBackendRefreshTokenCookie());
 };
 
 const refreshAccessTokenSingleFlight = async (

@@ -1,4 +1,5 @@
 const LOGIN_PATHNAME = "/login";
+const SESSION_REFRESH_PATHNAME = "/api/auth/refresh";
 const AUTH_REDIRECT_BASE_URL = "http://local.test";
 export const FORCE_LOGIN_QUERY_PARAM = "forceLogin";
 
@@ -49,4 +50,17 @@ export const buildLoginRedirectPath = (
   }
 
   return `${loginUrl.pathname}${loginUrl.search}`;
+};
+
+export const buildSessionRefreshPath = (
+  redirectTo?: string | null,
+): string => {
+  const refreshUrl = new URL(SESSION_REFRESH_PATHNAME, AUTH_REDIRECT_BASE_URL);
+  const normalizedRedirectTarget = normalizeAuthRedirectTarget(redirectTo);
+
+  if (normalizedRedirectTarget) {
+    refreshUrl.searchParams.set("redirectTo", normalizedRedirectTarget);
+  }
+
+  return `${refreshUrl.pathname}${refreshUrl.search}`;
 };

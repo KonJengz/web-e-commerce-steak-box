@@ -88,7 +88,7 @@ interface SecurityPageProps {
 export default async function SecurityPage({
   searchParams,
 }: SecurityPageProps) {
-  const profile = await requireCurrentUser("/security");
+  const profile = await requireCurrentUser();
 
   const resolvedSearchParams = await searchParams;
   const linkProviderParam = resolvedSearchParams.link_provider;

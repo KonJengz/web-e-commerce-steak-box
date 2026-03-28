@@ -9,7 +9,7 @@ import { ProfileNameEditor } from "@/features/user/components/profile-name-edito
 import { ProfilePhotoEditor } from "@/features/user/components/profile-photo-editor";
 
 export default async function ProfilePage() {
-  const profile = await requireCurrentUser("/profile");
+  const profile = await requireCurrentUser();
 
   return (
     <div className="space-y-6">

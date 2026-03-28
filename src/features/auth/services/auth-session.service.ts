@@ -2,8 +2,18 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import { envServer } from "@/config/env.server";
 import type { AuthResponse } from "@/features/auth/types/auth.type";
+import {
+  APP_REFRESH_TOKEN_COOKIE_NAME,
+  BACKEND_REFRESH_TOKEN_COOKIE_NAME,
+  LEGACY_BACKEND_REFRESH_TOKEN_COOKIE_PATH,
+  buildAccessTokenCookie,
+  buildAppRefreshTokenCookie,
+  buildClearedAccessTokenCookie,
+  buildClearedAppRefreshTokenCookie,
+  buildClearedBackendRefreshTokenCookie,
+  logAuthDebug,
+} from "@/features/auth/utils/auth-cookie";
 import { normalizeAuthRedirectTarget } from "@/features/auth/utils/auth-redirect";
 import { getCookieValueFromSetCookieHeaders } from "@/lib/auth-helpers";
 import type { ApiResult } from "@/types";
@@ -16,25 +26,15 @@ const PENDING_PASSWORD_RESET_MAX_AGE = 15 * 60;
 const PENDING_POST_AUTH_REDIRECT_COOKIE_NAME = "pending_post_auth_redirect";
 const PENDING_POST_AUTH_REDIRECT_MAX_AGE = 15 * 60;
 
-export const persistAuthSession = async (
-  result: ApiResult<AuthResponse>,
-): Promise<void> => {
+export class MissingAuthRefreshTokenError extends Error {
+  constructor() {
+    super("Authentication response did not include a refresh token cookie.");
+    this.name = "MissingAuthRefreshTokenError";
+  }
+}
+
+const clearCompletedAuthFlowCookies = async (): Promise<void> => {
   const cookieStore = await cookies();
-
-  cookieStore.set({
-    httpOnly: true,
-    maxAge: envServer.ACCESS_TOKEN_MAX_AGE,
-    name: envServer.ACCESS_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "lax",
-    secure: isProduction,
-    value: result.data.accessToken,
-  });
-
-  const refreshTokenValue = getCookieValueFromSetCookieHeaders(
-    result.headers,
-    envServer.REFRESH_TOKEN_COOKIE_NAME,
-  );
 
   cookieStore.set({
     httpOnly: true,
@@ -65,44 +65,51 @@ export const persistAuthSession = async (
     secure: isProduction,
     value: "",
   });
+};
+
+const clearLegacyAuthCookies = async (): Promise<void> => {
+  const cookieStore = await cookies();
+
+  cookieStore.set(
+    buildClearedAppRefreshTokenCookie(LEGACY_BACKEND_REFRESH_TOKEN_COOKIE_PATH),
+  );
+  cookieStore.set(buildClearedBackendRefreshTokenCookie());
+};
+
+export const persistAuthSession = async (
+  result: ApiResult<AuthResponse>,
+): Promise<void> => {
+  const refreshTokenValue = getCookieValueFromSetCookieHeaders(
+    result.headers,
+    BACKEND_REFRESH_TOKEN_COOKIE_NAME,
+  );
 
   if (!refreshTokenValue) {
-    return;
+    logAuthDebug("persistAuthSession.missingRefreshToken", {
+      appCookieName: APP_REFRESH_TOKEN_COOKIE_NAME,
+      sourceCookieName: BACKEND_REFRESH_TOKEN_COOKIE_NAME,
+    });
+    throw new MissingAuthRefreshTokenError();
   }
 
-  cookieStore.set({
-    httpOnly: true,
-    maxAge: envServer.REFRESH_TOKEN_MAX_AGE,
-    name: envServer.REFRESH_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "strict",
-    secure: isProduction,
-    value: refreshTokenValue,
+  logAuthDebug("persistAuthSession.success", {
+    appCookieName: APP_REFRESH_TOKEN_COOKIE_NAME,
+    sourceCookieName: BACKEND_REFRESH_TOKEN_COOKIE_NAME,
   });
+
+  const cookieStore = await cookies();
+  cookieStore.set(buildAccessTokenCookie(result.data.accessToken));
+  cookieStore.set(buildAppRefreshTokenCookie(refreshTokenValue));
+
+  await clearLegacyAuthCookies();
+  await clearCompletedAuthFlowCookies();
 };
 
 export const clearAuthSession = async (): Promise<void> => {
   const cookieStore = await cookies();
-
-  cookieStore.set({
-    httpOnly: true,
-    maxAge: 0,
-    name: envServer.ACCESS_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "lax",
-    secure: isProduction,
-    value: "",
-  });
-
-  cookieStore.set({
-    httpOnly: true,
-    maxAge: 0,
-    name: envServer.REFRESH_TOKEN_COOKIE_NAME,
-    path: "/",
-    sameSite: "strict",
-    secure: isProduction,
-    value: "",
-  });
+  cookieStore.set(buildClearedAccessTokenCookie());
+  cookieStore.set(buildClearedAppRefreshTokenCookie());
+  await clearLegacyAuthCookies();
 
   cookieStore.set({
     httpOnly: true,

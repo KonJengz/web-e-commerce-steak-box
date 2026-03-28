@@ -7,6 +7,17 @@ export interface RefreshedAuthSession {
   refreshToken: string | null;
 }
 
+export interface RefreshAuthFailure {
+  message: string;
+  reason: string;
+  status: number;
+}
+
+export interface RefreshAccessTokenResult {
+  failure: RefreshAuthFailure | null;
+  session: RefreshedAuthSession | null;
+}
+
 const splitSetCookieHeader = (header: string): string[] => {
   return header.split(/,(?=\s*[A-Za-z0-9!#$%&'*+.^_`|~-]+=)/);
 };
@@ -84,22 +95,60 @@ export const isAccessTokenExpired = (token: string): boolean => {
   return payload.exp * 1000 <= Date.now() + 5_000;
 };
 
-export const refreshAccessToken = async (
+export const mapRefreshApiErrorReason = (error: ApiError): string => {
+  if (error.status !== 401) {
+    return "refresh_api_error";
+  }
+
+  if (error.message === "No refresh token cookie") {
+    return "backend_missing_refresh_cookie";
+  }
+
+  if (error.message === "Invalid refresh token") {
+    return "invalid_refresh_token";
+  }
+
+  if (error.message === "Refresh token has expired") {
+    return "expired_refresh_token";
+  }
+
+  if (error.message === "Refresh session has been revoked. Please login again.") {
+    return "revoked_refresh_session";
+  }
+
+  if (error.message === "Refresh token reuse detected. Please login again.") {
+    return "refresh_token_reuse_detected";
+  }
+
+  return "refresh_api_error";
+};
+
+export const attemptRefreshAccessToken = async (
   refreshToken: string,
-): Promise<RefreshedAuthSession | null> => {
+): Promise<RefreshAccessTokenResult> => {
   try {
     const result = await authService.refresh(refreshToken);
 
     return {
-      accessToken: result.data.accessToken,
-      refreshToken: getCookieValueFromSetCookieHeaders(
-        result.headers,
-        envServer.REFRESH_TOKEN_COOKIE_NAME,
-      ),
+      failure: null,
+      session: {
+        accessToken: result.data.accessToken,
+        refreshToken: getCookieValueFromSetCookieHeaders(
+          result.headers,
+          envServer.REFRESH_TOKEN_COOKIE_NAME,
+        ),
+      },
     };
   } catch (error) {
     if (error instanceof ApiError) {
-      return null;
+      return {
+        failure: {
+          message: error.message,
+          reason: mapRefreshApiErrorReason(error),
+          status: error.status,
+        },
+        session: null,
+      };
     }
 
     throw error;

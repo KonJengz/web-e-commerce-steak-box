@@ -6,7 +6,8 @@ import { redirect } from "next/navigation";
 
 import { envServer } from "@/config/env.server";
 import { REQUEST_ACCESS_TOKEN_HEADER_NAME, REQUEST_PATH_HEADER_NAME } from "@/features/auth/services/request-auth-session.service";
-import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
+import { buildSessionRefreshPath } from "@/features/auth/utils/auth-redirect";
+import { logAuthDebug } from "@/features/auth/utils/auth-cookie";
 import { userService } from "@/features/user/services/user.service";
 import type { UserProfile } from "@/features/user/types/user.type";
 import { isAccessTokenExpired } from "@/lib/auth-helpers";
@@ -24,14 +25,14 @@ const getResolvedRedirectPath = async (
   return requestHeaders.get(REQUEST_PATH_HEADER_NAME) ?? "/";
 };
 
-const redirectToForcedLogin = async (
+const redirectToAuthRecovery = async (
   redirectToPath?: string,
 ): Promise<never> => {
-  redirect(
-    buildLoginRedirectPath(await getResolvedRedirectPath(redirectToPath), {
-      forceLogin: true,
-    }),
-  );
+  const resolvedRedirectPath = await getResolvedRedirectPath(redirectToPath);
+  logAuthDebug("current-user.redirectToSessionRefresh", {
+    redirectToPath: resolvedRedirectPath,
+  });
+  redirect(buildSessionRefreshPath(resolvedRedirectPath));
 };
 
 export const getCurrentAccessToken = cache(async (): Promise<string | null> => {
@@ -78,7 +79,7 @@ export const requireCurrentAccessToken = async (
   const accessToken = await getCurrentAccessToken();
 
   if (!accessToken) {
-    return redirectToForcedLogin(redirectToPath);
+    return redirectToAuthRecovery(redirectToPath);
   }
 
   return accessToken;
@@ -94,7 +95,7 @@ export const executeProtectedRequestOrRedirect = async <T>(
     return await operation(accessToken);
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      return redirectToForcedLogin(redirectToPath);
+      return redirectToAuthRecovery(redirectToPath);
     }
 
     throw error;
@@ -115,7 +116,7 @@ export const requireCurrentUser = async (
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      return redirectToForcedLogin(redirectToPath);
+      return redirectToAuthRecovery(redirectToPath);
     }
 
     throw error;

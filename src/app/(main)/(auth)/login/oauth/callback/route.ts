@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { oauthExchangeSchema } from "@/features/auth/schemas/auth.schema";
-import { persistAuthSession } from "@/features/auth/services/auth-session.service";
+import {
+  applyAuthResultResponseCookies,
+} from "@/features/auth/services/auth-response-cookie.service";
 import { authService } from "@/features/auth/services/auth.service";
 import {
   buildLoginRedirectPath,
@@ -50,7 +52,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await authService.exchangeOAuthTicket(ticketResult.data);
-    await persistAuthSession(result);
+    const destination = normalizeAuthRedirectTarget(redirectTo) ?? "/";
+    const response = NextResponse.redirect(new URL(destination, request.url));
+
+    return applyAuthResultResponseCookies(response, result);
   } catch (error) {
     if (error instanceof ApiError) {
       return buildLoginErrorResponse(
@@ -60,10 +65,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (error instanceof Error) {
+      return buildLoginErrorResponse(
+        request,
+        "oauth_exchange_failed",
+        redirectTo,
+      );
+    }
+
     throw error;
   }
-
-  const destination = normalizeAuthRedirectTarget(redirectTo) ?? "/";
-
-  return NextResponse.redirect(new URL(destination, request.url));
 }
