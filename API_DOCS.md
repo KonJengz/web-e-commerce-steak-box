@@ -1213,11 +1213,15 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
     {
       "id": "uuid-v7",
       "name": "iPhone 16",
+      "description": "รุ่นล่าสุด",
       "category_id": "category-uuid",
       "category_name": "Smartphones",
+      "image_url": "https://res.cloudinary.com/...primary...",
       "current_price": "39900",
       "stock": 100,
-      "is_active": true
+      "is_active": true,
+      "created_at": "2026-03-25T00:00:00Z",
+      "updated_at": "2026-03-25T00:00:00Z"
     }
   ],
   "total": 45,
@@ -1226,6 +1230,13 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
   "total_pages": 3
 }
 ```
+
+**หมายเหตุ:**
+
+- `image_url` ใน `GET /api/products` คือรูปหลักของสินค้า (primary image) ที่ frontend ใช้ map แสดงบน product cards / list pages ได้เลย
+- ถ้าสินค้ายังไม่มีรูปหลัก ค่า `image_url` จะเป็น `null`
+- ถ้าต้องการรูปทั้งหมดของสินค้าให้เรียก `GET /api/products/{id}/images` เพิ่ม
+- ถ้าต้องการหน้า detail ที่ใช้ทั้งข้อมูลสินค้าและ gallery ให้เรียก `GET /api/products/{id}` แล้วตามด้วย `GET /api/products/{id}/images`
 
 **Error Example: invalid price range**
 
@@ -1241,6 +1252,26 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 ### GET `/api/products/{id}`
 
 ดู product ตาม id (public)
+
+**Response 200:**
+
+```json
+{
+  "id": "uuid-v7",
+  "name": "iPhone 16",
+  "description": "รุ่นล่าสุด",
+  "category_id": "category-uuid",
+  "category_name": "Smartphones",
+  "image_url": "https://res.cloudinary.com/...primary...",
+  "current_price": "39900",
+  "stock": 100,
+  "is_active": true,
+  "created_at": "2026-03-25T00:00:00Z",
+  "updated_at": "2026-03-25T00:00:00Z"
+}
+```
+
+**หมายเหตุ:** endpoint นี้ก็คืนเฉพาะรูปหลักใน field `image_url` เช่นกัน ถ้าต้องการ gallery ให้เรียก `GET /api/products/{id}/images`
 
 ### GET `/api/products/{id}/images`
 

@@ -89,7 +89,60 @@ const addItem = async (
   };
 };
 
+const updateItem = async (
+  accessToken: string,
+  productId: string,
+  quantity: number,
+): Promise<ApiResult<Cart>> => {
+  const result = await api.put<CartApiResponse>(
+    `/api/carts/items/${productId}`,
+    {
+      quantity,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: mapCart(result.data),
+  };
+};
+
+const removeItem = async (
+  accessToken: string,
+  productId: string,
+): Promise<ApiResult<Cart>> => {
+  const result = await api.delete<CartApiResponse>(
+    `/api/carts/items/${productId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: mapCart(result.data),
+  };
+};
+
+const clear = async (accessToken: string): Promise<ApiResult<null>> => {
+  return api.delete<null>("/api/carts", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+};
+
 export const cartService = {
   addItem,
+  clear,
   getCurrent,
+  removeItem,
+  updateItem,
 };

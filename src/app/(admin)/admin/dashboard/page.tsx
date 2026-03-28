@@ -11,7 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { categoryService } from "@/features/category/services/category.service";
 import { productService } from "@/features/product/services/product.service";
-import { formatCompactId, formatCurrency } from "@/components/account/account.utils";
+import {
+  formatAccountDateTime,
+  formatCompactId,
+  formatCurrency,
+} from "@/components/account/account.utils";
 
 const getAdminDashboardData = cache(async () => {
   const [categoriesResult, latestProductsResult, productCountResult, inStockResult] =
@@ -155,11 +159,21 @@ async function AdminDashboardRecentInventory() {
                   <span>Stock: {product.stock}</span>
                   <span>{product.categoryName ?? "Uncategorized"}</span>
                 </div>
+                {product.description.trim() ? (
+                  <p className="max-w-2xl line-clamp-2 text-xs leading-5 text-muted-foreground">
+                    {product.description}
+                  </p>
+                ) : null}
               </div>
 
-              <p className="font-mono text-[11px] text-muted-foreground/60">
-                {formatCompactId(product.id)}
-              </p>
+              <div className="space-y-1 text-left sm:text-right">
+                <p className="font-mono text-[11px] text-muted-foreground/60">
+                  {formatCompactId(product.id)}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Updated {formatAccountDateTime(product.updatedAt)}
+                </p>
+              </div>
             </article>
           ))
         ) : (

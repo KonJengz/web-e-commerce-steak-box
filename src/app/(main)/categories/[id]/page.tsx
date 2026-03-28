@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { cache, Suspense } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { CatalogResultsSkeleton } from "@/components/shared/loading-skeletons";
+import { CatalogResultsPanelSkeleton } from "@/components/shared/loading-skeletons";
 import { Pagination } from "@/components/shared/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CategorySidebar } from "@/features/category/components/category-sidebar";
@@ -14,11 +14,16 @@ import { ProductSortFilter } from "@/features/product/components/product-sort-fi
 import { categoryService } from "@/features/category/services/category.service";
 import { productService } from "@/features/product/services/product.service";
 import type { ProductQueryOptions } from "@/features/product/types/product.type";
+import {
+  DEFAULT_PRODUCT_SORT,
+  normalizeProductSort,
+} from "@/features/product/types/product-sort";
 
 interface CategoryPageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{
     page?: string | string[];
+    search?: string | string[];
     sort?: string | string[];
   }>;
 }
@@ -39,6 +44,7 @@ const getCategoryProducts = cache(
   async (
     categoryId: string,
     currentPage: number,
+    searchValue: string,
     sortValue: ProductQueryOptions["sort"],
   ) => {
     return (
@@ -46,6 +52,7 @@ const getCategoryProducts = cache(
         categoryId,
         limit: 12,
         page: currentPage,
+        search: searchValue || undefined,
         sort: sortValue,
       })
     ).data;
@@ -55,15 +62,22 @@ const getCategoryProducts = cache(
 interface CategoryProductCountBadgeProps {
   categoryId: string;
   currentPage: number;
+  searchValue: string;
   sortValue: ProductQueryOptions["sort"];
 }
 
 async function CategoryProductCountBadge({
   categoryId,
   currentPage,
+  searchValue,
   sortValue,
 }: CategoryProductCountBadgeProps) {
-  const products = await getCategoryProducts(categoryId, currentPage, sortValue);
+  const products = await getCategoryProducts(
+    categoryId,
+    currentPage,
+    searchValue,
+    sortValue,
+  );
 
   return (
     <Badge className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-white backdrop-blur-sm">
@@ -72,70 +86,93 @@ async function CategoryProductCountBadge({
   );
 }
 
-interface CategoryResultsSectionProps {
-  categories: Awaited<ReturnType<typeof getAllCategories>>;
+interface CategoryResultsSummaryProps {
   categoryId: string;
   currentPage: number;
+  searchValue: string;
   sortValue: ProductQueryOptions["sort"];
 }
 
-async function CategoryResultsSection({
-  categories,
+async function CategoryResultsSummary({
   categoryId,
   currentPage,
+  searchValue,
   sortValue,
-}: CategoryResultsSectionProps) {
-  const products = await getCategoryProducts(categoryId, currentPage, sortValue);
+}: CategoryResultsSummaryProps) {
+  const products = await getCategoryProducts(
+    categoryId,
+    currentPage,
+    searchValue,
+    sortValue,
+  );
+
+  return (
+    <p className="text-sm text-muted-foreground">
+      Showing{" "}
+      <span className="font-medium text-foreground">{products.items.length}</span>{" "}
+      of <span className="font-medium text-foreground">{products.total}</span>{" "}
+      products
+      {searchValue ? (
+        <>
+          {" "}
+          for &ldquo;
+          <span className="font-medium text-foreground">{searchValue}</span>
+          &rdquo;
+        </>
+      ) : null}
+    </p>
+  );
+}
+
+interface CategoryResultsListProps {
+  categoryId: string;
+  currentPage: number;
+  searchValue: string;
+  sortValue: ProductQueryOptions["sort"];
+}
+
+async function CategoryResultsList({
+  categoryId,
+  currentPage,
+  searchValue,
+  sortValue,
+}: CategoryResultsListProps) {
+  const products = await getCategoryProducts(
+    categoryId,
+    currentPage,
+    searchValue,
+    sortValue,
+  );
   const paginationSearchParams: Record<string, string> = {};
 
-  if (sortValue && sortValue !== "created_desc") {
+  if (searchValue) {
+    paginationSearchParams.search = searchValue;
+  }
+
+  if (sortValue && sortValue !== DEFAULT_PRODUCT_SORT) {
     paginationSearchParams.sort = sortValue;
   }
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
-      <aside className="hidden xl:block">
-        <div className="animate-slide-in-left sticky top-24 space-y-4">
-          <CategorySidebar
-            categories={categories}
-            activeCategoryId={categoryId}
-          />
-        </div>
-      </aside>
+    <>
+      <ProductGrid
+        products={products.items}
+        emptyMessage={
+          searchValue
+            ? `No products found for "${searchValue}" in this category.`
+            : "No products in this category yet."
+        }
+      />
 
-      <section className="animate-fade-in-up space-y-6" style={{ animationDelay: "0.2s", animationFillMode: "backwards" }}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing{" "}
-            <span className="font-medium text-foreground">
-              {products.items.length}
-            </span>{" "}
-            of{" "}
-            <span className="font-medium text-foreground">
-              {products.total}
-            </span>{" "}
-            products
-          </p>
-          <Suspense>
-            <ProductSortFilter basePath={`/categories/${categoryId}`} />
-          </Suspense>
-        </div>
-
-        <ProductGrid
-          products={products.items}
-          emptyMessage="No products in this category yet."
+      <div className="pt-6">
+        <Pagination
+          basePath={`/categories/${categoryId}`}
+          currentPage={products.page}
+          totalPages={products.totalPages}
+          searchParams={paginationSearchParams}
         />
-
-        <div className="pt-6">
-          <Pagination
-            basePath={`/categories/${categoryId}`}
-            currentPage={products.page}
-            totalPages={products.totalPages}
-            searchParams={paginationSearchParams}
-          />
-        </div>
-      </section>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -177,11 +214,12 @@ export default async function CategoryPage({
   ]);
 
   const categoryId = resolvedParams.id;
-  const sortValue = getParam(resolvedSearchParams.sort);
+  const searchValue = getParam(resolvedSearchParams.search);
+  const sortValue = normalizeProductSort(getParam(resolvedSearchParams.sort));
   const pageValue = Number.parseInt(getParam(resolvedSearchParams.page), 10);
   const currentPage =
     Number.isFinite(pageValue) && pageValue > 0 ? pageValue : 1;
-  const sort = (sortValue as ProductQueryOptions["sort"]) || "created_desc";
+  const resultsKey = `${categoryId}:${currentPage}:${searchValue}:${sortValue}`;
   const categories = await getAllCategories();
   const currentCategory = categories.find((cat) => cat.id === categoryId);
 
@@ -242,21 +280,58 @@ export default async function CategoryPage({
               <CategoryProductCountBadge
                 categoryId={categoryId}
                 currentPage={currentPage}
-                sortValue={sort}
+                searchValue={searchValue}
+                sortValue={sortValue}
               />
             </Suspense>
           </div>
         </div>
       </section>
 
-      <Suspense fallback={<CatalogResultsSkeleton />}>
-        <CategoryResultsSection
-          categories={categories}
-          categoryId={categoryId}
-          currentPage={currentPage}
-          sortValue={sort}
-        />
-      </Suspense>
+      <div className="grid gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
+        <aside className="hidden xl:block">
+          <div className="animate-slide-in-left sticky top-24 space-y-4">
+            <CategorySidebar
+              categories={categories}
+              activeCategoryId={categoryId}
+            />
+          </div>
+        </aside>
+
+        <section
+          className="animate-fade-in-up space-y-6"
+          style={{ animationDelay: "0.2s", animationFillMode: "backwards" }}
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <Suspense
+              key={`${resultsKey}:summary`}
+              fallback={<Skeleton className="h-5 w-52" />}
+            >
+              <CategoryResultsSummary
+                categoryId={categoryId}
+                currentPage={currentPage}
+                searchValue={searchValue}
+                sortValue={sortValue}
+              />
+            </Suspense>
+            <Suspense>
+              <ProductSortFilter basePath={`/categories/${categoryId}`} />
+            </Suspense>
+          </div>
+
+          <Suspense
+            key={`${resultsKey}:results`}
+            fallback={<CatalogResultsPanelSkeleton />}
+          >
+            <CategoryResultsList
+              categoryId={categoryId}
+              currentPage={currentPage}
+              searchValue={searchValue}
+              sortValue={sortValue}
+            />
+          </Suspense>
+        </section>
+      </div>
     </div>
   );
 }

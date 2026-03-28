@@ -1,13 +1,18 @@
 import type { PaginatedResponse } from "@/types";
+import type { ProductSortValue } from "@/features/product/types/product-sort";
 
 export interface ProductSummary {
   categoryId: string | null;
   categoryName: string | null;
+  createdAt: string;
   currentPrice: string;
+  description: string;
   id: string;
+  imageUrl: string | null;
   isActive: boolean;
   name: string;
   stock: number;
+  updatedAt: string;
 }
 
 export interface ProductDetail {
@@ -17,11 +22,11 @@ export interface ProductDetail {
   currentPrice: string;
   description: string;
   id: string;
-  imagePublicId: string | null;
   imageUrl: string | null;
   isActive: boolean;
   name: string;
   stock: number;
+  updatedAt: string;
 }
 
 export interface ProductImage {
@@ -47,7 +52,7 @@ export interface ProductQueryOptions {
   minPrice?: number;
   page?: number;
   search?: string;
-  sort?: "created_asc" | "created_desc" | "price_asc" | "price_desc";
+  sort?: ProductSortValue;
 }
 
 export interface CreateProductActionState {
@@ -59,6 +64,37 @@ export interface CreateProductActionState {
     name?: string[];
     stock?: string[];
   };
+  message?: string;
+  requiresAdmin?: boolean;
+  requiresReauthentication?: boolean;
+  success: boolean;
+  warning?: boolean;
+}
+
+export interface UpdateProductActionState {
+  fieldErrors?: {
+    categoryId?: string[];
+    coverImage?: string[];
+    currentPrice?: string[];
+    description?: string[];
+    isActive?: string[];
+    name?: string[];
+    stock?: string[];
+  };
+  message?: string;
+  requiresAdmin?: boolean;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}
+
+export interface ProductGalleryActionState {
+  fieldErrors?: {
+    imageId?: string[];
+    imageIds?: string[];
+    images?: string[];
+    productId?: string[];
+  };
+  images?: ProductImage[];
   message?: string;
   requiresAdmin?: boolean;
   requiresReauthentication?: boolean;

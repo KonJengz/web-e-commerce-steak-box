@@ -1,6 +1,9 @@
 import "server-only";
 
-import type { CreateProductCoreInput } from "@/features/product/schemas/product.schema";
+import type {
+  CreateProductCoreInput,
+  UpdateProductCoreInput,
+} from "@/features/product/schemas/product.schema";
 import type {
   ProductDetail,
   ProductImage,
@@ -15,11 +18,15 @@ import type { ApiResult } from "@/types";
 interface ProductListItemApiResponse {
   category_id: string | null;
   category_name: string | null;
+  created_at: string;
   current_price: string;
+  description: string;
   id: string;
+  image_url: string | null;
   is_active: boolean;
   name: string;
   stock: number;
+  updated_at: string;
 }
 
 interface ProductListApiResponse {
@@ -37,11 +44,11 @@ interface ProductDetailApiResponse {
   current_price: string;
   description: string;
   id: string;
-  image_public_id: string | null;
   image_url: string | null;
   is_active: boolean;
   name: string;
   stock: number;
+  updated_at: string;
 }
 
 interface ProductImageApiResponse {
@@ -63,17 +70,25 @@ interface ProductUploadImageApiResponse {
   image_url: string;
 }
 
+interface ProductImagesMutationApiResponse {
+  images: ProductImageApiResponse[];
+}
+
 const mapProductSummary = (
   product: ProductListItemApiResponse,
 ): ProductSummary => {
   return {
     categoryId: product.category_id,
     categoryName: product.category_name,
+    createdAt: product.created_at,
     currentPrice: product.current_price,
+    description: product.description,
     id: product.id,
+    imageUrl: product.image_url,
     isActive: product.is_active,
     name: product.name,
     stock: product.stock,
+    updatedAt: product.updated_at,
   };
 };
 
@@ -87,11 +102,11 @@ const mapProductDetail = (
     currentPrice: product.current_price,
     description: product.description,
     id: product.id,
-    imagePublicId: product.image_public_id,
     imageUrl: product.image_url,
     isActive: product.is_active,
     name: product.name,
     stock: product.stock,
+    updatedAt: product.updated_at,
   };
 };
 
@@ -116,6 +131,12 @@ const mapUploadedProductImage = (
     imagePublicId: image.image_public_id,
     imageUrl: image.image_url,
   };
+};
+
+const mapProductImages = (
+  images: ProductImageApiResponse[],
+): ProductImage[] => {
+  return images.map(mapProductImage);
 };
 
 const buildProductListPath = (options: ProductQueryOptions = {}): string => {
@@ -225,6 +246,37 @@ const create = async (
   );
 };
 
+const update = async (
+  accessToken: string,
+  productId: string,
+  input: UpdateProductCoreInput,
+  primaryImage?: ProductUploadedImage,
+): Promise<ApiResult<ProductDetail>> => {
+  const result = await api.put<ProductDetailApiResponse>(
+    `/api/products/${productId}`,
+    {
+      category_id: input.categoryId || undefined,
+      current_price: input.currentPrice,
+      description: input.description.trim(),
+      image_public_id: primaryImage?.imagePublicId,
+      image_url: primaryImage?.imageUrl,
+      is_active: input.isActive === "active",
+      name: input.name.trim(),
+      stock: input.stock,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: mapProductDetail(result.data),
+  };
+};
+
 const uploadImage = async (
   accessToken: string,
   image: File,
@@ -253,13 +305,16 @@ const addImage = async (
   accessToken: string,
   productId: string,
   image: ProductUploadedImage,
-): Promise<ApiResult<unknown>> => {
-  return api.post<unknown>(
+  options?: {
+    isPrimary?: boolean;
+  },
+): Promise<ApiResult<ProductImage[]>> => {
+  const result = await api.post<ProductImagesMutationApiResponse>(
     `/api/products/${productId}/images`,
     {
       image_public_id: image.imagePublicId,
       image_url: image.imageUrl,
-      is_primary: false,
+      is_primary: options?.isPrimary ?? false,
     },
     {
       headers: {
@@ -267,6 +322,41 @@ const addImage = async (
       },
     },
   );
+
+  return {
+    ...result,
+    data: mapProductImages(result.data.images),
+  };
+};
+
+const reorderImages = async (
+  accessToken: string,
+  productId: string,
+  imageIds: string[],
+): Promise<ApiResult<null>> => {
+  return api.put<null>(
+    `/api/products/${productId}/images/reorder`,
+    {
+      image_ids: imageIds,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+};
+
+const removeImage = async (
+  accessToken: string,
+  productId: string,
+  imageId: string,
+): Promise<ApiResult<null>> => {
+  return api.delete<null>(`/api/products/${productId}/images/${imageId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 };
 
 const remove = async (
@@ -287,5 +377,8 @@ export const productService = {
   getById,
   getImages,
   remove,
+  removeImage,
+  reorderImages,
+  update,
   uploadImage,
 };

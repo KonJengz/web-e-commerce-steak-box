@@ -76,7 +76,10 @@ export function Pagination({
         aria-label="Previous page"
       >
         {hasPrevious ? (
-          <Link href={buildPageHref(basePath, currentPage - 1, searchParams)}>
+          <Link
+            href={buildPageHref(basePath, currentPage - 1, searchParams)}
+            scroll={false}
+          >
             <ChevronLeft className="size-4" />
           </Link>
         ) : (
@@ -92,7 +95,9 @@ export function Pagination({
             size="icon"
             className="size-9 rounded-full"
           >
-            <Link href={buildPageHref(basePath, 1, searchParams)}>1</Link>
+            <Link href={buildPageHref(basePath, 1, searchParams)} scroll={false}>
+              1
+            </Link>
           </Button>
           {visiblePages[0] > 2 ? (
             <span className="px-1 text-sm text-muted-foreground">…</span>
@@ -112,7 +117,10 @@ export function Pagination({
           {page === currentPage ? (
             <span>{page}</span>
           ) : (
-            <Link href={buildPageHref(basePath, page, searchParams)}>
+            <Link
+              href={buildPageHref(basePath, page, searchParams)}
+              scroll={false}
+            >
               {page}
             </Link>
           )}
@@ -131,7 +139,10 @@ export function Pagination({
             size="icon"
             className="size-9 rounded-full"
           >
-            <Link href={buildPageHref(basePath, totalPages, searchParams)}>
+            <Link
+              href={buildPageHref(basePath, totalPages, searchParams)}
+              scroll={false}
+            >
               {totalPages}
             </Link>
           </Button>
@@ -147,7 +158,10 @@ export function Pagination({
         aria-label="Next page"
       >
         {hasNext ? (
-          <Link href={buildPageHref(basePath, currentPage + 1, searchParams)}>
+          <Link
+            href={buildPageHref(basePath, currentPage + 1, searchParams)}
+            scroll={false}
+          >
             <ChevronRight className="size-4" />
           </Link>
         ) : (

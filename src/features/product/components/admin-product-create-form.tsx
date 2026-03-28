@@ -13,6 +13,10 @@ import type { Category } from "@/features/category/types/category.type";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { createProductAction } from "@/features/product/actions/create-product.action";
 import {
+  adminProductSelectClassName,
+  adminProductTextareaClassName,
+} from "@/features/product/components/admin-product-form.styles";
+import {
   createProductSchema,
   PRODUCT_IMAGE_ACCEPT,
   PRODUCT_IMAGE_MAX_COUNT,
@@ -28,12 +32,6 @@ interface AdminProductCreateFormProps {
 }
 
 const SUCCESS_NOTICE_DURATION_MS = 3000;
-
-const textareaClassName =
-  "min-h-32 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm leading-6 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40";
-
-const selectClassName =
-  "flex h-10 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40";
 
 const defaultValues: CreateProductFormValues = {
   categoryId: "",
@@ -278,7 +276,7 @@ export function AdminProductCreateForm({
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                   disabled={isPending || categories.length === 0}
-                  className={cn(selectClassName)}
+                  className={cn(adminProductSelectClassName)}
                 >
                   <option value="">
                     {categories.length > 0
@@ -363,7 +361,7 @@ export function AdminProductCreateForm({
                 placeholder="Write the product story, cut details, or serving notes."
                 aria-invalid={fieldState.invalid}
                 disabled={isPending}
-                className={cn(textareaClassName)}
+                className={cn(adminProductTextareaClassName)}
               />
               <FieldError errors={[fieldState.error]} />
             </Field>

@@ -12,7 +12,10 @@ import {
 import { notFound } from "next/navigation";
 import { cache, Suspense } from "react";
 
-import { formatCurrency } from "@/components/account/account.utils";
+import {
+  formatAccountDateTime,
+  formatCurrency,
+} from "@/components/account/account.utils";
 import { ProductGallerySectionSkeleton } from "@/components/shared/loading-skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -236,14 +239,18 @@ export default async function ProductDetailPage({
 
           {/* Product meta */}
           <div className="rounded-2xl border border-border/40 bg-muted/30 p-4">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Info className="size-3.5" />
-              <span>
-                Product ID:{" "}
-                <span className="font-mono text-foreground/60">
-                  {product.id}
+            <div className="space-y-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Info className="size-3.5" />
+                <span>
+                  Product ID:{" "}
+                  <span className="font-mono text-foreground/60">
+                    {product.id}
+                  </span>
                 </span>
-              </span>
+              </div>
+              <p>Listed {formatAccountDateTime(product.createdAt)}</p>
+              <p>Last updated {formatAccountDateTime(product.updatedAt)}</p>
             </div>
           </div>
         </div>

@@ -1,8 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Package, ArrowUpRight } from "lucide-react";
 
 import { formatCurrency } from "@/components/account/account.utils";
 import { Badge } from "@/components/ui/badge";
+import cloudinaryLoader from "@/lib/cloudinary-loader";
 import type { ProductSummary } from "@/features/product/types/product.type";
 
 interface ProductCardProps {
@@ -11,6 +13,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const isOutOfStock = product.stock <= 0;
+  const hasDescription = product.description.trim().length > 0;
 
   return (
     <Link
@@ -26,9 +29,20 @@ export function ProductCard({ product }: ProductCardProps) {
 
       {/* Image area */}
       <div className="relative aspect-4/3 overflow-hidden bg-linear-to-br from-muted/80 to-muted/40">
-        <div className="flex h-full w-full items-center justify-center transition-transform duration-700 group-hover:scale-110">
-          <Package className="size-12 text-muted-foreground/25" />
-        </div>
+        {product.imageUrl ? (
+          <Image
+            loader={cloudinaryLoader}
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center transition-transform duration-700 group-hover:scale-110">
+            <Package className="size-12 text-muted-foreground/25" />
+          </div>
+        )}
 
         {/* Badges overlay */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
@@ -64,10 +78,15 @@ export function ProductCard({ product }: ProductCardProps) {
 
       {/* Details */}
       <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1 space-y-2">
           <h3 className="line-clamp-2 text-sm font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-base">
             {product.name}
           </h3>
+          {hasDescription ? (
+            <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
+              {product.description}
+            </p>
+          ) : null}
           {!isOutOfStock ? (
             <p className="text-xs text-muted-foreground">
               {product.stock} in stock

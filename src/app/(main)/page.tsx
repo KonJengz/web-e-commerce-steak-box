@@ -1,18 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, Flame, Sparkles, Beef } from "lucide-react";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { HeaderSearch } from "@/components/layout/header/header-search";
-import { CatalogContentSkeleton } from "@/components/shared/loading-skeletons";
+import { CatalogResultsPanelSkeleton } from "@/components/shared/loading-skeletons";
 import { Pagination } from "@/components/shared/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CategorySidebar } from "@/features/category/components/category-sidebar";
 import { ProductGrid } from "@/features/product/components/product-grid";
 import { ProductSortFilter } from "@/features/product/components/product-sort-filter";
 import { categoryService } from "@/features/category/services/category.service";
 import { productService } from "@/features/product/services/product.service";
 import type { ProductQueryOptions } from "@/features/product/types/product.type";
+import {
+  DEFAULT_PRODUCT_SORT,
+  normalizeProductSort,
+} from "@/features/product/types/product-sort";
 
 export const metadata: Metadata = {
   title: "Premium Steaks & Cuts — Steak Box",
@@ -36,131 +41,128 @@ const getParam = (value: string | string[] | undefined): string => {
   return value ?? "";
 };
 
-interface HomeCatalogSectionProps {
-  searchParams: HomePageProps["searchParams"];
-}
+const getAllCategories = cache(async () => {
+  return (await categoryService.getAll()).data;
+});
 
-async function HomeCatalogSection({ searchParams }: HomeCatalogSectionProps) {
-  const resolvedParams = await searchParams;
+const getHomeProducts = cache(
+  async (
+    currentPage: number,
+    searchQuery: string,
+    sortValue: ProductQueryOptions["sort"],
+  ) => {
+    return (
+      await productService.getAll({
+        inStock: undefined,
+        limit: 12,
+        page: currentPage,
+        search: searchQuery || undefined,
+        sort: sortValue,
+      })
+    ).data;
+  },
+);
+
+const buildCatalogState = (
+  resolvedParams: Awaited<HomePageProps["searchParams"]>,
+) => {
   const searchQuery = getParam(resolvedParams.search);
-  const sortValue = getParam(resolvedParams.sort);
+  const sortValue = normalizeProductSort(getParam(resolvedParams.sort));
   const pageValue = Number.parseInt(getParam(resolvedParams.page), 10);
   const currentPage =
     Number.isFinite(pageValue) && pageValue > 0 ? pageValue : 1;
+  const resultsKey = `${currentPage}:${searchQuery}:${sortValue}`;
 
-  const queryOptions: ProductQueryOptions = {
-    inStock: undefined,
-    limit: 12,
-    page: currentPage,
-    search: searchQuery || undefined,
-    sort: (sortValue as ProductQueryOptions["sort"]) || "created_desc",
+  return {
+    currentPage,
+    resultsKey,
+    searchQuery,
+    sortValue,
   };
+};
 
-  const [productsResult, categoriesResult] = await Promise.all([
-    productService.getAll(queryOptions),
-    categoryService.getAll(),
-  ]);
+interface HomeCatalogSummaryProps {
+  currentPage: number;
+  searchQuery: string;
+  sortValue: ProductQueryOptions["sort"];
+}
 
-  const products = productsResult.data;
-  const categories = categoriesResult.data;
+async function HomeCatalogSummary({
+  currentPage,
+  searchQuery,
+  sortValue,
+}: HomeCatalogSummaryProps) {
+  const products = await getHomeProducts(currentPage, searchQuery, sortValue);
 
+  return (
+    <p className="text-sm text-muted-foreground">
+      Showing{" "}
+      <span className="font-medium text-foreground">{products.items.length}</span>{" "}
+      of <span className="font-medium text-foreground">{products.total}</span>{" "}
+      products
+      {searchQuery ? (
+        <>
+          {" "}
+          for &ldquo;
+          <span className="font-medium text-foreground">{searchQuery}</span>
+          &rdquo;
+        </>
+      ) : null}
+    </p>
+  );
+}
+
+interface HomeCatalogResultsProps {
+  currentPage: number;
+  searchQuery: string;
+  sortValue: ProductQueryOptions["sort"];
+}
+
+async function HomeCatalogResults({
+  currentPage,
+  searchQuery,
+  sortValue,
+}: HomeCatalogResultsProps) {
+  const products = await getHomeProducts(currentPage, searchQuery, sortValue);
   const paginationSearchParams: Record<string, string> = {};
-  if (searchQuery) paginationSearchParams.search = searchQuery;
-  if (sortValue && sortValue !== "created_desc")
+
+  if (searchQuery) {
+    paginationSearchParams.search = searchQuery;
+  }
+
+  if (sortValue && sortValue !== DEFAULT_PRODUCT_SORT) {
     paginationSearchParams.sort = sortValue;
+  }
 
   return (
     <>
-      {categories.length > 0 ? (
-        <section
-          className="animate-fade-in-up mb-10 space-y-4"
-          style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="glow-dot" />
-            <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">
-              Shop by Category
-            </h2>
-          </div>
-          <div className="stagger-children flex flex-wrap gap-2.5">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/categories/${category.id}`}
-                className="hover-lift inline-flex items-center gap-1.5 rounded-2xl border border-border/60 bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
-              >
-                {category.name}
-                <ChevronRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
+      <ProductGrid
+        products={products.items}
+        emptyMessage={
+          searchQuery
+            ? `No products found for "${searchQuery}"`
+            : "No products available yet"
+        }
+      />
 
-      <div className="grid gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
-        <aside className="hidden xl:block">
-          <div className="animate-slide-in-left sticky top-24 space-y-4">
-            <CategorySidebar categories={categories} />
-          </div>
-        </aside>
-
-        <section
-          className="animate-fade-in-up space-y-6"
-          style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {products.items.length}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-foreground">
-                  {products.total}
-                </span>{" "}
-                products
-                {searchQuery ? (
-                  <>
-                    {" "}
-                    for &ldquo;
-                    <span className="font-medium text-foreground">
-                      {searchQuery}
-                    </span>
-                    &rdquo;
-                  </>
-                ) : null}
-              </p>
-            </div>
-            <Suspense>
-              <ProductSortFilter basePath="/" />
-            </Suspense>
-          </div>
-
-          <ProductGrid
-            products={products.items}
-            emptyMessage={
-              searchQuery
-                ? `No products found for "${searchQuery}"`
-                : "No products available yet"
-            }
-          />
-
-          <div className="pt-6">
-            <Pagination
-              basePath="/"
-              currentPage={products.page}
-              totalPages={products.totalPages}
-              searchParams={paginationSearchParams}
-            />
-          </div>
-        </section>
+      <div className="pt-6">
+        <Pagination
+          basePath="/"
+          currentPage={products.page}
+          totalPages={products.totalPages}
+          searchParams={paginationSearchParams}
+        />
       </div>
     </>
   );
 }
 
-export default function HomePage({ searchParams }: HomePageProps) {
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const resolvedSearchParams = await searchParams;
+  const { currentPage, resultsKey, searchQuery, sortValue } =
+    buildCatalogState(resolvedSearchParams);
+  const categories = await getAllCategories();
+
   return (
     <>
       {/* Mobile search */}
@@ -241,9 +243,71 @@ export default function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
-      <Suspense fallback={<CatalogContentSkeleton />}>
-        <HomeCatalogSection searchParams={searchParams} />
-      </Suspense>
+      {categories.length > 0 ? (
+        <section
+          className="animate-fade-in-up mb-10 space-y-4"
+          style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="glow-dot" />
+            <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">
+              Shop by Category
+            </h2>
+          </div>
+          <div className="stagger-children flex flex-wrap gap-2.5">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/categories/${category.id}`}
+                className="hover-lift inline-flex items-center gap-1.5 rounded-2xl border border-border/60 bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
+              >
+                {category.name}
+                <ChevronRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <div className="grid gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
+        <aside className="hidden xl:block">
+          <div className="animate-slide-in-left sticky top-24 space-y-4">
+            <CategorySidebar categories={categories} />
+          </div>
+        </aside>
+
+        <section
+          className="animate-fade-in-up space-y-6"
+          style={{ animationDelay: "0.3s", animationFillMode: "backwards" }}
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <Suspense
+              key={`${resultsKey}:summary`}
+              fallback={<Skeleton className="h-5 w-52" />}
+            >
+              <HomeCatalogSummary
+                currentPage={currentPage}
+                searchQuery={searchQuery}
+                sortValue={sortValue}
+              />
+            </Suspense>
+            <Suspense>
+              <ProductSortFilter basePath="/" />
+            </Suspense>
+          </div>
+
+          <Suspense
+            key={`${resultsKey}:results`}
+            fallback={<CatalogResultsPanelSkeleton />}
+          >
+            <HomeCatalogResults
+              currentPage={currentPage}
+              searchQuery={searchQuery}
+              sortValue={sortValue}
+            />
+          </Suspense>
+        </section>
+      </div>
     </>
   );
 }
