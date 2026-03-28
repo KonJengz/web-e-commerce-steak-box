@@ -896,6 +896,16 @@ export function AdminPageSkeleton() {
   );
 }
 
+export function AdminDashboardPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <HeroSkeleton />
+      <AdminDashboardStatsSkeleton />
+      <AdminRecentInventorySkeleton />
+    </div>
+  );
+}
+
 export function AdminProductCreateSectionSkeleton() {
   return (
     <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)] sm:p-8">
@@ -981,49 +991,192 @@ export function AdminProductDirectorySkeleton() {
 
 export function AdminDashboardStatsSkeleton() {
   return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {Array.from({ length: 4 }, (_, index) => (
-        <article
-          key={index}
-          className="rounded-2xl border border-border/50 bg-card p-5 shadow-sm"
-        >
-          <Skeleton className="mb-3 size-9 rounded-xl" />
+    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
+      <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+        <div className="border-b border-border/60 px-6 py-6 sm:px-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-8 w-full max-w-md" />
+              <Skeleton className="h-4 w-full max-w-2xl" />
+            </div>
+            <Skeleton className="h-8 w-48 rounded-full" />
+          </div>
+        </div>
+
+        <div className="px-6 py-6 sm:px-8">
+          <div className="grid gap-px overflow-hidden rounded-[1.6rem] border border-border/60 bg-border/60 md:grid-cols-2 2xl:grid-cols-4">
+            {Array.from({ length: 4 }, (_, index) => (
+              <div key={index} className="bg-background/98 px-5 py-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-9 w-20" />
+                  </div>
+                  <Skeleton className="size-11 rounded-2xl" />
+                </div>
+                <Skeleton className="mt-4 h-4 w-full" />
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <section className="rounded-[1.6rem] border border-border/60 bg-muted/15 p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-9 w-20" />
+                </div>
+                <Skeleton className="h-7 w-32 rounded-full" />
+              </div>
+              <Skeleton className="mt-5 h-3 w-full rounded-full" />
+              <Skeleton className="mt-4 h-4 w-5/6" />
+            </section>
+
+            <section className="rounded-[1.6rem] border border-border/60 bg-background/96 p-5">
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-6 w-40" />
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {Array.from({ length: 3 }, (_, index) => (
+                  <div
+                    key={index}
+                    className="rounded-[1.25rem] border border-border/60 bg-background/96 px-4 py-3.5"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="w-full space-y-2">
+                        <Skeleton className="h-4 w-36" />
+                        <Skeleton className="h-3 w-full" />
+                      </div>
+                      <Skeleton className="h-4 w-10" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <aside className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+        <div className="space-y-3">
           <Skeleton className="h-4 w-24" />
-          <Skeleton className="mt-2 h-8 w-20" />
-          <Skeleton className="mt-2 h-3 w-24" />
-        </article>
-      ))}
+          <Skeleton className="h-8 w-52" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+
+        <div className="mt-6 space-y-3">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div
+              key={index}
+              className="rounded-[1.4rem] border border-border/60 bg-muted/15 px-4 py-4"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="w-full space-y-2">
+                  <Skeleton className="h-4 w-36" />
+                  <Skeleton className="h-3 w-full" />
+                </div>
+                <Skeleton className="size-4 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 rounded-[1.5rem] border border-border/60 bg-muted/15 p-4">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="mt-3 h-6 w-40" />
+          <Skeleton className="mt-2 h-4 w-full" />
+        </div>
+      </aside>
     </section>
   );
 }
 
 export function AdminRecentInventorySkeleton() {
   return (
-    <section className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-8 w-40" />
+    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_340px]">
+      <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+        <div className="flex flex-col gap-4 border-b border-border/60 px-6 py-6 lg:flex-row lg:items-end lg:justify-between sm:px-8">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-full max-w-md" />
+            <Skeleton className="h-4 w-full max-w-2xl" />
+          </div>
+          <Skeleton className="h-9 w-44 rounded-full" />
         </div>
-        <Skeleton className="h-8 w-24 rounded-full" />
+
+        <div className="divide-y divide-border/60">
+          {Array.from({ length: 4 }, (_, index) => (
+            <article
+              key={index}
+              className="grid gap-5 px-6 py-5 sm:px-8 lg:grid-cols-[84px_minmax(0,1fr)_auto] lg:items-center"
+            >
+              <Skeleton className="aspect-square rounded-[1.6rem]" />
+
+              <div className="space-y-3">
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-48" />
+                    <Skeleton className="h-4 w-36" />
+                  </div>
+
+                  <div className="space-y-2 xl:text-right">
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-4 w-36" />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Skeleton className="h-7 w-20 rounded-full" />
+                  <Skeleton className="h-7 w-24 rounded-full" />
+                  <Skeleton className="h-7 w-18 rounded-full" />
+                </div>
+              </div>
+
+              <Skeleton className="h-8 w-20 rounded-full" />
+            </article>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-6 space-y-2">
-        {Array.from({ length: 4 }, (_, index) => (
-          <article
-            key={index}
-            className="rounded-xl border border-border/40 bg-muted/30 p-4"
-          >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-40" />
-                <Skeleton className="h-4 w-48" />
+      <aside className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+        <div className="border-b border-border/60 px-6 py-5">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-7 w-56" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="space-y-3">
+            {Array.from({ length: 4 }, (_, index) => (
+              <div
+                key={index}
+                className="rounded-[1.35rem] border border-border/60 bg-muted/15 px-4 py-3.5"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="w-full space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                  <Skeleton className="h-6 w-18 rounded-full" />
+                </div>
               </div>
-              <Skeleton className="h-4 w-16" />
+            ))}
+          </div>
+
+          <div className="mt-5 rounded-[1.5rem] border border-border/60 bg-background/96 p-4">
+            <Skeleton className="h-3 w-24" />
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <Skeleton className="h-18 rounded-[1.2rem]" />
+              <Skeleton className="h-18 rounded-[1.2rem]" />
             </div>
-          </article>
-        ))}
-      </div>
+          </div>
+        </div>
+      </aside>
     </section>
   );
 }

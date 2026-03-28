@@ -1,7 +1,21 @@
+import type { JSX } from "react";
+import { Suspense, cache } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { cache, Suspense } from "react";
-import { ArrowRight, Boxes, Tags, TrendingUp, Package, Activity } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Boxes,
+  type LucideIcon,
+  Tags,
+  TrendingUp,
+} from "lucide-react";
 
+import {
+  formatAccountDateTime,
+  formatCompactId,
+  formatCurrency,
+} from "@/components/account/account.utils";
 import { AdminPageHero } from "@/components/admin/admin-page-hero";
 import {
   AdminDashboardStatsSkeleton,
@@ -10,274 +24,711 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { categoryService } from "@/features/category/services/category.service";
+import type { Category } from "@/features/category/types/category.type";
 import { productService } from "@/features/product/services/product.service";
-import {
-  formatAccountDateTime,
-  formatCompactId,
-  formatCurrency,
-} from "@/components/account/account.utils";
+import type { ProductSummary } from "@/features/product/types/product.type";
+import cloudinaryLoader from "@/lib/cloudinary-loader";
+import { cn } from "@/lib/utils";
 
-const getAdminDashboardData = cache(async () => {
-  const [categoriesResult, latestProductsResult, productCountResult, inStockResult] =
-    await Promise.all([
-      categoryService.getAll(),
-      productService.getAll({
-        limit: 5,
-        page: 1,
-        sort: "created_desc",
-      }),
-      productService.getAll({
-        limit: 1,
-        page: 1,
-      }),
-      productService.getAll({
-        inStock: true,
-        limit: 1,
-        page: 1,
-      }),
-    ]);
+const LOW_STOCK_THRESHOLD = 5;
+const RECENT_CATEGORY_LIMIT = 5;
+const RECENT_PRODUCTS_LIMIT = 6;
+
+interface DashboardMetric {
+  hint: string;
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}
+
+interface DashboardSignal {
+  hint: string;
+  label: string;
+  value: string;
+}
+
+interface AdminDashboardData {
+  categories: Category[];
+  inStockProducts: number;
+  lastUpdatedAt: string | null;
+  latestCategories: Category[];
+  latestProducts: ProductSummary[];
+  outOfStockProducts: number;
+  recentCategorySpread: number;
+  recentLowStockCount: number;
+  recentUncategorizedCount: number;
+  stockCoverage: number;
+  totalProducts: number;
+}
+
+const getAdminDashboardData = cache(async (): Promise<AdminDashboardData> => {
+  const [
+    categoriesResult,
+    recentProductsResult,
+    totalProductsResult,
+    inStockProductsResult,
+  ] = await Promise.all([
+    categoryService.getAll(),
+    productService.getAll({
+      limit: RECENT_PRODUCTS_LIMIT,
+      page: 1,
+      sort: "created_desc",
+    }),
+    productService.getAll({
+      limit: 1,
+      page: 1,
+    }),
+    productService.getAll({
+      inStock: true,
+      limit: 1,
+      page: 1,
+    }),
+  ]);
+
+  const categories = categoriesResult.data;
+  const latestProducts = recentProductsResult.data.items;
+  const totalProducts = totalProductsResult.data.total;
+  const inStockProducts = inStockProductsResult.data.total;
+  const outOfStockProducts = Math.max(totalProducts - inStockProducts, 0);
+  const stockCoverage =
+    totalProducts > 0 ? Math.round((inStockProducts / totalProducts) * 100) : 0;
+  const recentLowStockCount = latestProducts.filter(
+    (product) => product.stock > 0 && product.stock <= LOW_STOCK_THRESHOLD,
+  ).length;
+  const recentUncategorizedCount = latestProducts.filter(
+    (product) => !product.categoryName,
+  ).length;
+  const recentCategorySpread = new Set(
+    latestProducts
+      .map((product) => product.categoryId ?? product.categoryName)
+      .filter((value): value is string => Boolean(value)),
+  ).size;
+  const latestCategories = [...categories]
+    .sort((left, right) => {
+      return (
+        new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
+      );
+    })
+    .slice(0, RECENT_CATEGORY_LIMIT);
+  const lastUpdatedAt = [...latestProducts.map((product) => product.updatedAt), ...categories.map((category) => category.updatedAt)]
+    .sort((left, right) => {
+      return new Date(right).getTime() - new Date(left).getTime();
+    })
+    .at(0) ?? null;
 
   return {
-    categories: categoriesResult.data,
-    inStockProducts: inStockResult.data.total,
-    latestProducts: latestProductsResult.data.items,
-    totalProducts: productCountResult.data.total,
+    categories,
+    inStockProducts,
+    lastUpdatedAt,
+    latestCategories,
+    latestProducts,
+    outOfStockProducts,
+    recentCategorySpread,
+    recentLowStockCount,
+    recentUncategorizedCount,
+    stockCoverage,
+    totalProducts,
   };
 });
 
-async function AdminDashboardStats() {
-  const { categories, inStockProducts, totalProducts } =
-    await getAdminDashboardData();
+const formatCount = (value: number): string => {
+  return new Intl.NumberFormat("en-US").format(value);
+};
 
-  const stats = [
-    {
-      icon: Package,
-      label: "Total Products",
-      value: totalProducts,
-      description: "Live catalog entries",
-    },
-    {
-      icon: TrendingUp,
-      label: "In Stock",
-      value: inStockProducts,
-      description: "Ready to purchase",
-    },
-    {
-      icon: Tags,
-      label: "Categories",
-      value: categories.length,
-      description: "Active taxonomy buckets",
-    },
-    {
-      icon: Activity,
-      label: "API Surface",
-      value: "2",
-      description: "Products + Categories",
-    },
-  ];
+const getProductInventoryHref = (product: ProductSummary): string => {
+  const queryString = new URLSearchParams({
+    query: product.name,
+    view: "list",
+  });
+
+  return `/admin/products?${queryString.toString()}`;
+};
+
+const getProductInitial = (productName: string): string => {
+  return productName.trim().charAt(0).toUpperCase() || "P";
+};
+
+function MetricStripItem({
+  hint,
+  icon: Icon,
+  label,
+  value,
+}: DashboardMetric): JSX.Element {
+  return (
+    <article className="bg-background/98 px-5 py-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
+            {label}
+          </p>
+          <p className="text-3xl font-semibold tracking-tight text-foreground">
+            {value}
+          </p>
+        </div>
+        <div className="flex size-11 items-center justify-center rounded-2xl border border-border/60 bg-muted/20 text-primary">
+          <Icon className="size-5" />
+        </div>
+      </div>
+      <p className="mt-4 text-sm leading-6 text-muted-foreground">{hint}</p>
+    </article>
+  );
+}
+
+function SignalRow({ hint, label, value }: DashboardSignal): JSX.Element {
+  return (
+    <article className="flex items-start justify-between gap-4 rounded-[1.25rem] border border-border/60 bg-background/96 px-4 py-3.5">
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        <p className="text-xs leading-5 text-muted-foreground">{hint}</p>
+      </div>
+      <p className="text-sm font-semibold tracking-tight text-foreground">
+        {value}
+      </p>
+    </article>
+  );
+}
+
+function ProductAvailabilityBadge({
+  stock,
+}: {
+  stock: number;
+}): JSX.Element {
+  if (stock === 0) {
+    return (
+      <Badge
+        variant="secondary"
+        className="h-auto rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-rose-600 dark:text-rose-300"
+      >
+        Out of stock
+      </Badge>
+    );
+  }
+
+  if (stock <= LOW_STOCK_THRESHOLD) {
+    return (
+      <Badge
+        variant="secondary"
+        className="h-auto rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300"
+      >
+        Low stock
+      </Badge>
+    );
+  }
 
   return (
-    <section className="stagger-children grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
+    <Badge
+      variant="secondary"
+      className="h-auto rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300"
+    >
+      In stock
+    </Badge>
+  );
+}
 
-        return (
-          <article
-            key={stat.label}
-            className="hover-lift group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-sm"
-          >
-            <div className="pointer-events-none absolute -right-6 -bottom-6 size-24 rounded-full bg-primary/5 blur-[40px] transition-transform duration-500 group-hover:scale-150" />
-            <div className="relative">
-              <div className="mb-3 inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Icon className="size-4" />
+function ProductStatusBadge({
+  isActive,
+}: {
+  isActive: boolean;
+}): JSX.Element {
+  return (
+    <Badge
+      variant="secondary"
+      className={cn(
+        "h-auto rounded-full px-3 py-1",
+        isActive
+          ? "border border-primary/20 bg-primary/10 text-primary"
+          : "border border-border/60 bg-muted/30 text-muted-foreground",
+      )}
+    >
+      {isActive ? "Active" : "Inactive"}
+    </Badge>
+  );
+}
+
+async function AdminDashboardHeroBadges(): Promise<JSX.Element> {
+  const dashboardData = await getAdminDashboardData();
+
+  return (
+    <>
+      <Badge
+        variant="secondary"
+        className="h-auto rounded-full bg-white/10 px-4 py-2 text-white"
+      >
+        {formatCount(dashboardData.totalProducts)} products tracked
+      </Badge>
+      <Badge
+        variant="secondary"
+        className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/80"
+      >
+        {dashboardData.stockCoverage}% stocked · {formatCount(dashboardData.categories.length)} categories
+      </Badge>
+    </>
+  );
+}
+
+async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
+  const dashboardData = await getAdminDashboardData();
+
+  const metrics = [
+    {
+      hint:
+        dashboardData.totalProducts === 0
+          ? "No products are in the catalog yet."
+          : "Total product records currently visible to the storefront.",
+      icon: Boxes,
+      label: "Products",
+      value: formatCount(dashboardData.totalProducts),
+    },
+    {
+      hint:
+        dashboardData.inStockProducts === 0
+          ? "Nothing is available for purchase right now."
+          : "Products that still have sellable stock right now.",
+      icon: TrendingUp,
+      label: "In Stock",
+      value: formatCount(dashboardData.inStockProducts),
+    },
+    {
+      hint:
+        dashboardData.outOfStockProducts === 0
+          ? "No catalog items need a restock pass."
+          : "Items that will need restocking before they can convert again.",
+      icon: AlertTriangle,
+      label: "Needs Restock",
+      value: formatCount(dashboardData.outOfStockProducts),
+    },
+    {
+      hint:
+        dashboardData.categories.length === 0
+          ? "Start the taxonomy before expanding the catalog."
+          : "Storefront categories available for merchandising and filters.",
+      icon: Tags,
+      label: "Categories",
+      value: formatCount(dashboardData.categories.length),
+    },
+  ] satisfies DashboardMetric[];
+
+  const signals = [
+    {
+      hint: `Products with ${LOW_STOCK_THRESHOLD} units or fewer in the newest batch.`,
+      label: "Recent low stock",
+      value: formatCount(dashboardData.recentLowStockCount),
+    },
+    {
+      hint: "Newest products that still need a category assignment.",
+      label: "Recent uncategorized",
+      value: formatCount(dashboardData.recentUncategorizedCount),
+    },
+    {
+      hint: `Distinct categories represented across the latest ${dashboardData.latestProducts.length || RECENT_PRODUCTS_LIMIT} products.`,
+      label: "Recent category spread",
+      value: formatCount(dashboardData.recentCategorySpread),
+    },
+  ] satisfies DashboardSignal[];
+
+  return (
+    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
+      <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+        <div className="border-b border-border/60 px-6 py-6 sm:px-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
+                Catalog Pulse
+              </p>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                  Inventory health and taxonomy in one surface
+                </h2>
+                <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
+                  The strip below shows live catalog coverage, while the signals
+                  highlight where the latest products still need attention.
+                </p>
               </div>
-              <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
-                {stat.label}
-              </p>
-              <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
-                {stat.value}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {stat.description}
-              </p>
             </div>
-          </article>
-        );
-      })}
+
+            <Badge
+              variant="outline"
+              className="h-auto rounded-full px-3 py-1.5 text-xs"
+            >
+              {dashboardData.lastUpdatedAt
+                ? `Last change ${formatAccountDateTime(dashboardData.lastUpdatedAt)}`
+                : "Waiting for the first catalog record"}
+            </Badge>
+          </div>
+        </div>
+
+        <div className="px-6 py-6 sm:px-8">
+          <div className="grid gap-px overflow-hidden rounded-[1.6rem] border border-border/60 bg-border/60 md:grid-cols-2 2xl:grid-cols-4">
+            {metrics.map((metric) => (
+              <MetricStripItem key={metric.label} {...metric} />
+            ))}
+          </div>
+
+          <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <section className="rounded-[1.6rem] border border-border/60 bg-muted/15 p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
+                    Stock Coverage
+                  </p>
+                  <p className="text-3xl font-semibold tracking-tight text-foreground">
+                    {dashboardData.stockCoverage}%
+                  </p>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="h-auto rounded-full px-3 py-1 text-xs"
+                >
+                  {formatCount(dashboardData.inStockProducts)} / {formatCount(dashboardData.totalProducts)} stocked
+                </Badge>
+              </div>
+
+              <div className="mt-5 h-3 overflow-hidden rounded-full bg-muted/50">
+                <div
+                  className="h-full rounded-full bg-linear-to-r from-primary via-primary to-[#f6c168] transition-all duration-500"
+                  style={{ width: `${dashboardData.stockCoverage}%` }}
+                />
+              </div>
+
+              <p className="mt-4 text-sm leading-7 text-muted-foreground">
+                {dashboardData.outOfStockProducts === 0
+                  ? "Every tracked product currently has inventory. The next pass can focus on assortment and recent launches."
+                  : `${formatCount(dashboardData.outOfStockProducts)} products are currently out of stock and should move into the next replenishment pass.`}
+              </p>
+            </section>
+
+            <section className="rounded-[1.6rem] border border-border/60 bg-background/96 p-5">
+              <div className="space-y-1">
+                <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
+                  Recent Signals
+                </p>
+                <p className="text-lg font-semibold tracking-tight text-foreground">
+                  Latest batch watchlist
+                </p>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {signals.map((signal) => (
+                  <SignalRow key={signal.label} {...signal} />
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <aside className="relative overflow-hidden rounded-[2rem] border border-[#3f251d] bg-linear-to-b from-[#17100f] via-[#0f0908] to-[#090706] p-6 text-white shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 size-36 rounded-full bg-primary/18 blur-[85px]" />
+          <div className="absolute bottom-0 left-0 size-40 rounded-full bg-[#f6c168]/10 blur-[100px]" />
+        </div>
+
+        <div className="relative space-y-6">
+          <div className="space-y-2">
+            <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-[#f6c168]">
+              Action Rail
+            </p>
+            <h2 className="text-2xl font-semibold tracking-tight text-white">
+              Route the next admin move
+            </h2>
+            <p className="text-sm leading-7 text-white/65">
+              Move straight from monitoring into inventory work, category cleanup,
+              or a fresh product launch without leaving the surface.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Link
+              href="/admin/products?view=list"
+              className="group flex items-center justify-between rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-4 transition-colors hover:bg-white/10"
+            >
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-white">
+                  Review inventory list
+                </p>
+                <p className="text-xs leading-5 text-white/55">
+                  Check availability, edits, and gallery changes in one place.
+                </p>
+              </div>
+              <ArrowRight className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
+            </Link>
+
+            <Link
+              href="/admin/products"
+              className="group flex items-center justify-between rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-4 transition-colors hover:bg-white/10"
+            >
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-white">Add a new product</p>
+                <p className="text-xs leading-5 text-white/55">
+                  Start a new SKU with media, stock, and category data.
+                </p>
+              </div>
+              <ArrowRight className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
+            </Link>
+
+            <Link
+              href="/admin/categories"
+              className="group flex items-center justify-between rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-4 transition-colors hover:bg-white/10"
+            >
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-white">
+                  Adjust category structure
+                </p>
+                <p className="text-xs leading-5 text-white/55">
+                  Keep filters, taxonomy, and merchandising clean as the catalog grows.
+                </p>
+              </div>
+              <ArrowRight className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/6 p-4">
+            <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-white/50">
+              Freshness
+            </p>
+            <p className="mt-2 text-lg font-semibold tracking-tight text-white">
+              {dashboardData.lastUpdatedAt
+                ? formatAccountDateTime(dashboardData.lastUpdatedAt)
+                : "Awaiting first update"}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-white/60">
+              Most recent change observed across products and categories.
+            </p>
+          </div>
+        </div>
+      </aside>
     </section>
   );
 }
 
-async function AdminDashboardRecentInventory() {
-  const { latestProducts } = await getAdminDashboardData();
+async function AdminDashboardWorkspace(): Promise<JSX.Element> {
+  const dashboardData = await getAdminDashboardData();
 
   return (
-    <section className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="glow-dot" />
+    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_340px]">
+      <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+        <div className="flex flex-col gap-4 border-b border-border/60 px-6 py-6 lg:flex-row lg:items-end lg:justify-between sm:px-8">
+          <div className="space-y-2">
             <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
               Recent Inventory
             </p>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                Newest catalog entries at a glance
+              </h2>
+              <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
+                Scan images, pricing, stock posture, and activity state without
+                opening the full product directory.
+              </p>
+            </div>
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground">
-            Latest entries
-          </h2>
+
+          <Button asChild variant="outline" size="lg" className="rounded-full">
+            <Link href="/admin/products?view=list">
+              Open product directory
+            </Link>
+          </Button>
         </div>
 
-        <Button asChild variant="outline" size="sm" className="rounded-full">
-          <Link href="/admin/products">View All</Link>
-        </Button>
+        <div className="divide-y divide-border/60">
+          {dashboardData.latestProducts.length > 0 ? (
+            dashboardData.latestProducts.map((product) => (
+              <article
+                key={product.id}
+                className="grid gap-5 px-6 py-5 transition-colors hover:bg-muted/10 sm:px-8 lg:grid-cols-[84px_minmax(0,1fr)_auto] lg:items-center"
+              >
+                <div className="relative aspect-square overflow-hidden rounded-[1.6rem] border border-border/60 bg-muted/20">
+                  {product.imageUrl ? (
+                    <Image
+                      alt={product.name}
+                      className="aspect-square object-cover"
+                      fill
+                      loader={cloudinaryLoader}
+                      sizes="84px"
+                      src={product.imageUrl}
+                    />
+                  ) : (
+                    <div className="flex aspect-square items-center justify-center bg-linear-to-br from-primary/10 via-muted/40 to-muted/20 text-xl font-semibold text-primary">
+                      {getProductInitial(product.name)}
+                    </div>
+                  )}
+                </div>
+
+                <div className="min-w-0 space-y-3">
+                  <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <p className="truncate text-lg font-semibold tracking-tight text-foreground">
+                        {product.name}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                        <span>{product.categoryName ?? "Uncategorized"}</span>
+                        <span className="text-border">•</span>
+                        <span>{formatCompactId(product.id)}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 xl:text-right">
+                      <p className="text-lg font-semibold tracking-tight text-foreground">
+                        {formatCurrency(product.currentPrice)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Updated {formatAccountDateTime(product.updatedAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <ProductStatusBadge isActive={product.isActive} />
+                    <ProductAvailabilityBadge stock={product.stock} />
+                    <Badge
+                      variant="outline"
+                      className="h-auto rounded-full px-3 py-1"
+                    >
+                      {product.stock} units
+                    </Badge>
+                  </div>
+                </div>
+
+                <Button asChild variant="outline" size="sm" className="rounded-full">
+                  <Link href={getProductInventoryHref(product)}>Review</Link>
+                </Button>
+              </article>
+            ))
+          ) : (
+            <div className="px-6 py-16 text-center sm:px-8">
+              <p className="text-lg font-semibold tracking-tight text-foreground">
+                No products have been added yet.
+              </p>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                Start the catalog from the product directory, then this workspace
+                will surface the latest items and inventory signals here.
+              </p>
+              <Button asChild size="lg" className="mt-6 rounded-full">
+                <Link href="/admin/products">Create the first product</Link>
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="mt-6 space-y-2">
-        {latestProducts.length > 0 ? (
-          latestProducts.map((product) => (
-            <article
-              key={product.id}
-              className="flex flex-col gap-3 rounded-xl border border-border/40 bg-muted/30 p-4 transition-all duration-200 hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    {product.name}
-                  </p>
-                  <Badge
-                    variant={product.isActive ? "secondary" : "outline"}
-                    className={
-                      product.isActive
-                        ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
-                        : undefined
-                    }
+      <aside className="space-y-6">
+        <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+          <div className="border-b border-border/60 px-6 py-5">
+            <div className="space-y-2">
+              <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
+                Taxonomy Watch
+              </p>
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                Categories moving most recently
+              </h2>
+              <p className="text-sm leading-7 text-muted-foreground">
+                Keep the structure fresh before the storefront filters start
+                drifting away from the catalog.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {dashboardData.latestCategories.length > 0 ? (
+              <div className="space-y-3">
+                {dashboardData.latestCategories.map((category) => (
+                  <article
+                    key={category.id}
+                    className="rounded-[1.35rem] border border-border/60 bg-muted/15 px-4 py-3.5"
                   >
-                    {product.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span>{formatCurrency(product.currentPrice)}</span>
-                  <span>Stock: {product.stock}</span>
-                  <span>{product.categoryName ?? "Uncategorized"}</span>
-                </div>
-                {product.description.trim() ? (
-                  <p className="max-w-2xl line-clamp-2 text-xs leading-5 text-muted-foreground">
-                    {product.description}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <p className="font-medium text-foreground">
+                          {category.name}
+                        </p>
+                        <p className="text-xs leading-5 text-muted-foreground">
+                          {category.description || "No description yet."}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="h-auto rounded-full px-2.5 py-1 text-[11px]"
+                      >
+                        {formatAccountDateTime(category.updatedAt)}
+                      </Badge>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[1.4rem] border border-dashed border-border/60 bg-muted/15 px-4 py-8 text-center text-sm text-muted-foreground">
+                No categories exist yet. Create the first one before scaling the catalog.
+              </div>
+            )}
+
+            <div className="mt-5 rounded-[1.5rem] border border-border/60 bg-background/96 p-4">
+              <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
+                Structure Check
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <div className="rounded-[1.2rem] border border-border/60 bg-muted/15 px-4 py-3">
+                  <p className="text-xs text-muted-foreground">
+                    Recent category spread
                   </p>
-                ) : null}
+                  <p className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+                    {formatCount(dashboardData.recentCategorySpread)}
+                  </p>
+                </div>
+                <div className="rounded-[1.2rem] border border-border/60 bg-muted/15 px-4 py-3">
+                  <p className="text-xs text-muted-foreground">
+                    Recent uncategorized
+                  </p>
+                  <p className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+                    {formatCount(dashboardData.recentUncategorizedCount)}
+                  </p>
+                </div>
               </div>
-
-              <div className="space-y-1 text-left sm:text-right">
-                <p className="font-mono text-[11px] text-muted-foreground/60">
-                  {formatCompactId(product.id)}
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  Updated {formatAccountDateTime(product.updatedAt)}
-                </p>
-              </div>
-            </article>
-          ))
-        ) : (
-          <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 px-5 py-8 text-center text-sm text-muted-foreground">
-            No products yet. Start by creating the first catalog item.
+            </div>
           </div>
-        )}
-      </div>
+        </section>
+      </aside>
     </section>
   );
 }
 
-function AdminDashboardQuickActions() {
-  return (
-    <section className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
-      <div className="space-y-1">
-        <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
-          Quick Actions
-        </p>
-        <h2 className="text-xl font-bold tracking-tight text-foreground">
-          What you can manage
-        </h2>
-      </div>
-
-      <div className="mt-6 space-y-3">
-        <Link
-          href="/admin/products"
-          className="hover-lift flex items-center gap-4 rounded-2xl border border-border/40 bg-muted/30 p-4 transition-all duration-200 hover:border-primary/20 hover:bg-muted/50"
-        >
-          <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Boxes className="size-5" />
-          </span>
-          <div className="flex-1 space-y-0.5">
-            <p className="text-sm font-semibold text-foreground">
-              Product catalog
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Create, filter, and manage products
-            </p>
-          </div>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </Link>
-
-        <Link
-          href="/admin/categories"
-          className="hover-lift flex items-center gap-4 rounded-2xl border border-border/40 bg-muted/30 p-4 transition-all duration-200 hover:border-primary/20 hover:bg-muted/50"
-        >
-          <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Tags className="size-5" />
-          </span>
-          <div className="flex-1 space-y-0.5">
-            <p className="text-sm font-semibold text-foreground">
-              Category setup
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Create and organize taxonomy
-            </p>
-          </div>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </Link>
-
-        <div className="rounded-2xl border border-dashed border-border/50 bg-muted/15 px-4 py-3 text-xs text-muted-foreground">
-          Orders and user admin will appear here when backend endpoints are ready.
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export default function AdminDashboardPage() {
+export default function AdminDashboardPage(): JSX.Element {
   return (
     <div className="space-y-6">
       <AdminPageHero
         badge="Dashboard"
-        title="Overview of your catalog"
-        description="Quick stats and recent entries from your inventory."
+        title="Monitor catalog health and route the next admin action"
+        description="Track coverage, review the newest inventory, and move straight into the right management surface from one dashboard."
         variant="dashboard"
       >
-        <Button asChild className="rounded-full">
-          <Link href="/admin/products">
-            Manage Products
-            <ArrowRight className="ml-1 size-4" />
-          </Link>
-        </Button>
-        <Button
-          asChild
-          variant="outline"
-          className="rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+        <Suspense
+          fallback={
+            <>
+              <Badge
+                variant="secondary"
+                className="h-auto rounded-full bg-white/10 px-4 py-2 text-white"
+              >
+                Loading catalog stats
+              </Badge>
+              <Badge
+                variant="secondary"
+                className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/80"
+              >
+                Preparing coverage view
+              </Badge>
+            </>
+          }
         >
-          <Link href="/admin/categories">Manage Categories</Link>
-        </Button>
+          <AdminDashboardHeroBadges />
+        </Suspense>
       </AdminPageHero>
 
       <Suspense fallback={<AdminDashboardStatsSkeleton />}>
-        <AdminDashboardStats />
+        <AdminDashboardOperationsBoard />
       </Suspense>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-        <Suspense fallback={<AdminRecentInventorySkeleton />}>
-          <AdminDashboardRecentInventory />
-        </Suspense>
-
-        <AdminDashboardQuickActions />
-      </div>
+      <Suspense fallback={<AdminRecentInventorySkeleton />}>
+        <AdminDashboardWorkspace />
+      </Suspense>
     </div>
   );
 }
