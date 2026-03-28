@@ -6,7 +6,10 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { AdminOrderSummary } from "@/features/order/types/order.type";
+import {
+  EMPTY_ADMIN_ORDER_SUMMARY,
+  type AdminOrderSummary,
+} from "@/features/order/types/order.type";
 import {
   getOrderStatusLabel,
   normalizeOptionalOrderStatus,
@@ -35,7 +38,7 @@ const normalizeOrderStatusFilterValue = (
 };
 
 interface AdminOrderQueueFiltersProps {
-  summary: AdminOrderSummary;
+  summary?: AdminOrderSummary | null;
 }
 
 const getOrderStatusCount = (
@@ -63,6 +66,7 @@ const getOrderStatusCount = (
 export function AdminOrderQueueFilters({
   summary,
 }: AdminOrderQueueFiltersProps) {
+  const safeSummary = summary ?? EMPTY_ADMIN_ORDER_SUMMARY;
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -243,7 +247,7 @@ export function AdminOrderQueueFilters({
           const label = isAllFilter(status)
             ? "All"
             : getOrderStatusLabel(status);
-          const count = getOrderStatusCount(summary, status);
+          const count = getOrderStatusCount(safeSummary, status);
 
           return (
             <button

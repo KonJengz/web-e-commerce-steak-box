@@ -62,7 +62,7 @@ interface AdminOrdersApiResponse {
   data: AdminOrderApiResponse[];
   limit: number;
   page: number;
-  summary: AdminOrderSummaryApiResponse;
+  summary?: AdminOrderSummaryApiResponse;
   total: number;
   total_pages: number;
 }
@@ -149,6 +149,21 @@ const mapAdminOrderSummary = (
   };
 };
 
+const buildAdminOrderSummaryFallback = (
+  orders: AdminOrder[],
+  totalOrders: number,
+): AdminOrderSummary => {
+  return {
+    all: totalOrders,
+    cancelled: orders.filter((order) => order.status === "CANCELLED").length,
+    delivered: orders.filter((order) => order.status === "DELIVERED").length,
+    paid: orders.filter((order) => order.status === "PAID").length,
+    pending: orders.filter((order) => order.status === "PENDING").length,
+    shipped: orders.filter((order) => order.status === "SHIPPED").length,
+    tracked: orders.filter((order) => order.trackingNumber).length,
+  };
+};
+
 const buildOrdersQueryString = (options: GetOrdersOptions): string => {
   const page = options.page ?? 1;
   const limit = options.limit ?? 20;
@@ -227,13 +242,18 @@ const getAdminAll = async (
     },
   );
 
+  const mappedOrders = result.data.data.map(mapAdminOrder);
+  const summary = result.data.summary
+    ? mapAdminOrderSummary(result.data.summary)
+    : buildAdminOrderSummaryFallback(mappedOrders, result.data.total);
+
   return {
     ...result,
     data: {
-      items: result.data.data.map(mapAdminOrder),
+      items: mappedOrders,
       limit: result.data.limit,
       page: result.data.page,
-      summary: mapAdminOrderSummary(result.data.summary),
+      summary,
       total: result.data.total,
       totalPages: result.data.total_pages,
     },

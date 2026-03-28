@@ -989,103 +989,183 @@ export function AdminProductDirectorySkeleton() {
   );
 }
 
+export function AdminOrdersHeroBadgesSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-10 w-32 rounded-full bg-white/10" />
+      <Skeleton className="h-10 w-36 rounded-full bg-white/8" />
+      <Skeleton className="h-10 w-32 rounded-full bg-white/8" />
+      <Skeleton className="h-10 w-36 rounded-full bg-white/8" />
+    </>
+  );
+}
+
+export function AdminOrdersQueueSkeleton() {
+  return (
+    <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+      <div className="grid gap-5 border-b border-border/60 pb-5 2xl:grid-cols-[minmax(0,1fr)_auto] 2xl:items-end">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="h-4 w-full max-w-xl" />
+          <Skeleton className="h-4 w-full max-w-lg" />
+        </div>
+        <div className="flex flex-wrap gap-3 2xl:max-w-[28rem] 2xl:justify-end">
+          {summaryCardKeys.map((key) => (
+            <div
+              key={key}
+              className="min-w-[8.4rem] flex-1 rounded-[1.2rem] border border-border/60 bg-background/72 px-4 py-3 sm:flex-none"
+            >
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="mt-2 h-8 w-18" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-[1.5rem] border border-border/60 bg-muted/18 p-4">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+          <Skeleton className="h-11 flex-1 rounded-full" />
+          <Skeleton className="h-10 w-24 rounded-full" />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2.5">
+          {Array.from({ length: 6 }, (_, index) => (
+            <Skeleton key={index} className="h-10 w-28 rounded-full" />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 space-y-3">
+        {adminListKeys.map((key) => (
+          <article
+            key={key}
+            className="rounded-[1.6rem] border border-border/60 bg-muted/20 p-5"
+          >
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-7 w-52" />
+                </div>
+                <Skeleton className="h-5 w-32" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {summaryCardKeys.map((summaryKey) => (
+                  <div
+                    key={summaryKey}
+                    className="rounded-[1.1rem] border border-border/60 bg-background/55 px-4 py-3"
+                  >
+                    <Skeleton className="h-4 w-14" />
+                    <Skeleton className="mt-2 h-5 w-24" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Skeleton className="h-4 w-28" />
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-24 rounded-full" />
+          <Skeleton className="h-10 w-20 rounded-full" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function AdminOrderInspectorSkeleton() {
+  return (
+    <aside className="space-y-4 2xl:sticky 2xl:top-24">
+      <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+        <div className="space-y-2 border-b border-border/60 pb-5">
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-7 w-28 rounded-full" />
+            <Skeleton className="h-7 w-36 rounded-full" />
+          </div>
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-4 w-full max-w-sm" />
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div
+              key={index}
+              className="rounded-[1.25rem] border border-border/60 bg-background/55 px-4 py-3"
+            >
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="mt-2 h-6 w-28" />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 grid gap-3">
+          {Array.from({ length: 2 }, (_, index) => (
+            <div
+              key={index}
+              className="rounded-[1.25rem] border border-border/60 bg-muted/20 px-4 py-3"
+            >
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="mt-2 h-4 w-full" />
+              <Skeleton className="mt-2 h-4 w-5/6" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-56" />
+        </div>
+
+        <div className="mt-5 space-y-3">
+          {orderListKeys.map((key) => (
+            <div
+              key={key}
+              className="rounded-[1.25rem] border border-border/60 bg-muted/20 px-4 py-4"
+            >
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="mt-3 h-4 w-full" />
+              <Skeleton className="mt-2 h-4 w-5/6" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-full max-w-sm" />
+        </div>
+        <div className="mt-5 grid gap-4">
+          <Skeleton className="h-24 rounded-[1.25rem]" />
+          <Skeleton className="h-24 rounded-[1.25rem]" />
+          <div className="flex gap-3">
+            <Skeleton className="h-11 flex-1 rounded-full" />
+            <Skeleton className="h-11 flex-1 rounded-full" />
+          </div>
+        </div>
+      </section>
+    </aside>
+  );
+}
+
 export function AdminOrdersPageSkeleton() {
   return (
     <div className="space-y-6">
       <HeroSkeleton />
 
+      <div className="flex flex-wrap gap-3">
+        <AdminOrdersHeroBadgesSkeleton />
+      </div>
+
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-        <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
-          <div className="flex flex-col gap-5 border-b border-border/60 pb-5 xl:flex-row xl:items-end xl:justify-between">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-4 w-full max-w-lg" />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {summaryCardKeys.map((key) => (
-                <div
-                  key={key}
-                  className="rounded-[1.25rem] border border-border/60 bg-background/55 px-4 py-3"
-                >
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="mt-2 h-6 w-20" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-5 space-y-3">
-            {adminListKeys.map((key) => (
-              <article
-                key={key}
-                className="rounded-[1.6rem] border border-border/60 bg-muted/20 p-5"
-              >
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-2">
-                      <Skeleton className="h-5 w-48" />
-                      <Skeleton className="h-4 w-36" />
-                    </div>
-                    <Skeleton className="h-7 w-28 rounded-full" />
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {summaryCardKeys.map((summaryKey) => (
-                      <div
-                        key={summaryKey}
-                        className="rounded-[1.1rem] border border-border/60 bg-background/55 px-4 py-3"
-                      >
-                        <Skeleton className="h-4 w-16" />
-                        <Skeleton className="mt-2 h-5 w-24" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <aside className="space-y-4 2xl:sticky 2xl:top-24">
-          <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-56" />
-              <Skeleton className="h-4 w-full max-w-sm" />
-            </div>
-
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {summaryCardKeys.map((key) => (
-                <div
-                  key={key}
-                  className="rounded-[1.25rem] border border-border/60 bg-background/55 px-4 py-3"
-                >
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="mt-2 h-6 w-28" />
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 space-y-3">
-              {orderListKeys.map((key) => (
-                <div
-                  key={key}
-                  className="rounded-[1.25rem] border border-border/60 bg-muted/20 px-4 py-4"
-                >
-                  <Skeleton className="h-5 w-40" />
-                  <Skeleton className="mt-3 h-4 w-full" />
-                  <Skeleton className="mt-2 h-4 w-5/6" />
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 space-y-3">
-              <Skeleton className="h-11 w-full rounded-xl" />
-              <Skeleton className="h-11 w-full rounded-xl" />
-              <Skeleton className="h-11 w-full rounded-full" />
-            </div>
-          </section>
-        </aside>
+        <AdminOrdersQueueSkeleton />
+        <AdminOrderInspectorSkeleton />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense, cache } from "react";
 import {
   ArrowRight,
   Clock3,
@@ -15,6 +16,11 @@ import {
   formatCurrency,
 } from "@/components/account/account.utils";
 import { AdminPageHero } from "@/components/admin/admin-page-hero";
+import {
+  AdminOrderInspectorSkeleton,
+  AdminOrdersHeroBadgesSkeleton,
+  AdminOrdersQueueSkeleton,
+} from "@/components/shared/loading-skeletons";
 import { Pagination } from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
 import { requireAdminUser, requireCurrentAccessToken } from "@/features/auth/services/current-user.service";
@@ -36,6 +42,7 @@ import type {
   AdminOrderDetail,
   AdminOrderListResult,
 } from "@/features/order/types/order.type";
+import { EMPTY_ADMIN_ORDER_SUMMARY } from "@/features/order/types/order.type";
 import { ApiError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +55,17 @@ interface AdminOrdersPageProps {
     search?: string | string[] | undefined;
     status?: string | string[] | undefined;
   }>;
+}
+
+interface AdminOrdersDataRequestState {
+  currentPage: number;
+  requestPath: string;
+  searchQuery: string;
+  selectedStatus: OrderStatus | null;
+}
+
+interface AdminOrdersRequestState extends AdminOrdersDataRequestState {
+  requestedOrderId: string | null;
 }
 
 const getFirstSearchParam = (
@@ -81,6 +99,63 @@ const handleAdminOrdersApiError = (
   }
 
   throw error;
+};
+
+const getAdminOrdersPageData = cache(
+  async (
+    accessToken: string,
+    currentPage: number,
+    searchQuery: string,
+    selectedStatus: OrderStatus | null,
+    requestPath: string,
+  ): Promise<AdminOrderListResult> => {
+    try {
+      const result = await orderService.getAdminAll(accessToken, {
+        limit: ADMIN_ORDERS_PER_PAGE,
+        page: currentPage,
+        search: searchQuery || undefined,
+        status: selectedStatus ?? undefined,
+      });
+
+      return result.data;
+    } catch (error) {
+      return handleAdminOrdersApiError(error, requestPath);
+    }
+  },
+);
+
+const getAdminOrderDetailData = cache(
+  async (
+    accessToken: string,
+    orderId: string,
+    requestPath: string,
+  ): Promise<AdminOrderDetail | null> => {
+    try {
+      const result = await orderService.getAdminById(accessToken, orderId);
+
+      return result.data;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        return null;
+      }
+
+      return handleAdminOrdersApiError(error, requestPath);
+    }
+  },
+);
+
+const resolveQueueSelectedOrderId = (
+  ordersPage: AdminOrderListResult,
+  requestedOrderId: string | null,
+): string | null => {
+  if (
+    requestedOrderId &&
+    ordersPage.items.some((order) => order.id === requestedOrderId)
+  ) {
+    return requestedOrderId;
+  }
+
+  return ordersPage.items[0]?.id ?? null;
 };
 
 function QueueSummaryCard({
@@ -123,6 +198,62 @@ function QueueSummaryCard({
   );
 }
 
+async function HeroBadges({
+  accessToken,
+  requestState,
+}: {
+  accessToken: string;
+  requestState: AdminOrdersDataRequestState;
+}) {
+  const ordersPage = await getAdminOrdersPageData(
+    accessToken,
+    requestState.currentPage,
+    requestState.searchQuery,
+    requestState.selectedStatus,
+    requestState.requestPath,
+  );
+
+  return (
+    <>
+      <Badge
+        variant="secondary"
+        className="h-auto rounded-full bg-white/10 px-4 py-2 text-white"
+      >
+        {ordersPage.total} total orders
+      </Badge>
+      <Badge
+        variant="secondary"
+        className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+      >
+        Page {ordersPage.page} of {ordersPage.totalPages}
+      </Badge>
+      {requestState.selectedStatus ? (
+        <Badge
+          variant="secondary"
+          className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+        >
+          Filter {requestState.selectedStatus}
+        </Badge>
+      ) : null}
+      {requestState.searchQuery ? (
+        <Badge
+          variant="secondary"
+          className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+        >
+          Search “{requestState.searchQuery}”
+        </Badge>
+      ) : null}
+      <Badge
+        variant="secondary"
+        className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+      >
+        <Truck className="mr-1 size-3.5" />
+        {ordersPage.summary.tracked} with tracking
+      </Badge>
+    </>
+  );
+}
+
 function QueueSection({
   currentPage,
   ordersPage,
@@ -136,54 +267,56 @@ function QueueSection({
   selectedOrderId: string | null;
   selectedStatus: OrderStatus | null;
 }) {
+  const queueSummary = ordersPage.summary ?? EMPTY_ADMIN_ORDER_SUMMARY;
+
   return (
     <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
-      <div className="grid gap-5 border-b border-border/60 pb-5 2xl:grid-cols-[minmax(0,1fr)_auto] 2xl:items-end">
-        <div className="max-w-2xl space-y-2">
+      <div className="grid gap-6 border-b border-border/60 pb-6 xl:grid-cols-[minmax(0,1fr)_15rem] xl:items-start">
+        <div className="max-w-3xl space-y-3">
           <div className="flex items-center gap-2">
             <div className="glow-dot" />
             <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-muted-foreground">
               Orders Queue
             </p>
           </div>
-          <div className="space-y-1">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+          <div className="space-y-2">
+            <h2 className="max-w-2xl text-2xl font-semibold tracking-tight text-foreground sm:text-[2.2rem] sm:leading-[1.04]">
               Scan the live queue and open one order at a time
             </h2>
-            <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
+            <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-[15px]">
               Use the right-hand inspector to confirm payment, stamp shipping,
               and correct tracking without leaving the queue.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 2xl:max-w-[28rem] 2xl:justify-end">
+        <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1 xl:self-stretch">
           <QueueSummaryCard
-            className="min-w-[8.4rem] flex-1 sm:flex-none"
+            className="min-h-[7.5rem] sm:min-w-0 xl:min-h-[6.9rem]"
             label="Pending"
             labelClassName="whitespace-nowrap tracking-[0.18em]"
-            value={String(ordersPage.summary.pending)}
+            value={String(queueSummary.pending)}
             valueClassName="text-3xl leading-none tabular-nums"
           />
           <QueueSummaryCard
-            className="min-w-[8.4rem] flex-1 sm:flex-none"
+            className="min-h-[7.5rem] sm:min-w-0 xl:min-h-[6.9rem]"
             label="Paid"
             labelClassName="whitespace-nowrap tracking-[0.18em]"
-            value={String(ordersPage.summary.paid)}
+            value={String(queueSummary.paid)}
             valueClassName="text-3xl leading-none tabular-nums"
           />
           <QueueSummaryCard
-            className="min-w-[8.4rem] flex-1 sm:flex-none"
+            className="min-h-[7.5rem] sm:min-w-0 xl:min-h-[6.9rem]"
             label="Shipped"
             labelClassName="whitespace-nowrap tracking-[0.18em]"
-            value={String(ordersPage.summary.shipped)}
+            value={String(queueSummary.shipped)}
             valueClassName="text-3xl leading-none tabular-nums"
           />
         </div>
       </div>
 
       <div className="mt-5">
-        <AdminOrderQueueFilters summary={ordersPage.summary} />
+        <AdminOrderQueueFilters summary={queueSummary} />
       </div>
 
       <div className="mt-5 space-y-3">
@@ -277,6 +410,36 @@ function QueueSection({
         />
       </div>
     </section>
+  );
+}
+
+async function QueueSectionBoundary({
+  accessToken,
+  requestState,
+}: {
+  accessToken: string;
+  requestState: AdminOrdersRequestState;
+}) {
+  const ordersPage = await getAdminOrdersPageData(
+    accessToken,
+    requestState.currentPage,
+    requestState.searchQuery,
+    requestState.selectedStatus,
+    requestState.requestPath,
+  );
+  const selectedOrderId = resolveQueueSelectedOrderId(
+    ordersPage,
+    requestState.requestedOrderId,
+  );
+
+  return (
+    <QueueSection
+      currentPage={requestState.currentPage}
+      ordersPage={ordersPage}
+      searchQuery={requestState.searchQuery}
+      selectedOrderId={selectedOrderId}
+      selectedStatus={requestState.selectedStatus}
+    />
   );
 }
 
@@ -438,6 +601,42 @@ function SelectedOrderInspector({
   );
 }
 
+async function SelectedOrderInspectorBoundary({
+  accessToken,
+  requestState,
+}: {
+  accessToken: string;
+  requestState: AdminOrdersRequestState;
+}) {
+  const ordersPage = await getAdminOrdersPageData(
+    accessToken,
+    requestState.currentPage,
+    requestState.searchQuery,
+    requestState.selectedStatus,
+    requestState.requestPath,
+  );
+  const selectedOrderId = resolveQueueSelectedOrderId(
+    ordersPage,
+    requestState.requestedOrderId,
+  );
+  const order = selectedOrderId
+    ? await getAdminOrderDetailData(
+        accessToken,
+        selectedOrderId,
+        requestState.requestPath,
+      )
+    : null;
+
+  return (
+    <SelectedOrderInspector
+      currentPage={requestState.currentPage}
+      order={order}
+      searchQuery={requestState.searchQuery}
+      selectedStatus={requestState.selectedStatus}
+    />
+  );
+}
+
 export default async function AdminOrdersPage({
   searchParams,
 }: AdminOrdersPageProps) {
@@ -464,48 +663,24 @@ export default async function AdminOrdersPage({
 
   await requireAdminUser(requestPath);
   const accessToken = await requireCurrentAccessToken(requestPath);
-  const ordersPage: AdminOrderListResult = await (async () => {
-    try {
-      const result = await orderService.getAdminAll(accessToken, {
-        limit: ADMIN_ORDERS_PER_PAGE,
-        page: currentPage,
-        search: searchQuery || undefined,
-        status: selectedStatus ?? undefined,
-      });
-
-      return result.data;
-    } catch (error) {
-      return handleAdminOrdersApiError(error, requestPath);
-    }
-  })();
-
-  let effectiveSelectedOrderId = requestedOrderId ?? ordersPage.items[0]?.id ?? null;
-  let selectedOrder: AdminOrderDetail | null = null;
-
-  const loadOrderDetail = async (
-    orderId: string,
-  ): Promise<AdminOrderDetail | null> => {
-    try {
-      const result = await orderService.getAdminById(accessToken, orderId);
-
-      return result.data;
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 404) {
-        return null;
-      }
-
-      return handleAdminOrdersApiError(error, requestPath);
-    }
+  const requestState: AdminOrdersRequestState = {
+    currentPage,
+    requestPath,
+    requestedOrderId,
+    searchQuery,
+    selectedStatus,
   };
-
-  if (effectiveSelectedOrderId) {
-    selectedOrder = await loadOrderDetail(effectiveSelectedOrderId);
-
-    if (!selectedOrder && ordersPage.items[0]?.id && ordersPage.items[0].id !== effectiveSelectedOrderId) {
-      effectiveSelectedOrderId = ordersPage.items[0].id;
-      selectedOrder = await loadOrderDetail(effectiveSelectedOrderId);
-    }
-  }
+  const listBoundaryKey = JSON.stringify({
+    currentPage,
+    searchQuery,
+    selectedStatus: selectedStatus ?? "ALL",
+  });
+  const inspectorBoundaryKey = JSON.stringify({
+    currentPage,
+    requestedOrderId: requestedOrderId ?? "auto",
+    searchQuery,
+    selectedStatus: selectedStatus ?? "ALL",
+  });
 
   return (
     <div className="space-y-6">
@@ -515,57 +690,33 @@ export default async function AdminOrdersPage({
         description="Open one order, move it through the allowed status path, and publish tracking without bouncing between screens."
         variant="orders"
       >
-        <Badge
-          variant="secondary"
-          className="h-auto rounded-full bg-white/10 px-4 py-2 text-white"
+        <Suspense
+          key={listBoundaryKey}
+          fallback={<AdminOrdersHeroBadgesSkeleton />}
         >
-          {ordersPage.total} total orders
-        </Badge>
-        <Badge
-          variant="secondary"
-          className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
-        >
-          Page {ordersPage.page} of {ordersPage.totalPages}
-        </Badge>
-        {selectedStatus ? (
-          <Badge
-            variant="secondary"
-            className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
-          >
-            Filter {selectedStatus}
-          </Badge>
-        ) : null}
-        {searchQuery ? (
-          <Badge
-            variant="secondary"
-            className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
-          >
-            Search “{searchQuery}”
-          </Badge>
-        ) : null}
-        <Badge
-          variant="secondary"
-          className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
-        >
-          <Truck className="mr-1 size-3.5" />
-          {ordersPage.summary.tracked} with tracking
-        </Badge>
+          <HeroBadges accessToken={accessToken} requestState={requestState} />
+        </Suspense>
       </AdminPageHero>
 
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-        <QueueSection
-          currentPage={currentPage}
-          ordersPage={ordersPage}
-          searchQuery={searchQuery}
-          selectedOrderId={effectiveSelectedOrderId}
-          selectedStatus={selectedStatus}
-        />
-        <SelectedOrderInspector
-          currentPage={currentPage}
-          order={selectedOrder}
-          searchQuery={searchQuery}
-          selectedStatus={selectedStatus}
-        />
+        <Suspense
+          key={listBoundaryKey}
+          fallback={<AdminOrdersQueueSkeleton />}
+        >
+          <QueueSectionBoundary
+            accessToken={accessToken}
+            requestState={requestState}
+          />
+        </Suspense>
+        <Suspense
+          key={inspectorBoundaryKey}
+          fallback={<AdminOrderInspectorSkeleton />}
+        >
+          <SelectedOrderInspectorBoundary
+            accessToken={accessToken}
+            requestState={requestState}
+          />
+        </Suspense>
       </div>
     </div>
   );

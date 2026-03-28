@@ -44,6 +44,16 @@ export interface AdminOrderSummary {
   tracked: number;
 }
 
+export const EMPTY_ADMIN_ORDER_SUMMARY: AdminOrderSummary = {
+  all: 0,
+  cancelled: 0,
+  delivered: 0,
+  paid: 0,
+  pending: 0,
+  shipped: 0,
+  tracked: 0,
+};
+
 export interface UpdateAdminOrderActionState {
   fieldErrors?: {
     status?: string[];
