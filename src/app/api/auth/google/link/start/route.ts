@@ -15,6 +15,31 @@ import {
 } from "@/lib/auth-helpers";
 import { ApiError } from "@/lib/api/error";
 
+const hasSameOriginRequestContext = (request: NextRequest): boolean => {
+  const requestOrigin = request.nextUrl.origin;
+  const originHeader = request.headers.get("origin");
+
+  if (originHeader) {
+    try {
+      return new URL(originHeader).origin === requestOrigin;
+    } catch {
+      return false;
+    }
+  }
+
+  const refererHeader = request.headers.get("referer");
+
+  if (!refererHeader) {
+    return false;
+  }
+
+  try {
+    return new URL(refererHeader).origin === requestOrigin;
+  } catch {
+    return false;
+  }
+};
+
 const normalizeSecurityRedirect = (
   redirectTo: string | null | undefined,
 ): string => {
@@ -50,10 +75,17 @@ const mapLinkErrorCode = (error: ApiError): string => {
   return "google_link_failed";
 };
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  const formData = await request.formData();
   const redirectTo = normalizeSecurityRedirect(
-    request.nextUrl.searchParams.get("redirectTo"),
+    typeof formData.get("redirectTo") === "string"
+      ? (formData.get("redirectTo") as string)
+      : null,
   );
+
+  if (!hasSameOriginRequestContext(request)) {
+    return buildLinkErrorRedirect(request, redirectTo, "invalid_request_origin");
+  }
 
   try {
     const result = await executeWithServerAuthRetry((accessToken) =>

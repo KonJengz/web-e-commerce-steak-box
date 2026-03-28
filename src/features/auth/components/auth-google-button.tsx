@@ -5,7 +5,7 @@ interface AuthGoogleButtonProps {
   label?: string;
 }
 
-const GoogleIcon = () => {
+export const GoogleIcon = () => {
   return (
     <svg
       aria-hidden="true"

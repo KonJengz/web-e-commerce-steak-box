@@ -1,6 +1,9 @@
 import { Link2, ShieldCheck } from "lucide-react";
 
-import { AuthGoogleButton } from "@/features/auth/components/auth-google-button";
+import {
+  GoogleIcon,
+} from "@/features/auth/components/auth-google-button";
+import { Button } from "@/components/ui/button";
 
 type GoogleLinkNoticeTone = "error" | "success";
 
@@ -11,14 +14,14 @@ export interface GoogleLinkNotice {
 
 interface GoogleLinkCardProps {
   email: string;
-  href: string;
   notice?: GoogleLinkNotice | null;
+  redirectTo: string;
 }
 
 export function GoogleLinkCard({
   email,
-  href,
   notice = null,
+  redirectTo,
 }: GoogleLinkCardProps) {
   return (
     <section className="rounded-[1.5rem] border border-border/70 bg-background/65 p-5">
@@ -67,9 +70,17 @@ export function GoogleLinkCard({
         </div>
       </div>
 
-      <div className="mt-5">
-        <AuthGoogleButton href={href} label="Link Google Account" />
-      </div>
+      <form action="/api/auth/google/link/start" method="post" className="mt-5">
+        <input type="hidden" name="redirectTo" value={redirectTo} />
+        <Button
+          type="submit"
+          variant="outline"
+          className="h-12 w-full rounded-full border-border/60 bg-background/80 font-semibold shadow-sm transition-all hover:bg-muted/60"
+        >
+          <GoogleIcon />
+          <span>Link Google Account</span>
+        </Button>
+      </form>
     </section>
   );
 }

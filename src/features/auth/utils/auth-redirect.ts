@@ -3,7 +3,12 @@ const SESSION_REFRESH_PATHNAME = "/api/auth/refresh";
 const AUTH_REDIRECT_BASE_URL = "http://local.test";
 export const FORCE_LOGIN_QUERY_PARAM = "forceLogin";
 
-const BLOCKED_REDIRECT_PREFIXES = [LOGIN_PATHNAME, "/verify-email"] as const;
+const BLOCKED_REDIRECT_PREFIXES = [
+  LOGIN_PATHNAME,
+  "/register",
+  "/verify-email",
+  "/api",
+] as const;
 
 export const normalizeAuthRedirectTarget = (
   value: string | null | undefined,

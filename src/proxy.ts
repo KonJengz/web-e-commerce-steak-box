@@ -42,6 +42,28 @@ const protectedRoutes = [
 const authRoutes = ["/login", "/register", "/verify-email"] as const;
 
 const isProduction = process.env.NODE_ENV === "production";
+const contentSecurityPolicyHeaderValue = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: http: https:",
+  "font-src 'self' data:",
+  `connect-src 'self'${isProduction ? "" : " ws: wss:"}`,
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+  ...(isProduction ? ["upgrade-insecure-requests"] : []),
+].join("; ");
+const permissionsPolicyHeaderValue = [
+  "accelerometer=()",
+  "camera=()",
+  "geolocation=()",
+  "gyroscope=()",
+  "microphone=()",
+  "payment=()",
+  "usb=()",
+].join(", ");
 
 const matchesPath = (pathname: string, route: string): boolean => {
   return pathname === route || pathname.startsWith(`${route}/`);
@@ -56,10 +78,16 @@ const isAuthRoute = (pathname: string): boolean => {
 };
 
 const applySecurityHeaders = (response: NextResponse): NextResponse => {
+  response.headers.set(
+    "Content-Security-Policy",
+    contentSecurityPolicyHeaderValue,
+  );
   response.headers.set("X-DNS-Prefetch-Control", "on");
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Permissions-Policy", permissionsPolicyHeaderValue);
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
 
   if (isProduction) {
     response.headers.set(

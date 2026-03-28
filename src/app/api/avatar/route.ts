@@ -8,6 +8,8 @@ import {
 const SUCCESS_CACHE_CONTROL =
   "public, max-age=3600, stale-while-revalidate=86400";
 const FALLBACK_CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=300";
+const AVATAR_FETCH_TIMEOUT_MS = 5_000;
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 
 const buildFallbackResponse = (seed: string): Response => {
   return new Response(buildFallbackAvatarSvg(seed), {
@@ -36,16 +38,38 @@ export async function GET(request: NextRequest): Promise<Response> {
       next: {
         revalidate: 3600,
       },
-      redirect: "follow",
+      redirect: "manual",
+      signal: AbortSignal.timeout(AVATAR_FETCH_TIMEOUT_MS),
     });
 
     const contentType = upstreamResponse.headers.get("content-type");
+    const contentLengthHeader = upstreamResponse.headers.get("content-length");
+    const contentLength =
+      contentLengthHeader === null ? null : Number(contentLengthHeader);
 
-    if (!upstreamResponse.ok || !contentType?.startsWith("image/")) {
+    if (
+      !upstreamResponse.ok ||
+      upstreamResponse.type === "opaqueredirect" ||
+      !contentType?.startsWith("image/")
+    ) {
       return buildFallbackResponse(seed);
     }
 
-    return new Response(upstreamResponse.body, {
+    if (
+      contentLength !== null &&
+      Number.isFinite(contentLength) &&
+      contentLength > AVATAR_MAX_BYTES
+    ) {
+      return buildFallbackResponse(seed);
+    }
+
+    const avatarBytes = await upstreamResponse.arrayBuffer();
+
+    if (avatarBytes.byteLength > AVATAR_MAX_BYTES) {
+      return buildFallbackResponse(seed);
+    }
+
+    return new Response(avatarBytes, {
       headers: {
         "Cache-Control": SUCCESS_CACHE_CONTROL,
         "Content-Type": contentType,

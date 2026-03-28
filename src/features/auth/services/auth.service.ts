@@ -16,7 +16,6 @@ import type {
   AuthResponse,
 } from "@/features/auth/types/auth.type";
 import {
-  normalizeAuthRedirectTarget,
   resolveAuthRedirectTarget,
 } from "@/features/auth/utils/auth-redirect";
 import { api } from "@/lib/api/client";
@@ -164,17 +163,7 @@ const buildGoogleStartHref = (redirectTo?: string | null): string => {
   return startUrl.toString();
 };
 
-const buildGoogleLinkStartHref = (redirectTo?: string | null): string => {
-  const normalizedRedirect = normalizeAuthRedirectTarget(redirectTo) ?? "/";
-  const searchParams = new URLSearchParams({
-    redirectTo: normalizedRedirect,
-  });
-
-  return `/api/auth/google/link/start?${searchParams.toString()}`;
-};
-
 export const authService = {
-  buildGoogleLinkStartHref,
   buildGoogleStartHref,
   exchangeOAuthTicket,
   forgotPassword,

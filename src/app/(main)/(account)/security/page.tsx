@@ -7,7 +7,6 @@ import {
   GoogleLinkCard,
   type GoogleLinkNotice,
 } from "@/features/auth/components/google-link-card";
-import { authService } from "@/features/auth/services/auth.service";
 import { ProfilePasswordEditor } from "@/features/user/components/profile-password-editor";
 
 export const metadata: Metadata = {
@@ -107,7 +106,6 @@ export default async function SecurityPage({
     linkStatus,
     linkError,
   );
-  const googleLinkHref = authService.buildGoogleLinkStartHref("/security");
 
   return (
     <div className="space-y-6">
@@ -126,8 +124,8 @@ export default async function SecurityPage({
         <ProfilePasswordEditor profile={profile} redirectPath="/security" />
         <GoogleLinkCard
           email={profile.email}
-          href={googleLinkHref}
           notice={googleLinkNotice}
+          redirectTo="/security"
         />
       </div>
     </div>
