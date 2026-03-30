@@ -19,7 +19,6 @@ import {
 } from "@/components/account/account.utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { addressService } from "@/features/address/services/address.service";
 import { executeProtectedRequestOrRedirect } from "@/features/auth/services/current-user.service";
 import { OrderPaymentSlipForm } from "@/features/order/components/order-payment-slip-form";
 import { PaymentInstructions } from "@/features/order/components/payment-instructions";
@@ -59,15 +58,10 @@ export default async function OrderDetailPage({
   const redirectPath = buildAccountOrderPath(orderId);
   const shouldFocusPayment = getSearchParam(resolvedSearchParams.step) === "payment";
   let orderResult;
-  let addressesResult;
 
   try {
-    [orderResult, addressesResult] = await executeProtectedRequestOrRedirect(
-      async (accessToken) =>
-        Promise.all([
-          orderService.getById(accessToken, orderId),
-          addressService.getAll(accessToken),
-        ]),
+    orderResult = await executeProtectedRequestOrRedirect(
+      async (accessToken) => orderService.getById(accessToken, orderId),
       redirectPath,
     );
   } catch (error) {
@@ -79,9 +73,7 @@ export default async function OrderDetailPage({
   }
 
   const order = orderResult.data;
-  const addresses = addressesResult.data;
-  const shippingAddress =
-    addresses.find((address) => address.id === order.shippingAddressId) ?? null;
+  const shippingAddress = order.shippingAddressSnapshot;
   const totalUnits = order.items.reduce((total, item) => total + item.quantity, 0);
   const canUploadSlip = canCustomerUploadPaymentSlip(order.status);
 
@@ -225,8 +217,7 @@ export default async function OrderDetailPage({
                   </div>
                 ) : (
                   <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                    The saved address could not be resolved anymore. The order still
-                    keeps its original shipping reference internally.
+                    Shipping details are unavailable for this order right now.
                   </p>
                 )}
               </div>

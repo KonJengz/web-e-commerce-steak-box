@@ -1,11 +1,20 @@
 import type { PaginatedResponse } from "@/types";
 import type { OrderStatus } from "@/features/order/types/order-status";
 
+export interface OrderShippingAddressSnapshot {
+  addressLine: string;
+  city: string;
+  phone: string | null;
+  postalCode: string;
+  recipientName: string;
+}
+
 export interface Order {
   createdAt: string;
   id: string;
   paymentSlipUrl: string | null;
   paymentSubmittedAt: string | null;
+  shippingAddressSnapshot: OrderShippingAddressSnapshot | null;
   shippingAddressId: string | null;
   status: OrderStatus;
   totalAmount: string;

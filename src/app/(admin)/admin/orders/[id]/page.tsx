@@ -6,13 +6,14 @@ import {
   ExternalLink, 
   ImageOff, 
   Info, 
+  MapPinned,
   ReceiptText, 
   User 
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-
-import { 
+ 
+import {
   formatAccountDateTime, 
   formatCompactId, 
   formatCurrency 
@@ -20,11 +21,11 @@ import {
 import { AdminPageHero } from "@/components/admin/admin-page-hero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { addressService } from "@/features/address/services/address.service";
 import { executeWithAdminServerAuthRetry } from "@/features/auth/services/server-auth-execution.service";
-import { AdminOrderUpdateStatusForm } from "@/features/order/components/admin-order-update-status-form";
+import { AdminOrderStatusForm } from "@/features/order/components/admin-order-status-form";
 import { OrderStatusBadge } from "@/features/order/components/order-status-badge";
 import { orderService } from "@/features/order/services/order.service";
+import { buildAdminOrderPath } from "@/features/order/utils/order-path";
 import { buildProductPath } from "@/features/product/utils/product-path";
 import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 import { ApiError } from "@/lib/api/error";
@@ -49,6 +50,7 @@ export default async function AdminOrderDetailPage({
   params,
 }: AdminOrderDetailPageProps) {
   const { id } = await params;
+  const redirectPath = buildAdminOrderPath(id);
   
   let order;
   try {
@@ -61,23 +63,6 @@ export default async function AdminOrderDetailPage({
     throw error;
   }
 
-  // Fetch address for full detail if shippingAddressId exists
-  let address = null;
-  if (order.shippingAddressId) {
-     try {
-       const addressResult = await executeWithAdminServerAuthRetry((accessToken) =>
-         addressService.getAll(accessToken) // This is for user, but admin needs to see the specific one?
-         // In a real system, getAdminById should probably include address snapshot.
-         // For now, let's look for it in the user's addresses if we had that, but we don't.
-       );
-       // Note: Normally the backend should return the address snapshot in order detail.
-       // Looking at OrderDetailApiResponse in service, shipping_address_id is a string.
-       // We might not be able to retrieve full address detail if it's been deleted or we don't have user's token.
-       // However, we rely on the backend providing it if requested via admin path.
-     } catch (e) {
-       // fallback
-     }
-  }
 
   return (
     <div className="space-y-6 pb-20">
@@ -167,10 +152,60 @@ export default async function AdminOrderDetailPage({
           </article>
           
           {/* Action Center - Status Update */}
-          <AdminOrderUpdateStatusForm order={order} />
+          <AdminOrderStatusForm order={order} redirectPath={redirectPath} />
         </section>
 
         <aside className="space-y-6">
+          <article className="rounded-[2.25rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+            <div className="mb-5 flex items-center gap-3">
+              <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <MapPinned className="size-4" />
+              </span>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Shipping Snapshot</h2>
+                <p className="text-xs text-muted-foreground">Immutable destination captured at checkout.</p>
+              </div>
+            </div>
+
+            {order.shippingAddressSnapshot ? (
+              <div className="space-y-4 rounded-2xl border border-border/30 bg-muted/25 p-4 text-sm leading-6 text-muted-foreground">
+                <div>
+                  <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
+                    Recipient
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">
+                    {order.shippingAddressSnapshot.recipientName}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
+                    Address
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">
+                    {order.shippingAddressSnapshot.addressLine}
+                  </p>
+                  <p className="text-sm text-foreground">
+                    {order.shippingAddressSnapshot.city} {order.shippingAddressSnapshot.postalCode}
+                  </p>
+                </div>
+                {order.shippingAddressSnapshot.phone ? (
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
+                      Phone
+                    </p>
+                    <p className="mt-1 text-sm text-foreground">
+                      {order.shippingAddressSnapshot.phone}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border/60 bg-muted/10 px-4 py-5 text-sm leading-6 text-muted-foreground">
+                Shipping snapshot is unavailable for this order.
+              </div>
+            )}
+          </article>
+
           {/* Customer Profile & Timeline */}
           <article className="rounded-[2.25rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
             <div className="mb-5 flex items-center gap-3">
@@ -209,13 +244,13 @@ export default async function AdminOrderDetailPage({
                   <Info className="size-4" />
                 </span>
                 <div>
-                  <h2 className="text-base font-semibold text-foreground text-amber-700 dark:text-amber-500">Slip Verification</h2>
+                  <h2 className="text-base font-semibold text-amber-700 dark:text-amber-500">Slip Verification</h2>
                   <p className="text-xs text-muted-foreground">Verify the transfer before approval.</p>
                 </div>
               </div>
 
               {order.paymentSlipUrl ? (
-                 <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted/30">
+                 <div className="relative aspect-3/4 w-full overflow-hidden rounded-2xl border border-border/60 bg-muted/30">
                     <Image
                       loader={cloudinaryLoader}
                       src={order.paymentSlipUrl}
@@ -237,7 +272,7 @@ export default async function AdminOrderDetailPage({
                     </Button>
                  </div>
               ) : (
-                <div className="flex aspect-[3/4] flex-col items-center justify-center rounded-2xl border border-dashed border-border/60 bg-muted/10 text-center">
+                <div className="flex aspect-3/4 flex-col items-center justify-center rounded-2xl border border-dashed border-border/60 bg-muted/10 text-center">
                    <ImageOff className="size-8 text-muted-foreground/30" />
                    <p className="mt-3 text-sm font-medium text-muted-foreground/60">No slip uploaded yet</p>
                 </div>

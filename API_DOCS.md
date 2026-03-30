@@ -1913,6 +1913,13 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
   "id": "order-uuid",
   "user_id": "user-uuid",
   "shipping_address_id": "address-uuid",
+  "shipping_address_snapshot": {
+    "recipient_name": "Jane Doe",
+    "phone": "0812345678",
+    "address_line": "123 ถนนสุขุมวิท",
+    "city": "Bangkok",
+    "postal_code": "10110"
+  },
   "total_amount": "79800.00",
   "status": "PENDING",
   "tracking_number": null,
@@ -1937,6 +1944,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 **Frontend Notes:**
 
 - endpoint นี้สร้าง order และตัด stock ทันที
+- response เก็บ `shipping_address_snapshot` แบบ immutable ของ order ตอน checkout เพื่อให้ประวัติ order และ admin fulfillment ไม่ขึ้นกับ address ปัจจุบันของ user
 - หลังได้ `order_id` แล้ว ให้พา user ไปอัปโหลด slip ต่อด้วย `PUT /api/orders/{id}/payment-slip`
 - ถ้า user ทิ้ง order ไว้จนหมดเวลา ระบบอาจเปลี่ยน status เป็น `CANCELLED` จาก background cleanup ได้เอง
 - `items[].product_slug` คือ canonical product slug ปัจจุบันสำหรับใช้ทำ link; field นี้อาจเป็น `null` ได้ถ้าในอนาคต product ไม่ควรถูกลิงก์แล้ว
@@ -1962,6 +1970,13 @@ user อัปโหลดหรือเปลี่ยน slip ของ order
   "id": "order-uuid",
   "user_id": "user-uuid",
   "shipping_address_id": "address-uuid",
+  "shipping_address_snapshot": {
+    "recipient_name": "Jane Doe",
+    "phone": "0812345678",
+    "address_line": "123 ถนนสุขุมวิท",
+    "city": "Bangkok",
+    "postal_code": "10110"
+  },
   "total_amount": "79800.00",
   "status": "PAYMENT_REVIEW",
   "tracking_number": null,
@@ -2029,6 +2044,13 @@ user อัปโหลดหรือเปลี่ยน slip ของ order
       "id": "order-uuid",
       "user_id": "user-uuid",
       "shipping_address_id": "address-uuid",
+      "shipping_address_snapshot": {
+        "recipient_name": "Jane Doe",
+        "phone": "0812345678",
+        "address_line": "123 ถนนสุขุมวิท",
+        "city": "Bangkok",
+        "postal_code": "10110"
+      },
       "total_amount": "79800.00",
       "status": "PENDING",
       "tracking_number": null,
@@ -2060,6 +2082,13 @@ user อัปโหลดหรือเปลี่ยน slip ของ order
   "id": "order-uuid",
   "user_id": "user-uuid",
   "shipping_address_id": "address-uuid",
+  "shipping_address_snapshot": {
+    "recipient_name": "Jane Doe",
+    "phone": "0812345678",
+    "address_line": "123 ถนนสุขุมวิท",
+    "city": "Bangkok",
+    "postal_code": "10110"
+  },
   "total_amount": "79800.00",
   "status": "PENDING",
   "tracking_number": null,
@@ -2113,6 +2142,13 @@ GET /api/orders/admin?page=1&limit=20&status=PAYMENT_REVIEW&search=jane
       "user_name": "Jane Doe",
       "user_email": "jane@example.com",
       "shipping_address_id": "address-uuid",
+      "shipping_address_snapshot": {
+        "recipient_name": "Jane Doe",
+        "phone": "0812345678",
+        "address_line": "123 ถนนสุขุมวิท",
+        "city": "Bangkok",
+        "postal_code": "10110"
+      },
       "total_amount": "79800.00",
       "status": "PAYMENT_REVIEW",
       "tracking_number": null,
@@ -2169,6 +2205,13 @@ GET /api/orders/admin?page=1&limit=20&status=PAYMENT_REVIEW&search=jane
   "user_name": "Jane Doe",
   "user_email": "jane@example.com",
   "shipping_address_id": "address-uuid",
+  "shipping_address_snapshot": {
+    "recipient_name": "Jane Doe",
+    "phone": "0812345678",
+    "address_line": "123 ถนนสุขุมวิท",
+    "city": "Bangkok",
+    "postal_code": "10110"
+  },
   "total_amount": "79800.00",
   "status": "PAYMENT_REVIEW",
   "tracking_number": null,
@@ -2241,6 +2284,13 @@ admin อัปเดต status ของ order และใส่ `tracking_num
   "user_name": "Jane Doe",
   "user_email": "jane@example.com",
   "shipping_address_id": "address-uuid",
+  "shipping_address_snapshot": {
+    "recipient_name": "Jane Doe",
+    "phone": "0812345678",
+    "address_line": "123 ถนนสุขุมวิท",
+    "city": "Bangkok",
+    "postal_code": "10110"
+  },
   "total_amount": "79800.00",
   "status": "SHIPPED",
   "tracking_number": "TH1234567890",

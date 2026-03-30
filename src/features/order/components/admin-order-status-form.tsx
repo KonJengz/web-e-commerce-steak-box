@@ -295,7 +295,11 @@ export function AdminOrderStatusForm({
 
         <div className={adminMutedNoticeClassName}>
           {selectedStatus === "PENDING"
-            ? "Pending orders can move to Paid or Cancelled."
+            ? "Pending orders can move to Payment Review or Cancelled."
+            : selectedStatus === "PAYMENT_REVIEW"
+              ? "Payment Review orders can move to Paid, Payment Failed, or Cancelled."
+              : selectedStatus === "PAYMENT_FAILED"
+                ? "Payment Failed orders can move back to Payment Review or be Cancelled."
             : selectedStatus === "PAID"
               ? "Paid orders can move to Shipped or Cancelled."
               : selectedStatus === "SHIPPED"

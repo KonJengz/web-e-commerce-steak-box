@@ -17,6 +17,7 @@ import type {
   Order,
   OrderDetail,
   OrderItem,
+  OrderShippingAddressSnapshot,
 } from "@/features/order/types/order.type";
 import { api } from "@/lib/api/client";
 import type { ApiResult, PaginatedResponse } from "@/types";
@@ -26,6 +27,7 @@ interface OrderApiResponse {
   id: string;
   payment_slip_url: string | null;
   payment_submitted_at: string | null;
+  shipping_address_snapshot: OrderShippingAddressSnapshotApiResponse | null;
   shipping_address_id: string | null;
   status: string;
   total_amount: string;
@@ -42,6 +44,14 @@ interface OrderItemApiResponse {
   product_slug: string | null;
   product_name_at_purchase: string;
   quantity: number;
+}
+
+interface OrderShippingAddressSnapshotApiResponse {
+  address_line: string;
+  city: string;
+  phone: string | null;
+  postal_code: string;
+  recipient_name: string;
 }
 
 interface OrderDetailApiResponse extends OrderApiResponse {
@@ -108,12 +118,27 @@ const mapOrderItem = (orderItem: OrderItemApiResponse): OrderItem => {
   };
 };
 
+const mapOrderShippingAddressSnapshot = (
+  snapshot: OrderShippingAddressSnapshotApiResponse,
+): OrderShippingAddressSnapshot => {
+  return {
+    addressLine: snapshot.address_line,
+    city: snapshot.city,
+    phone: snapshot.phone,
+    postalCode: snapshot.postal_code,
+    recipientName: snapshot.recipient_name,
+  };
+};
+
 const mapOrder = (order: OrderApiResponse): Order => {
   return {
     createdAt: order.created_at,
     id: order.id,
     paymentSlipUrl: order.payment_slip_url,
     paymentSubmittedAt: order.payment_submitted_at,
+    shippingAddressSnapshot: order.shipping_address_snapshot
+      ? mapOrderShippingAddressSnapshot(order.shipping_address_snapshot)
+      : null,
     shippingAddressId: order.shipping_address_id,
     status: normalizeOrderStatus(order.status),
     totalAmount: order.total_amount,
