@@ -6,6 +6,7 @@ import { formatCurrency } from "@/components/account/account.utils";
 import { Badge } from "@/components/ui/badge";
 import cloudinaryLoader from "@/lib/cloudinary-loader";
 import type { ProductSummary } from "@/features/product/types/product.type";
+import { buildProductPath } from "@/features/product/utils/product-path";
 
 interface ProductCardProps {
   product: ProductSummary;
@@ -17,7 +18,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={buildProductPath(product.slug)}
       className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/8 hover:border-primary/20"
     >
       {/* Hover glow */}

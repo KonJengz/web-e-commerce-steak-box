@@ -4,6 +4,7 @@ import type { ProductSortValue } from "@/features/product/types/product-sort";
 export interface ProductSummary {
   categoryId: string | null;
   categoryName: string | null;
+  categorySlug?: string | null;
   createdAt: string;
   currentPrice: string;
   description: string;
@@ -11,6 +12,7 @@ export interface ProductSummary {
   imageUrl: string | null;
   isActive: boolean;
   name: string;
+  slug: string;
   stock: number;
   updatedAt: string;
 }
@@ -18,6 +20,7 @@ export interface ProductSummary {
 export interface ProductDetail {
   categoryId: string | null;
   categoryName: string | null;
+  categorySlug?: string | null;
   createdAt: string;
   currentPrice: string;
   description: string;
@@ -25,6 +28,7 @@ export interface ProductDetail {
   imageUrl: string | null;
   isActive: boolean;
   name: string;
+  slug: string;
   stock: number;
   updatedAt: string;
 }
@@ -46,6 +50,7 @@ export interface ProductUploadedImage {
 
 export interface ProductQueryOptions {
   categoryId?: string;
+  categorySlug?: string;
   inStock?: boolean;
   limit?: number;
   maxPrice?: number;

@@ -9,6 +9,7 @@ import { CatalogResultsPanelSkeleton } from "@/components/shared/loading-skeleto
 import { Pagination } from "@/components/shared/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CategorySidebar } from "@/features/category/components/category-sidebar";
+import { buildCategoryPath } from "@/features/category/utils/category-path";
 import { ProductGrid } from "@/features/product/components/product-grid";
 import { ProductSortFilter } from "@/features/product/components/product-sort-filter";
 import { categoryService } from "@/features/category/services/category.service";
@@ -258,7 +259,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             {categories.map((category) => (
               <Link
                 key={category.id}
-                href={`/categories/${category.id}`}
+                href={buildCategoryPath(category.slug)}
                 className="hover-lift inline-flex items-center gap-1.5 rounded-2xl border border-border/60 bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
               >
                 {category.name}

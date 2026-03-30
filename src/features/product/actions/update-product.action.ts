@@ -15,6 +15,7 @@ import type {
   ProductUploadedImage,
   UpdateProductActionState,
 } from "@/features/product/types/product.type";
+import { buildProductPath } from "@/features/product/utils/product-path";
 import { ApiError } from "@/lib/api/error";
 
 const updateProductActionSchema = updateProductSchema.extend({
@@ -161,7 +162,7 @@ export async function updateProductAction(
       uploadedCoverImage = uploadedCoverImageResult.data;
     }
 
-    await executeWithAdminServerAuthRetry((accessToken) =>
+    const updatedProduct = await executeWithAdminServerAuthRetry((accessToken) =>
       productService.update(
         accessToken,
         validatedInput.data.productId,
@@ -180,7 +181,7 @@ export async function updateProductAction(
     revalidatePath("/admin/products");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
-    revalidatePath(`/products/${validatedInput.data.productId}`);
+    revalidatePath(buildProductPath(updatedProduct.data.slug));
 
     return {
       message: "Product updated successfully.",

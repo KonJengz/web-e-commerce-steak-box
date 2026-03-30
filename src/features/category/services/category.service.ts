@@ -13,6 +13,7 @@ interface CategoryApiResponse {
   description: string | null;
   id: string;
   name: string;
+  slug: string;
   updated_at: string;
 }
 
@@ -26,6 +27,7 @@ const mapCategory = (category: CategoryApiResponse): Category => {
     description: category.description,
     id: category.id,
     name: category.name,
+    slug: category.slug,
     updatedAt: category.updated_at,
   };
 };
@@ -36,6 +38,19 @@ const getAll = async (): Promise<ApiResult<Category[]>> => {
   return {
     ...result,
     data: result.data.map(mapCategory),
+  };
+};
+
+const getByIdentifier = async (
+  identifier: string,
+): Promise<ApiResult<Category>> => {
+  const result = await api.get<CategoryApiResponse>(
+    `/api/categories/${encodeURIComponent(identifier)}`,
+  );
+
+  return {
+    ...result,
+    data: mapCategory(result.data),
   };
 };
 
@@ -100,6 +115,7 @@ const remove = async (
 export const categoryService = {
   create,
   getAll,
+  getByIdentifier,
   remove,
   update,
 };

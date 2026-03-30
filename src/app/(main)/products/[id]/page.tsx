@@ -9,7 +9,7 @@ import {
   Truck,
   Check,
 } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cache, Suspense } from "react";
 
 import {
@@ -19,22 +19,24 @@ import {
 import { ProductGallerySectionSkeleton } from "@/components/shared/loading-skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { buildCategoryPath } from "@/features/category/utils/category-path";
 import { AddToCartButton } from "@/features/product/components/add-to-cart-button";
 import { ProductGallery } from "@/features/product/components/product-gallery";
 import { productService } from "@/features/product/services/product.service";
 import type { ProductImage } from "@/features/product/types/product.type";
+import { buildProductPath } from "@/features/product/utils/product-path";
 import { ApiError } from "@/lib/api/error";
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-const getProduct = cache(async (productId: string) => {
-  return (await productService.getById(productId)).data;
+const getProduct = cache(async (identifier: string) => {
+  return (await productService.getByIdentifier(identifier)).data;
 });
 
-const getProductImages = cache(async (productId: string) => {
-  return (await productService.getImages(productId)).data;
+const getProductImages = cache(async (identifier: string) => {
+  return (await productService.getImages(identifier)).data;
 });
 
 interface ProductGallerySectionProps {
@@ -68,6 +70,9 @@ export async function generateMetadata({
     const product = await getProduct(resolvedParams.id);
 
     return {
+      alternates: {
+        canonical: buildProductPath(product.slug),
+      },
       title: `${product.name} — Steak Box`,
       description: product.description
         ? product.description.slice(0, 160)
@@ -84,10 +89,11 @@ export default async function ProductDetailPage({
   params,
 }: ProductDetailPageProps) {
   const resolvedParams = await params;
+  const requestedIdentifier = resolvedParams.id;
   let product;
 
   try {
-    product = await getProduct(resolvedParams.id);
+    product = await getProduct(requestedIdentifier);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound();
@@ -96,7 +102,11 @@ export default async function ProductDetailPage({
     throw error;
   }
 
-  const imagesPromise = getProductImages(product.id);
+  if (requestedIdentifier !== product.slug) {
+    permanentRedirect(buildProductPath(product.slug));
+  }
+
+  const imagesPromise = getProductImages(product.slug);
   const isOutOfStock = product.stock <= 0;
 
   const trustSignals = [
@@ -116,10 +126,10 @@ export default async function ProductDetailPage({
           Products
         </Link>
         <ChevronRight className="size-3.5" />
-        {product.categoryName ? (
+        {product.categoryName && product.categoryId ? (
           <>
             <Link
-              href={`/categories/${product.categoryId}`}
+              href={buildCategoryPath(product.categoryId)}
               className="transition-colors hover:text-foreground"
             >
               {product.categoryName}
@@ -147,8 +157,8 @@ export default async function ProductDetailPage({
         <div className="animate-slide-in-right space-y-7">
           {/* Title & Category */}
           <div className="space-y-3">
-            {product.categoryName ? (
-              <Link href={`/categories/${product.categoryId}`}>
+            {product.categoryName && product.categoryId ? (
+              <Link href={buildCategoryPath(product.categoryId)}>
                 <Badge
                   variant="secondary"
                   className="rounded-full px-3 py-1 text-xs font-medium transition-colors hover:bg-secondary/80"

@@ -18,6 +18,7 @@ import type {
   ProductGalleryActionState,
   ProductUploadedImage,
 } from "@/features/product/types/product.type";
+import { buildProductPath } from "@/features/product/utils/product-path";
 import { ApiError } from "@/lib/api/error";
 
 const productIdSchema = z.string().uuid("Invalid product id.");
@@ -183,11 +184,18 @@ const buildApiErrorState = (error: ApiError): ProductGalleryActionState => {
   };
 };
 
-const revalidateProductPaths = (productId: string): void => {
+const revalidateProductPaths = async (productId: string): Promise<void> => {
   revalidatePath("/admin/products");
   revalidatePath("/admin/dashboard");
   revalidatePath("/");
-  revalidatePath(`/products/${productId}`);
+  revalidatePath(buildProductPath(productId));
+
+  try {
+    const product = await productService.getByIdentifier(productId);
+    revalidatePath(buildProductPath(product.data.slug));
+  } catch {
+    // Keep admin mutations resilient even if the public lookup is unavailable.
+  }
 };
 
 const getLatestProductImages = async (
@@ -338,7 +346,7 @@ export async function addProductImagesAction(
     );
     const latestImages = await getLatestProductImages(validatedInput.data.productId);
 
-    revalidateProductPaths(validatedInput.data.productId);
+    await revalidateProductPaths(validatedInput.data.productId);
 
     if (!latestImages.success) {
       return latestImages;
@@ -422,7 +430,7 @@ export async function reorderProductImagesAction(
       ),
     );
 
-    revalidateProductPaths(validatedInput.data.productId);
+    await revalidateProductPaths(validatedInput.data.productId);
 
     return {
       ...(await getLatestProductImages(validatedInput.data.productId)),
@@ -479,7 +487,7 @@ export async function deleteProductImageAction(
       ),
     );
 
-    revalidateProductPaths(validatedInput.data.productId);
+    await revalidateProductPaths(validatedInput.data.productId);
 
     return {
       ...(await getLatestProductImages(validatedInput.data.productId)),

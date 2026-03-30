@@ -3,6 +3,7 @@ export interface Category {
   description: string | null;
   id: string;
   name: string;
+  slug: string;
   updatedAt: string;
 }
 

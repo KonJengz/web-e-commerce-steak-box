@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, Layers } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cache, Suspense } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { CatalogResultsPanelSkeleton } from "@/components/shared/loading-skeleto
 import { Pagination } from "@/components/shared/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CategorySidebar } from "@/features/category/components/category-sidebar";
+import { buildCategoryPath } from "@/features/category/utils/category-path";
 import { ProductGrid } from "@/features/product/components/product-grid";
 import { ProductSortFilter } from "@/features/product/components/product-sort-filter";
 import { categoryService } from "@/features/category/services/category.service";
@@ -40,16 +41,20 @@ const getAllCategories = cache(async () => {
   return (await categoryService.getAll()).data;
 });
 
+const getCategory = cache(async (identifier: string) => {
+  return (await categoryService.getByIdentifier(identifier)).data;
+});
+
 const getCategoryProducts = cache(
   async (
-    categoryId: string,
+    categorySlug: string,
     currentPage: number,
     searchValue: string,
     sortValue: ProductQueryOptions["sort"],
   ) => {
     return (
       await productService.getAll({
-        categoryId,
+        categorySlug,
         limit: 12,
         page: currentPage,
         search: searchValue || undefined,
@@ -60,20 +65,20 @@ const getCategoryProducts = cache(
 );
 
 interface CategoryProductCountBadgeProps {
-  categoryId: string;
+  categorySlug: string;
   currentPage: number;
   searchValue: string;
   sortValue: ProductQueryOptions["sort"];
 }
 
 async function CategoryProductCountBadge({
-  categoryId,
+  categorySlug,
   currentPage,
   searchValue,
   sortValue,
 }: CategoryProductCountBadgeProps) {
   const products = await getCategoryProducts(
-    categoryId,
+    categorySlug,
     currentPage,
     searchValue,
     sortValue,
@@ -87,20 +92,20 @@ async function CategoryProductCountBadge({
 }
 
 interface CategoryResultsSummaryProps {
-  categoryId: string;
+  categorySlug: string;
   currentPage: number;
   searchValue: string;
   sortValue: ProductQueryOptions["sort"];
 }
 
 async function CategoryResultsSummary({
-  categoryId,
+  categorySlug,
   currentPage,
   searchValue,
   sortValue,
 }: CategoryResultsSummaryProps) {
   const products = await getCategoryProducts(
-    categoryId,
+    categorySlug,
     currentPage,
     searchValue,
     sortValue,
@@ -125,20 +130,20 @@ async function CategoryResultsSummary({
 }
 
 interface CategoryResultsListProps {
-  categoryId: string;
+  categorySlug: string;
   currentPage: number;
   searchValue: string;
   sortValue: ProductQueryOptions["sort"];
 }
 
 async function CategoryResultsList({
-  categoryId,
+  categorySlug,
   currentPage,
   searchValue,
   sortValue,
 }: CategoryResultsListProps) {
   const products = await getCategoryProducts(
-    categoryId,
+    categorySlug,
     currentPage,
     searchValue,
     sortValue,
@@ -166,7 +171,7 @@ async function CategoryResultsList({
 
       <div className="pt-6">
         <Pagination
-          basePath={`/categories/${categoryId}`}
+          basePath={buildCategoryPath(categorySlug)}
           currentPage={products.page}
           totalPages={products.totalPages}
           searchParams={paginationSearchParams}
@@ -182,16 +187,12 @@ export async function generateMetadata({
   const resolvedParams = await params;
 
   try {
-    const categories = await getAllCategories();
-    const category = categories.find((cat) => cat.id === resolvedParams.id);
-
-    if (!category) {
-      return {
-        title: "Category Not Found — Steak Box",
-      };
-    }
+    const category = await getCategory(resolvedParams.id);
 
     return {
+      alternates: {
+        canonical: buildCategoryPath(category.slug),
+      },
       title: `${category.name} — Steak Box`,
       description:
         category.description ||
@@ -213,19 +214,26 @@ export default async function CategoryPage({
     searchParams,
   ]);
 
-  const categoryId = resolvedParams.id;
+  const requestedIdentifier = resolvedParams.id;
   const searchValue = getParam(resolvedSearchParams.search);
   const sortValue = normalizeProductSort(getParam(resolvedSearchParams.sort));
   const pageValue = Number.parseInt(getParam(resolvedSearchParams.page), 10);
   const currentPage =
     Number.isFinite(pageValue) && pageValue > 0 ? pageValue : 1;
-  const resultsKey = `${categoryId}:${currentPage}:${searchValue}:${sortValue}`;
   const categories = await getAllCategories();
-  const currentCategory = categories.find((cat) => cat.id === categoryId);
+  let currentCategory;
 
-  if (!currentCategory) {
+  try {
+    currentCategory = await getCategory(requestedIdentifier);
+  } catch {
     notFound();
   }
+
+  if (requestedIdentifier !== currentCategory.slug) {
+    permanentRedirect(buildCategoryPath(currentCategory.slug));
+  }
+
+  const resultsKey = `${currentCategory.slug}:${currentPage}:${searchValue}:${sortValue}`;
 
   return (
     <div className="space-y-8">
@@ -278,7 +286,7 @@ export default async function CategoryPage({
               }
             >
               <CategoryProductCountBadge
-                categoryId={categoryId}
+                categorySlug={currentCategory.slug}
                 currentPage={currentPage}
                 searchValue={searchValue}
                 sortValue={sortValue}
@@ -293,7 +301,7 @@ export default async function CategoryPage({
           <div className="animate-slide-in-left sticky top-24 space-y-4">
             <CategorySidebar
               categories={categories}
-              activeCategoryId={categoryId}
+              activeCategorySlug={currentCategory.slug}
             />
           </div>
         </aside>
@@ -308,14 +316,14 @@ export default async function CategoryPage({
               fallback={<Skeleton className="h-5 w-52" />}
             >
               <CategoryResultsSummary
-                categoryId={categoryId}
+                categorySlug={currentCategory.slug}
                 currentPage={currentPage}
                 searchValue={searchValue}
                 sortValue={sortValue}
               />
             </Suspense>
             <Suspense>
-              <ProductSortFilter basePath={`/categories/${categoryId}`} />
+              <ProductSortFilter basePath={buildCategoryPath(currentCategory.slug)} />
             </Suspense>
           </div>
 
@@ -324,7 +332,7 @@ export default async function CategoryPage({
             fallback={<CatalogResultsPanelSkeleton />}
           >
             <CategoryResultsList
-              categoryId={categoryId}
+              categorySlug={currentCategory.slug}
               currentPage={currentPage}
               searchValue={searchValue}
               sortValue={sortValue}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { CheckCircle2, Loader2, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 
@@ -17,6 +17,7 @@ const SUCCESS_NOTICE_DISMISS_MS = 3000;
 const SUCCESS_NOTICE_FADE_MS = 350;
 
 export function AddToCartButton({ maxStock, productId }: AddToCartButtonProps) {
+  const pathname = usePathname();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [quantity, setQuantity] = useState<number>(1);
@@ -95,7 +96,7 @@ export function AddToCartButton({ maxStock, productId }: AddToCartButtonProps) {
       });
 
       if (result.requiresLogin) {
-        router.push(buildLoginRedirectPath(`/products/${productId}`));
+        router.push(buildLoginRedirectPath(pathname || "/"));
         return;
       }
 

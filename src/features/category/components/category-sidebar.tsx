@@ -2,15 +2,16 @@ import Link from "next/link";
 import { LayoutGrid } from "lucide-react";
 
 import type { Category } from "@/features/category/types/category.type";
+import { buildCategoryPath } from "@/features/category/utils/category-path";
 import { cn } from "@/lib/utils";
 
 interface CategorySidebarProps {
-  activeCategoryId?: string | null;
+  activeCategorySlug?: string | null;
   categories: Category[];
 }
 
 export function CategorySidebar({
-  activeCategoryId = null,
+  activeCategorySlug = null,
   categories,
 }: CategorySidebarProps) {
   return (
@@ -30,7 +31,7 @@ export function CategorySidebar({
           href="/"
           className={cn(
             "flex items-center rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200",
-            !activeCategoryId
+            !activeCategorySlug
               ? "bg-primary/10 text-primary shadow-sm"
               : "text-muted-foreground hover:bg-accent hover:text-foreground",
           )}
@@ -40,10 +41,10 @@ export function CategorySidebar({
         {categories.map((category) => (
           <Link
             key={category.id}
-            href={`/categories/${category.id}`}
+            href={buildCategoryPath(category.slug)}
             className={cn(
               "flex items-center rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200",
-              activeCategoryId === category.id
+              activeCategorySlug === category.slug
                 ? "bg-primary/10 text-primary shadow-sm"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground",
             )}

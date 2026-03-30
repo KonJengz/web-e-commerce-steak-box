@@ -15,6 +15,7 @@ import { removeCartItemAction } from "@/features/cart/actions/remove-cart-item.a
 import { updateCartItemAction } from "@/features/cart/actions/update-cart-item.action";
 import type { CartItem } from "@/features/cart/types/cart.type";
 import { getCartLineTotal } from "@/features/cart/utils/cart-line";
+import { buildProductPath } from "@/features/product/utils/product-path";
 
 interface HeaderCartItemCardProps {
   item: CartItem;
@@ -105,7 +106,7 @@ export function HeaderCartItemCard({ item }: HeaderCartItemCardProps) {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <Link
-                  href={`/products/${item.productId}`}
+                  href={buildProductPath(item.productId)}
                   className="block truncate text-sm font-semibold text-foreground transition-colors hover:text-primary"
                 >
                   {item.productName}

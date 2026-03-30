@@ -18,6 +18,7 @@ import type { ApiResult } from "@/types";
 interface ProductListItemApiResponse {
   category_id: string | null;
   category_name: string | null;
+  category_slug?: string | null;
   created_at: string;
   current_price: string;
   description: string;
@@ -25,6 +26,7 @@ interface ProductListItemApiResponse {
   image_url: string | null;
   is_active: boolean;
   name: string;
+  slug: string;
   stock: number;
   updated_at: string;
 }
@@ -40,6 +42,7 @@ interface ProductListApiResponse {
 interface ProductDetailApiResponse {
   category_id: string | null;
   category_name: string | null;
+  category_slug?: string | null;
   created_at: string;
   current_price: string;
   description: string;
@@ -47,6 +50,7 @@ interface ProductDetailApiResponse {
   image_url: string | null;
   is_active: boolean;
   name: string;
+  slug: string;
   stock: number;
   updated_at: string;
 }
@@ -80,6 +84,7 @@ const mapProductSummary = (
   return {
     categoryId: product.category_id,
     categoryName: product.category_name,
+    categorySlug: product.category_slug ?? null,
     createdAt: product.created_at,
     currentPrice: product.current_price,
     description: product.description,
@@ -87,6 +92,7 @@ const mapProductSummary = (
     imageUrl: product.image_url,
     isActive: product.is_active,
     name: product.name,
+    slug: product.slug,
     stock: product.stock,
     updatedAt: product.updated_at,
   };
@@ -98,6 +104,7 @@ const mapProductDetail = (
   return {
     categoryId: product.category_id,
     categoryName: product.category_name,
+    categorySlug: product.category_slug ?? null,
     createdAt: product.created_at,
     currentPrice: product.current_price,
     description: product.description,
@@ -105,6 +112,7 @@ const mapProductDetail = (
     imageUrl: product.image_url,
     isActive: product.is_active,
     name: product.name,
+    slug: product.slug,
     stock: product.stock,
     updatedAt: product.updated_at,
   };
@@ -144,6 +152,10 @@ const buildProductListPath = (options: ProductQueryOptions = {}): string => {
 
   if (options.categoryId) {
     searchParams.set("category_id", options.categoryId);
+  }
+
+  if (options.categorySlug) {
+    searchParams.set("category_slug", options.categorySlug);
   }
 
   if (typeof options.inStock === "boolean") {
@@ -196,11 +208,11 @@ const getAll = async (
   };
 };
 
-const getById = async (
-  productId: string,
+const getByIdentifier = async (
+  identifier: string,
 ): Promise<ApiResult<ProductDetail>> => {
   const result = await api.get<ProductDetailApiResponse>(
-    `/api/products/${productId}`,
+    `/api/products/${encodeURIComponent(identifier)}`,
   );
 
   return {
@@ -210,10 +222,10 @@ const getById = async (
 };
 
 const getImages = async (
-  productId: string,
+  identifier: string,
 ): Promise<ApiResult<ProductImage[]>> => {
   const result = await api.get<ProductImageApiResponse[]>(
-    `/api/products/${productId}/images`,
+    `/api/products/${encodeURIComponent(identifier)}/images`,
   );
 
   return {
@@ -374,7 +386,7 @@ export const productService = {
   addImage,
   create,
   getAll,
-  getById,
+  getByIdentifier,
   getImages,
   remove,
   removeImage,

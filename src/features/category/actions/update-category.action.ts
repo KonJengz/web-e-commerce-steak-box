@@ -15,6 +15,7 @@ import {
 } from "@/features/category/schemas/category.schema";
 import { categoryService } from "@/features/category/services/category.service";
 import type { UpdateCategoryActionState } from "@/features/category/types/category.type";
+import { buildCategoryPath } from "@/features/category/utils/category-path";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<UpdateCategoryActionState> => {
@@ -74,14 +75,14 @@ export async function updateCategoryAction(
   }
 
   try {
-    await executeWithAdminServerAuthRetry((accessToken) =>
+    const updatedCategory = await executeWithAdminServerAuthRetry((accessToken) =>
       categoryService.update(accessToken, normalizedCategoryId, validatedInput.data),
     );
 
     revalidatePath("/admin/categories");
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/products");
-    revalidatePath(`/categories/${normalizedCategoryId}`);
+    revalidatePath(buildCategoryPath(updatedCategory.data.slug));
     revalidatePath("/");
 
     return {
