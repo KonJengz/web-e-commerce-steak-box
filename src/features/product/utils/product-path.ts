@@ -1,3 +1,5 @@
+import { encodeUrlSegment } from "@/lib/url-segment";
+
 export const buildProductPath = (identifier: string): string => {
-  return `/products/${encodeURIComponent(identifier)}`;
+  return `/products/${encodeUrlSegment(identifier)}`;
 };

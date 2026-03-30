@@ -7,10 +7,10 @@ import {
   Info,
   Shield,
   Truck,
-  Check,
 } from "lucide-react";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cache, Suspense } from "react";
+import type { BreadcrumbList, ListItem, Product } from "schema-dts";
 
 import {
   formatAccountDateTime,
@@ -22,10 +22,14 @@ import { Button } from "@/components/ui/button";
 import { buildCategoryPath } from "@/features/category/utils/category-path";
 import { AddToCartButton } from "@/features/product/components/add-to-cart-button";
 import { ProductGallery } from "@/features/product/components/product-gallery";
+import { StockStatusNotice } from "@/features/product/components/stock-status-notice";
 import { productService } from "@/features/product/services/product.service";
 import type { ProductImage } from "@/features/product/types/product.type";
 import { buildProductPath } from "@/features/product/utils/product-path";
+import { JsonLd } from "@/components/shared/json-ld";
 import { ApiError } from "@/lib/api/error";
+import { buildAbsoluteSiteUrl } from "@/lib/metadata";
+import { normalizeUrlSegment } from "@/lib/url-segment";
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
@@ -65,9 +69,10 @@ export async function generateMetadata({
   params,
 }: ProductDetailPageProps): Promise<Metadata> {
   const resolvedParams = await params;
+  const requestedIdentifier = normalizeUrlSegment(resolvedParams.id);
 
   try {
-    const product = await getProduct(resolvedParams.id);
+    const product = await getProduct(requestedIdentifier);
 
     return {
       alternates: {
@@ -92,6 +97,15 @@ export async function generateMetadata({
         title: `${product.name} — Steak Box`,
         url: buildProductPath(product.slug),
       },
+      other: {
+        "og:price:amount": product.currentPrice.toString(),
+        "og:price:currency": "THB",
+        "product:availability": product.stock > 0 ? "instock" : "oos",
+        "product:brand": "Steak Box",
+        "product:condition": "new",
+        "product:price:amount": product.currentPrice.toString(),
+        "product:price:currency": "THB",
+      },
     };
   } catch {
     return {
@@ -104,7 +118,7 @@ export default async function ProductDetailPage({
   params,
 }: ProductDetailPageProps) {
   const resolvedParams = await params;
-  const requestedIdentifier = resolvedParams.id;
+  const requestedIdentifier = normalizeUrlSegment(resolvedParams.id);
   let product;
 
   try {
@@ -122,16 +136,68 @@ export default async function ProductDetailPage({
   }
 
   const imagesPromise = getProductImages(product.slug);
-  const isOutOfStock = product.stock <= 0;
 
   const trustSignals = [
     { icon: Truck, title: "Fast Delivery", description: "Within 2-3 days" },
     { icon: Shield, title: "Quality Certified", description: "Premium grade" },
     { icon: Box, title: "Cold-Chain", description: "Temperature safe" },
   ];
+  const breadcrumbItems: ListItem[] = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Products",
+      item: buildAbsoluteSiteUrl("/"),
+    },
+    ...(product.categoryName
+      ? [
+          {
+            "@type": "ListItem" as const,
+            position: 2,
+            name: product.categoryName,
+            item: buildAbsoluteSiteUrl(
+              buildCategoryPath(product.categorySlug ?? product.categoryId!),
+            ),
+          },
+        ]
+      : []),
+    {
+      "@type": "ListItem",
+      position: product.categoryName ? 3 : 2,
+      name: product.name,
+      item: buildAbsoluteSiteUrl(buildProductPath(product.slug)),
+    },
+  ];
 
   return (
     <div className="py-2 sm:py-6">
+      <JsonLd<Product>
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          image: product.imageUrl ? [product.imageUrl] : [],
+          description: product.description || undefined,
+          sku: product.id,
+          offers: {
+            "@type": "Offer",
+            url: buildAbsoluteSiteUrl(buildProductPath(product.slug)),
+            priceCurrency: "THB",
+            price: product.currentPrice,
+            availability: product.stock > 0
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+            itemCondition: "https://schema.org/NewCondition",
+          },
+        }}
+      />
+      <JsonLd<BreadcrumbList>
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: breadcrumbItems,
+        }}
+      />
       {/* Breadcrumb */}
       <nav
         aria-label="Breadcrumb"
@@ -193,24 +259,14 @@ export default async function ProductDetailPage({
               {formatCurrency(product.currentPrice)}
             </p>
             <div className="flex items-center gap-3">
-              <Badge
-                variant={isOutOfStock ? "destructive" : "secondary"}
-                className={
-                  isOutOfStock
-                    ? "rounded-full px-3 py-1"
-                    : "rounded-full bg-emerald-500/12 px-3 py-1 text-emerald-700 dark:text-emerald-300"
-                }
-              >
-                {isOutOfStock ? "Out of Stock" : (
-                  <><Check className="mr-1 size-3" />{product.stock} in stock</>
-                )}
-              </Badge>
               {product.isActive ? null : (
                 <Badge variant="outline" className="rounded-full px-3 py-1">
                   Inactive
                 </Badge>
               )}
             </div>
+            
+            <StockStatusNotice stock={product.stock} />
           </div>
 
           {/* Divider */}

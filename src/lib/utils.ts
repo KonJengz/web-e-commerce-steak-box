@@ -12,3 +12,18 @@ export const simLoading = (seconds: number = 2) => {
     }, seconds * 1000);
   });
 };
+export async function copyToClipboard(text: string): Promise<boolean> {
+  if (!navigator.clipboard) {
+    return false;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+
+    return true;
+  } catch (error) {
+    console.error("Failed to copy text: ", error);
+
+    return false;
+  }
+}

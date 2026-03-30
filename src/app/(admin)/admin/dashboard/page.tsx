@@ -42,9 +42,9 @@ import type { Category } from "@/features/category/types/category.type";
 import { productService } from "@/features/product/services/product.service";
 import type { ProductSummary } from "@/features/product/types/product.type";
 import cloudinaryLoader from "@/lib/cloudinary-loader";
+import { INVENTORY_THRESHOLDS } from "@/lib/inventory-config";
 import { cn } from "@/lib/utils";
 
-const LOW_STOCK_THRESHOLD = 5;
 const RECENT_CATEGORY_LIMIT = 5;
 const RECENT_PRODUCTS_LIMIT = 6;
 
@@ -107,7 +107,7 @@ const getAdminDashboardData = cache(async (): Promise<AdminDashboardData> => {
   const stockCoverage =
     totalProducts > 0 ? Math.round((inStockProducts / totalProducts) * 100) : 0;
   const recentLowStockCount = latestProducts.filter(
-    (product) => product.stock > 0 && product.stock <= LOW_STOCK_THRESHOLD,
+    (product) => product.stock > 0 && product.stock <= INVENTORY_THRESHOLDS.LOW,
   ).length;
   const recentUncategorizedCount = latestProducts.filter(
     (product) => !product.categoryName,
@@ -220,7 +220,7 @@ function ProductAvailabilityBadge({
     );
   }
 
-  if (stock <= LOW_STOCK_THRESHOLD) {
+  if (stock <= INVENTORY_THRESHOLDS.LOW) {
     return (
       <Badge
         variant="secondary"
@@ -323,7 +323,7 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
 
   const signals = [
     {
-      hint: `Newest products with ${LOW_STOCK_THRESHOLD} units or fewer.`,
+      hint: `Newest products with ${INVENTORY_THRESHOLDS.LOW} units or fewer.`,
       label: "Recent low stock",
       value: formatCount(dashboardData.recentLowStockCount),
     },

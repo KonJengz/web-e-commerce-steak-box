@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { addressService } from "@/features/address/services/address.service";
 import { executeProtectedRequestOrRedirect } from "@/features/auth/services/current-user.service";
 import { OrderPaymentSlipForm } from "@/features/order/components/order-payment-slip-form";
+import { PaymentInstructions } from "@/features/order/components/payment-instructions";
 import { OrderStatusBadge } from "@/features/order/components/order-status-badge";
 import { orderService } from "@/features/order/services/order.service";
 import {
@@ -130,6 +131,10 @@ export default async function OrderDetailPage({
             </div>
           </div>
         </section>
+      ) : null}
+
+      {canUploadSlip ? (
+        <PaymentInstructions />
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">

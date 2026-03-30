@@ -40,6 +40,7 @@ import {
 } from "@/features/product/types/product-sort";
 import type { ProductSummary } from "@/features/product/types/product.type";
 import cloudinaryLoader from "@/lib/cloudinary-loader";
+import { INVENTORY_THRESHOLDS } from "@/lib/inventory-config";
 import { cn } from "@/lib/utils";
 
 interface AdminProductsPageProps {
@@ -156,6 +157,63 @@ async function AdminProductsCreateSection() {
   const categories = await getAdminCategories();
 
   return <AdminProductCreateForm categories={categories} />;
+}
+
+async function AdminInventorySnapshot() {
+  const [totalResult, inStockResult] = await Promise.all([
+    productService.getAll({ limit: 1, page: 1 }),
+    productService.getAll({ inStock: true, limit: 1, page: 1 }),
+  ]);
+
+  const total = totalResult.data.total;
+  const inStock = inStockResult.data.total;
+  const outOfStock = total - inStock;
+  const stockCoverage = total > 0 ? Math.round((inStock / total) * 100) : 0;
+
+  return (
+    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
+        <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+          Total Products
+        </p>
+        <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+          {total}
+        </p>
+      </div>
+      <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
+        <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+          Stock Coverage
+        </p>
+        <div className="mt-2 flex items-baseline gap-2">
+          <p className="text-2xl font-bold tracking-tight text-foreground">
+            {stockCoverage}%
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {inStock} / {total}
+          </p>
+        </div>
+      </div>
+      <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
+        <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+          Out of Stock
+        </p>
+        <p className={cn(
+          "mt-2 text-2xl font-bold tracking-tight",
+          outOfStock > 0 ? "text-destructive" : "text-foreground"
+        )}>
+          {outOfStock}
+        </p>
+      </div>
+      <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
+        <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+          Low Stock Threshold
+        </p>
+        <p className="mt-2 text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+          {"<"} {INVENTORY_THRESHOLDS.LOW + 1} units
+        </p>
+      </div>
+    </section>
+  );
 }
 
 function AdminProductPreviewImage({
@@ -587,6 +645,14 @@ export default async function AdminProductsPage({
 
       <Suspense fallback={<AdminProductCreateSectionSkeleton />}>
         <AdminProductsCreateSection />
+      </Suspense>
+
+      <Suspense fallback={<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Skeleton key={i} className="h-24 rounded-2xl" />
+        ))}
+      </div>}>
+        <AdminInventorySnapshot />
       </Suspense>
 
       <Suspense fallback={<AdminProductDirectorySkeleton />}>

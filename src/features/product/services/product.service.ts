@@ -14,6 +14,7 @@ import type {
 } from "@/features/product/types/product.type";
 import { api } from "@/lib/api/client";
 import { PUBLIC_PRODUCTS_CACHE_TAG } from "@/lib/cache-tags";
+import { encodeUrlSegment } from "@/lib/url-segment";
 import type { ApiResult } from "@/types";
 
 interface ProductListItemApiResponse {
@@ -243,7 +244,7 @@ const getByIdentifier = async (
   identifier: string,
 ): Promise<ApiResult<ProductDetail>> => {
   const result = await api.get<ProductDetailApiResponse>(
-    `/api/products/${encodeURIComponent(identifier)}`,
+    `/api/products/${encodeUrlSegment(identifier)}`,
   );
 
   return {
@@ -256,7 +257,7 @@ const getPublicByIdentifier = async (
   identifier: string,
 ): Promise<ApiResult<ProductDetail>> => {
   const result = await api.get<ProductDetailApiResponse>(
-    `/api/products/${encodeURIComponent(identifier)}`,
+    `/api/products/${encodeUrlSegment(identifier)}`,
     PUBLIC_PRODUCT_FETCH_OPTIONS,
   );
 
@@ -270,7 +271,7 @@ const getImages = async (
   identifier: string,
 ): Promise<ApiResult<ProductImage[]>> => {
   const result = await api.get<ProductImageApiResponse[]>(
-    `/api/products/${encodeURIComponent(identifier)}/images`,
+    `/api/products/${encodeUrlSegment(identifier)}/images`,
   );
 
   return {
@@ -283,7 +284,7 @@ const getPublicImages = async (
   identifier: string,
 ): Promise<ApiResult<ProductImage[]>> => {
   const result = await api.get<ProductImageApiResponse[]>(
-    `/api/products/${encodeURIComponent(identifier)}/images`,
+    `/api/products/${encodeUrlSegment(identifier)}/images`,
     PUBLIC_PRODUCT_FETCH_OPTIONS,
   );
 

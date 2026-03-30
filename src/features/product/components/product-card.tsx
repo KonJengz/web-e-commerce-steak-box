@@ -7,13 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import cloudinaryLoader from "@/lib/cloudinary-loader";
 import type { ProductSummary } from "@/features/product/types/product.type";
 import { buildProductPath } from "@/features/product/utils/product-path";
+import { cn } from "@/lib/utils";
+
+import { INVENTORY_THRESHOLDS } from "@/lib/inventory-config";
 
 interface ProductCardProps {
   product: ProductSummary;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const isOutOfStock = product.stock <= 0;
+  const isOutOfStock = product.stock <= INVENTORY_THRESHOLDS.CRITICAL;
+  const isLowStock = product.stock > 0 && product.stock <= INVENTORY_THRESHOLDS.LOW;
   const hasDescription = product.description.trim().length > 0;
 
   return (
@@ -89,8 +93,15 @@ export function ProductCard({ product }: ProductCardProps) {
             </p>
           ) : null}
           {!isOutOfStock ? (
-            <p className="text-xs text-muted-foreground">
-              {product.stock} in stock
+            <p
+              className={cn(
+                "text-xs font-semibold",
+                isLowStock
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-muted-foreground",
+              )}
+            >
+              {isLowStock ? `Only ${product.stock} left` : `${product.stock} in stock`}
             </p>
           ) : null}
         </div>

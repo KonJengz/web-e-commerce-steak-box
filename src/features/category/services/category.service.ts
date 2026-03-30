@@ -7,6 +7,7 @@ import type {
 import type { Category } from "@/features/category/types/category.type";
 import { api } from "@/lib/api/client";
 import { PUBLIC_CATEGORIES_CACHE_TAG } from "@/lib/cache-tags";
+import { encodeUrlSegment } from "@/lib/url-segment";
 import type { ApiResult } from "@/types";
 
 interface CategoryApiResponse {
@@ -66,7 +67,7 @@ const getByIdentifier = async (
   identifier: string,
 ): Promise<ApiResult<Category>> => {
   const result = await api.get<CategoryApiResponse>(
-    `/api/categories/${encodeURIComponent(identifier)}`,
+    `/api/categories/${encodeUrlSegment(identifier)}`,
   );
 
   return {
@@ -79,7 +80,7 @@ const getPublicByIdentifier = async (
   identifier: string,
 ): Promise<ApiResult<Category>> => {
   const result = await api.get<CategoryApiResponse>(
-    `/api/categories/${encodeURIComponent(identifier)}`,
+    `/api/categories/${encodeUrlSegment(identifier)}`,
     PUBLIC_CATEGORY_FETCH_OPTIONS,
   );
 

@@ -12,6 +12,7 @@ import { CategorySidebar } from "@/features/category/components/category-sidebar
 import { buildCategoryPath } from "@/features/category/utils/category-path";
 import { ProductGrid } from "@/features/product/components/product-grid";
 import { ProductSortFilter } from "@/features/product/components/product-sort-filter";
+import { JsonLd } from "@/components/shared/json-ld";
 import { categoryService } from "@/features/category/services/category.service";
 import { productService } from "@/features/product/services/product.service";
 import type { ProductQueryOptions } from "@/features/product/types/product.type";
@@ -19,6 +20,8 @@ import {
   DEFAULT_PRODUCT_SORT,
   normalizeProductSort,
 } from "@/features/product/types/product-sort";
+import { buildAbsoluteSiteUrl } from "@/lib/metadata";
+import { normalizeUrlSegment } from "@/lib/url-segment";
 
 interface CategoryPageProps {
   params: Promise<{ id: string }>;
@@ -185,9 +188,10 @@ export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
   const resolvedParams = await params;
+  const requestedIdentifier = normalizeUrlSegment(resolvedParams.id);
 
   try {
-    const category = await getCategory(resolvedParams.id);
+    const category = await getCategory(requestedIdentifier);
 
     return {
       alternates: {
@@ -221,7 +225,7 @@ export default async function CategoryPage({
     searchParams,
   ]);
 
-  const requestedIdentifier = resolvedParams.id;
+  const requestedIdentifier = normalizeUrlSegment(resolvedParams.id);
   const searchValue = getParam(resolvedSearchParams.search);
   const sortValue = normalizeProductSort(getParam(resolvedSearchParams.sort));
   const pageValue = Number.parseInt(getParam(resolvedSearchParams.page), 10);
@@ -244,6 +248,26 @@ export default async function CategoryPage({
 
   return (
     <div className="space-y-8">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Products",
+              item: buildAbsoluteSiteUrl("/"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: currentCategory.name,
+              item: buildAbsoluteSiteUrl(buildCategoryPath(currentCategory.slug)),
+            },
+          ],
+        }}
+      />
       {/* Breadcrumb */}
       <nav
         aria-label="Breadcrumb"
