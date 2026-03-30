@@ -4,12 +4,15 @@ import { Suspense, cache } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  AlertTriangle,
-  ArrowRight,
   Boxes,
+  ClipboardList,
+  CreditCard,
+  History,
+  LayoutDashboard,
   type LucideIcon,
-  Tags,
-  TrendingUp,
+  Package,
+  ShieldCheck,
+  Truck,
 } from "lucide-react";
 
 import {
@@ -40,8 +43,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { categoryService } from "@/features/category/services/category.service";
 import type { Category } from "@/features/category/types/category.type";
+import { executeWithAdminServerAuthRetry } from "@/features/auth/services/server-auth-execution.service";
 import { productService } from "@/features/product/services/product.service";
 import type { ProductSummary } from "@/features/product/types/product.type";
+import { orderService } from "@/features/order/services/order.service";
+import type { 
+  AdminOrder, 
+  AdminOrderSummary 
+} from "@/features/order/types/order.type";
 import cloudinaryLoader from "@/lib/cloudinary-loader";
 import { INVENTORY_THRESHOLDS } from "@/lib/inventory-config";
 import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
@@ -73,7 +82,9 @@ interface AdminDashboardData {
   inStockProducts: number;
   lastUpdatedAt: string | null;
   latestCategories: Category[];
+  latestOrders: AdminOrder[];
   latestProducts: ProductSummary[];
+  orderSummary: AdminOrderSummary;
   outOfStockProducts: number;
   recentCategorySpread: number;
   recentLowStockCount: number;
@@ -88,6 +99,7 @@ const getAdminDashboardData = cache(async (): Promise<AdminDashboardData> => {
     recentProductsResult,
     totalProductsResult,
     inStockProductsResult,
+    ordersResult,
   ] = await Promise.all([
     categoryService.getAll(),
     productService.getAll({
@@ -104,6 +116,12 @@ const getAdminDashboardData = cache(async (): Promise<AdminDashboardData> => {
       limit: 1,
       page: 1,
     }),
+    executeWithAdminServerAuthRetry((accessToken) =>
+      orderService.getAdminAll(accessToken, {
+        limit: 5,
+        page: 1,
+      })
+    ),
   ]);
 
   const categories = categoriesResult.data;
@@ -131,7 +149,14 @@ const getAdminDashboardData = cache(async (): Promise<AdminDashboardData> => {
       );
     })
     .slice(0, RECENT_CATEGORY_LIMIT);
-  const lastUpdatedAt = [...latestProducts.map((product) => product.updatedAt), ...categories.map((category) => category.updatedAt)]
+  const latestOrders = ordersResult.data.items;
+  const orderSummary = ordersResult.data.summary;
+
+  const lastUpdatedAt = [
+    ...latestProducts.map((product) => product.updatedAt),
+    ...categories.map((category) => category.updatedAt),
+    ...latestOrders.map((order) => order.updatedAt),
+  ]
     .sort((left, right) => {
       return new Date(right).getTime() - new Date(left).getTime();
     })
@@ -142,7 +167,9 @@ const getAdminDashboardData = cache(async (): Promise<AdminDashboardData> => {
     inStockProducts,
     lastUpdatedAt,
     latestCategories,
+    latestOrders,
     latestProducts,
+    orderSummary,
     outOfStockProducts,
     recentCategorySpread,
     recentLowStockCount,
@@ -274,13 +301,13 @@ async function AdminDashboardHeroBadges(): Promise<JSX.Element> {
         variant="secondary"
         className={adminHeroPrimaryBadgeClassName}
       >
-        {formatCount(dashboardData.totalProducts)} products tracked
+        {formatCount(dashboardData.orderSummary.all)} orders life-to-date
       </Badge>
       <Badge
         variant="secondary"
         className={adminHeroSecondaryBadgeClassName}
       >
-        {dashboardData.stockCoverage}% stocked · {formatCount(dashboardData.categories.length)} categories
+        {dashboardData.orderSummary.paymentReview} awaiting review · {dashboardData.orderSummary.paid} to ship
       </Badge>
     </>
   );
@@ -291,58 +318,50 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
 
   const metrics = [
     {
-      hint:
-        dashboardData.totalProducts === 0
-          ? "No products are in the catalog yet."
-          : "Products currently tracked in the catalog.",
-      icon: Boxes,
+      hint: "Total value of items currently tracked in the catalog.",
+      icon: Package,
       label: "Products",
       value: formatCount(dashboardData.totalProducts),
     },
     {
-      hint:
-        dashboardData.inStockProducts === 0
-          ? "Nothing is sellable right now."
-          : "Products with sellable stock right now.",
-      icon: TrendingUp,
-      label: "In Stock",
-      value: formatCount(dashboardData.inStockProducts),
+      hint: "Total orders processed through the system.",
+      icon: ClipboardList,
+      label: "Total Orders",
+      value: formatCount(dashboardData.orderSummary.all),
     },
     {
-      hint:
-        dashboardData.outOfStockProducts === 0
-          ? "No products need a restock pass."
-          : "Products that need replenishment next.",
-      icon: AlertTriangle,
-      label: "Needs Restock",
-      value: formatCount(dashboardData.outOfStockProducts),
+      hint: "Payments currently held for manual confirmation.",
+      icon: CreditCard,
+      label: "Payment Review",
+      value: formatCount(dashboardData.orderSummary.paymentReview),
     },
     {
-      hint:
-        dashboardData.categories.length === 0
-          ? "Create the first category before scaling."
-          : "Categories used for filters and merchandising.",
-      icon: Tags,
-      label: "Categories",
-      value: formatCount(dashboardData.categories.length),
+      hint: "Confirmed orders waiting for fulfillment.",
+      icon: Truck,
+      label: "Pending Ship",
+      value: formatCount(dashboardData.orderSummary.paid),
     },
   ] satisfies DashboardMetric[];
 
   const signals = [
     {
-      hint: `Newest products with ${INVENTORY_THRESHOLDS.LOW} units or fewer.`,
+      hint: "Newest products with stock issues.",
       label: "Recent low stock",
       value: formatCount(dashboardData.recentLowStockCount),
     },
     {
-      hint: "Newest products that still need a category.",
-      label: "Recent uncategorized",
-      value: formatCount(dashboardData.recentUncategorizedCount),
+      hint: "Orders waiting for tracking numbers.",
+      label: "Awaiting fulfillment",
+      value: formatCount(dashboardData.orderSummary.paid),
     },
     {
-      hint: `Distinct categories across the latest ${dashboardData.latestProducts.length || RECENT_PRODUCTS_LIMIT} products.`,
-      label: "Recent category spread",
-      value: formatCount(dashboardData.recentCategorySpread),
+      hint: "Order statuses requiring attention.",
+      label: "Actionable orders",
+      value: formatCount(
+        dashboardData.orderSummary.paymentReview +
+          dashboardData.orderSummary.paymentFailed +
+          dashboardData.orderSummary.pending
+      ),
     },
   ] satisfies DashboardSignal[];
 
@@ -389,41 +408,43 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
                   <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
-                    Stock Coverage
+                    Fulfillment Progress
                   </p>
                   <p className="text-3xl font-semibold tracking-tight text-foreground">
-                    {dashboardData.stockCoverage}%
+                    {dashboardData.orderSummary.all > 0 
+                      ? Math.round(((dashboardData.orderSummary.delivered) / (dashboardData.orderSummary.all - dashboardData.orderSummary.cancelled)) * 100) 
+                      : 0}%
                   </p>
                 </div>
                 <Badge
                   variant="secondary"
                   className={cn(adminMutedBadgeClassName, "text-xs")}
                 >
-                  {formatCount(dashboardData.inStockProducts)} / {formatCount(dashboardData.totalProducts)} stocked
+                  {dashboardData.orderSummary.delivered} / {formatCount(dashboardData.orderSummary.all - dashboardData.orderSummary.cancelled)} shipped
                 </Badge>
               </div>
 
               <div className="mt-5 h-3 overflow-hidden rounded-full bg-muted/50">
                 <div
                   className="h-full rounded-full bg-linear-to-r from-primary via-primary to-[#f6c168] transition-all duration-500"
-                  style={{ width: `${dashboardData.stockCoverage}%` }}
+                  style={{ width: `${dashboardData.orderSummary.all > 0 ? (dashboardData.orderSummary.delivered / (dashboardData.orderSummary.all - dashboardData.orderSummary.cancelled)) * 100 : 0}%` }}
                 />
               </div>
 
               <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                {dashboardData.outOfStockProducts === 0
-                  ? "Everything currently has stock."
-                  : `${formatCount(dashboardData.outOfStockProducts)} products are out of stock right now.`}
+                {dashboardData.orderSummary.paymentReview > 0
+                  ? `There are ${dashboardData.orderSummary.paymentReview} orders waiting for payment verification.`
+                  : "No pending payment reviews at the moment."}
               </p>
             </section>
 
             <section className="rounded-[1.6rem] border border-border/60 bg-background/96 p-5">
               <div className="space-y-1">
                 <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
-                  Recent Signals
+                  Order Signals
                 </p>
                 <p className="text-lg font-semibold tracking-tight text-foreground">
-                  Latest batch watchlist
+                  Fulfillment watchlist
                 </p>
               </div>
 
@@ -458,46 +479,48 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
 
           <div className="space-y-3">
             <Link
-              href="/admin/products?view=list"
+              href="/admin/orders?status=PAYMENT_REVIEW"
               className="group flex items-center justify-between rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-4 transition-colors hover:bg-white/10"
             >
               <div className="space-y-1">
                 <p className="text-sm font-medium text-white">
-                  Review inventory list
+                  Verifying slips ({dashboardData.orderSummary.paymentReview})
                 </p>
                 <p className="text-xs leading-5 text-white/55">
-                  Check stock, edits, and gallery changes.
+                  Confirm payments waiting for review.
                 </p>
               </div>
-              <ArrowRight className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
+              <ShieldCheck className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
             </Link>
 
             <Link
-              href="/admin/products"
-              className="group flex items-center justify-between rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-4 transition-colors hover:bg-white/10"
-            >
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-white">Add a new product</p>
-                <p className="text-xs leading-5 text-white/55">
-                  Start a new SKU with media and stock.
-                </p>
-              </div>
-              <ArrowRight className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
-            </Link>
-
-            <Link
-              href="/admin/categories"
+              href="/admin/orders?status=PAID"
               className="group flex items-center justify-between rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-4 transition-colors hover:bg-white/10"
             >
               <div className="space-y-1">
                 <p className="text-sm font-medium text-white">
-                  Adjust category structure
+                  Fulfilling paid ({dashboardData.orderSummary.paid})
                 </p>
                 <p className="text-xs leading-5 text-white/55">
-                  Keep taxonomy and filters clean.
+                  Ship orders and add tracking numbers.
                 </p>
               </div>
-              <ArrowRight className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
+              <History className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
+            </Link>
+
+            <Link
+              href="/admin/orders"
+              className="group flex items-center justify-between rounded-[1.4rem] border border-white/10 bg-white/6 px-4 py-4 transition-colors hover:bg-white/10"
+            >
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-white">
+                  View full order queue
+                </p>
+                <p className="text-xs leading-5 text-white/55">
+                  Search, filter, and audit across history.
+                </p>
+              </div>
+              <LayoutDashboard className="size-4 text-[#f6c168] transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
 
