@@ -1,6 +1,10 @@
 import "server-only";
 
-import type { UpdateAdminOrderValues } from "@/features/order/schemas/order.schema";
+import type {
+  CreateOrderInput,
+  OrderPaymentSlipValues,
+  UpdateAdminOrderValues,
+} from "@/features/order/schemas/order.schema";
 import {
   normalizeOrderStatus,
   type OrderStatus,
@@ -227,6 +231,32 @@ const getAll = async (
   };
 };
 
+const create = async (
+  accessToken: string,
+  input: CreateOrderInput,
+): Promise<ApiResult<OrderDetail>> => {
+  const result = await api.post<OrderDetailApiResponse>(
+    "/api/orders",
+    {
+      items: input.items.map((item) => ({
+        product_id: item.productId,
+        quantity: item.quantity,
+      })),
+      shipping_address_id: input.shippingAddressId,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  return {
+    ...result,
+    data: mapOrderDetail(result.data),
+  };
+};
+
 const getById = async (
   accessToken: string,
   orderId: string,
@@ -236,6 +266,31 @@ const getById = async (
       Authorization: `Bearer ${accessToken}`,
     },
   });
+
+  return {
+    ...result,
+    data: mapOrderDetail(result.data),
+  };
+};
+
+const uploadPaymentSlip = async (
+  accessToken: string,
+  orderId: string,
+  input: OrderPaymentSlipValues,
+): Promise<ApiResult<OrderDetail>> => {
+  const formData = new FormData();
+
+  formData.set("slip", input.slip);
+
+  const result = await api.put<OrderDetailApiResponse>(
+    `/api/orders/${orderId}/payment-slip`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
 
   return {
     ...result,
@@ -318,9 +373,11 @@ const updateAdmin = async (
 };
 
 export const orderService = {
+  create,
   getAll,
   getAdminAll,
   getAdminById,
   getById,
+  uploadPaymentSlip,
   updateAdmin,
 };

@@ -13,6 +13,7 @@ import { executeProtectedRequestOrRedirect } from "@/features/auth/services/curr
 import { OrderStatusBadge } from "@/features/order/components/order-status-badge";
 import { orderService } from "@/features/order/services/order.service";
 import { getOrderStatusLabel } from "@/features/order/types/order-status";
+import { buildAccountOrderPath } from "@/features/order/utils/order-path";
 
 interface OrdersPageProps {
   searchParams: Promise<{ page?: string | string[] }>;
@@ -124,6 +125,15 @@ export default async function OrdersPage({
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-5 flex justify-end">
+                  <Button asChild variant="outline" className="rounded-full">
+                    <Link href={buildAccountOrderPath(order.id)}>
+                      View Details
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
                 </div>
               </article>
             ))}

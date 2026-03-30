@@ -24,6 +24,17 @@ export interface OrderItem {
   quantity: number;
 }
 
+export interface CreateOrderActionState {
+  fieldErrors?: {
+    shippingAddressId?: string[];
+  };
+  message?: string;
+  order?: OrderDetail;
+  redirectTo?: string;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}
+
 export interface OrderDetail extends Order {
   items: OrderItem[];
 }
@@ -69,6 +80,16 @@ export interface UpdateAdminOrderActionState {
   message?: string;
   order?: AdminOrderDetail;
   requiresAdmin?: boolean;
+  requiresReauthentication?: boolean;
+  success: boolean;
+}
+
+export interface UploadOrderPaymentSlipActionState {
+  fieldErrors?: {
+    slip?: string[];
+  };
+  message?: string;
+  order?: OrderDetail;
   requiresReauthentication?: boolean;
   success: boolean;
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -19,6 +19,7 @@ import type {
   ProductUploadedImage,
 } from "@/features/product/types/product.type";
 import { buildProductPath } from "@/features/product/utils/product-path";
+import { PUBLIC_PRODUCTS_CACHE_TAG } from "@/lib/cache-tags";
 import { ApiError } from "@/lib/api/error";
 
 const productIdSchema = z.string().uuid("Invalid product id.");
@@ -188,6 +189,7 @@ const revalidateProductPaths = async (productId: string): Promise<void> => {
   revalidatePath("/admin/products");
   revalidatePath("/admin/dashboard");
   revalidatePath("/");
+  revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
   revalidatePath(buildProductPath(productId));
 
   try {

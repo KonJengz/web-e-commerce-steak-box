@@ -32,11 +32,11 @@ interface ProductDetailPageProps {
 }
 
 const getProduct = cache(async (identifier: string) => {
-  return (await productService.getByIdentifier(identifier)).data;
+  return (await productService.getPublicByIdentifier(identifier)).data;
 });
 
 const getProductImages = cache(async (identifier: string) => {
-  return (await productService.getImages(identifier)).data;
+  return (await productService.getPublicImages(identifier)).data;
 });
 
 interface ProductGallerySectionProps {
@@ -77,6 +77,21 @@ export async function generateMetadata({
       description: product.description
         ? product.description.slice(0, 160)
         : `Shop ${product.name} at Steak Box. Premium quality, delivered fresh.`,
+      openGraph: {
+        description: product.description
+          ? product.description.slice(0, 160)
+          : `Shop ${product.name} at Steak Box. Premium quality, delivered fresh.`,
+        images: product.imageUrl
+          ? [
+              {
+                alt: product.name,
+                url: product.imageUrl,
+              },
+            ]
+          : undefined,
+        title: `${product.name} — Steak Box`,
+        url: buildProductPath(product.slug),
+      },
     };
   } catch {
     return {

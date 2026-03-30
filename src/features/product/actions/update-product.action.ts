@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -16,6 +16,8 @@ import type {
   UpdateProductActionState,
 } from "@/features/product/types/product.type";
 import { buildProductPath } from "@/features/product/utils/product-path";
+import { buildCategoryPath } from "@/features/category/utils/category-path";
+import { PUBLIC_PRODUCTS_CACHE_TAG } from "@/lib/cache-tags";
 import { ApiError } from "@/lib/api/error";
 
 const updateProductActionSchema = updateProductSchema.extend({
@@ -182,6 +184,10 @@ export async function updateProductAction(
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
     revalidatePath(buildProductPath(updatedProduct.data.slug));
+    if (updatedProduct.data.categorySlug) {
+      revalidatePath(buildCategoryPath(updatedProduct.data.categorySlug));
+    }
+    revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
 
     return {
       message: "Product updated successfully.",

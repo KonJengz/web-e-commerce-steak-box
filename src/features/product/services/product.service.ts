@@ -13,6 +13,7 @@ import type {
   ProductUploadedImage,
 } from "@/features/product/types/product.type";
 import { api } from "@/lib/api/client";
+import { PUBLIC_PRODUCTS_CACHE_TAG } from "@/lib/cache-tags";
 import type { ApiResult } from "@/types";
 
 interface ProductListItemApiResponse {
@@ -77,6 +78,14 @@ interface ProductUploadImageApiResponse {
 interface ProductImagesMutationApiResponse {
   images: ProductImageApiResponse[];
 }
+
+const PUBLIC_PRODUCT_FETCH_OPTIONS = {
+  cache: "force-cache" as const,
+  next: {
+    revalidate: 300,
+    tags: [PUBLIC_PRODUCTS_CACHE_TAG],
+  },
+};
 
 const mapProductSummary = (
   product: ProductListItemApiResponse,
@@ -194,7 +203,29 @@ const buildProductListPath = (options: ProductQueryOptions = {}): string => {
 const getAll = async (
   options: ProductQueryOptions = {},
 ): Promise<ApiResult<ProductListResult>> => {
-  const result = await api.get<ProductListApiResponse>(buildProductListPath(options));
+  const result = await api.get<ProductListApiResponse>(
+    buildProductListPath(options),
+  );
+
+  return {
+    ...result,
+    data: {
+      items: result.data.data.map(mapProductSummary),
+      limit: result.data.limit,
+      page: result.data.page,
+      total: result.data.total,
+      totalPages: result.data.total_pages,
+    },
+  };
+};
+
+const getPublicAll = async (
+  options: ProductQueryOptions = {},
+): Promise<ApiResult<ProductListResult>> => {
+  const result = await api.get<ProductListApiResponse>(
+    buildProductListPath(options),
+    PUBLIC_PRODUCT_FETCH_OPTIONS,
+  );
 
   return {
     ...result,
@@ -221,11 +252,39 @@ const getByIdentifier = async (
   };
 };
 
+const getPublicByIdentifier = async (
+  identifier: string,
+): Promise<ApiResult<ProductDetail>> => {
+  const result = await api.get<ProductDetailApiResponse>(
+    `/api/products/${encodeURIComponent(identifier)}`,
+    PUBLIC_PRODUCT_FETCH_OPTIONS,
+  );
+
+  return {
+    ...result,
+    data: mapProductDetail(result.data),
+  };
+};
+
 const getImages = async (
   identifier: string,
 ): Promise<ApiResult<ProductImage[]>> => {
   const result = await api.get<ProductImageApiResponse[]>(
     `/api/products/${encodeURIComponent(identifier)}/images`,
+  );
+
+  return {
+    ...result,
+    data: result.data.map(mapProductImage),
+  };
+};
+
+const getPublicImages = async (
+  identifier: string,
+): Promise<ApiResult<ProductImage[]>> => {
+  const result = await api.get<ProductImageApiResponse[]>(
+    `/api/products/${encodeURIComponent(identifier)}/images`,
+    PUBLIC_PRODUCT_FETCH_OPTIONS,
   );
 
   return {
@@ -388,6 +447,9 @@ export const productService = {
   getAll,
   getByIdentifier,
   getImages,
+  getPublicAll,
+  getPublicByIdentifier,
+  getPublicImages,
   remove,
   removeImage,
   reorderImages,

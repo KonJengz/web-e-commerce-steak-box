@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -15,6 +15,7 @@ import type {
   CreateProductActionState,
   ProductUploadedImage,
 } from "@/features/product/types/product.type";
+import { PUBLIC_PRODUCTS_CACHE_TAG } from "@/lib/cache-tags";
 import { ApiError } from "@/lib/api/error";
 
 const getCreateProductInput = (
@@ -203,6 +204,7 @@ export async function createProductAction(
     revalidatePath("/admin/products");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
 
     if (failedGalleryUploads > 0) {
       return {

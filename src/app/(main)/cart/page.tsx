@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -20,6 +21,12 @@ import { CartClearButton } from "@/features/cart/components/cart-clear-button";
 import { CartItemRow } from "@/features/cart/components/cart-item-row";
 import { cartService } from "@/features/cart/services/cart.service";
 import { buildCartOverview } from "@/features/cart/utils/cart-summary";
+import { PRIVATE_ROUTE_ROBOTS } from "@/lib/metadata";
+
+export const metadata: Metadata = {
+  robots: PRIVATE_ROUTE_ROBOTS,
+  title: "Cart — Steak Box",
+};
 
 export default async function CartPage() {
   const accessToken = await getCurrentAccessToken();

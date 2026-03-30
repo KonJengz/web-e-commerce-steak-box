@@ -14,16 +14,18 @@ export default function cloudinaryLoader({
   width,
   quality,
 }: CloudinaryLoaderProps): string {
+  const resolvedQuality = quality ?? 80;
+
   // If not a Cloudinary URL, return as-is but with query params to satisfy Next.js Image loader requirements
   if (!src.includes("res.cloudinary.com")) {
     // Next.js requires the loader to return a URL that includes the width
-    return `${src}?w=${width}&q=${quality || 95}`;
+    return `${src}?w=${width}&q=${resolvedQuality}`;
   }
 
   // Insert transformation params before /upload/
   const params = [
     `w_${width}`,
-    `q_${quality || 95}`,
+    `q_${resolvedQuality}`,
     "f_auto", // auto format (webp/avif)
     "c_limit", // resize without cropping
   ].join(",");

@@ -38,11 +38,11 @@ const getParam = (value: string | string[] | undefined): string => {
 };
 
 const getAllCategories = cache(async () => {
-  return (await categoryService.getAll()).data;
+  return (await categoryService.getPublicAll()).data;
 });
 
 const getCategory = cache(async (identifier: string) => {
-  return (await categoryService.getByIdentifier(identifier)).data;
+  return (await categoryService.getPublicByIdentifier(identifier)).data;
 });
 
 const getCategoryProducts = cache(
@@ -53,7 +53,7 @@ const getCategoryProducts = cache(
     sortValue: ProductQueryOptions["sort"],
   ) => {
     return (
-      await productService.getAll({
+      await productService.getPublicAll({
         categorySlug,
         limit: 12,
         page: currentPage,
@@ -197,6 +197,13 @@ export async function generateMetadata({
       description:
         category.description ||
         `Browse ${category.name} products at Steak Box. Premium quality, delivered fresh.`,
+      openGraph: {
+        description:
+          category.description ||
+          `Browse ${category.name} products at Steak Box. Premium quality, delivered fresh.`,
+        title: `${category.name} — Steak Box`,
+        url: buildCategoryPath(category.slug),
+      },
     };
   } catch {
     return {

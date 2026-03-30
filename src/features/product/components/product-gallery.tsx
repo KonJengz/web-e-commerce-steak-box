@@ -152,9 +152,9 @@ export function ProductGallery({
                   src={image.imageUrl}
                   alt={`${productName} - Image ${index + 1}`}
                   fill
+                  preload={index === 0}
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                  priority={index === 0}
                 />
               </div>
             ))}

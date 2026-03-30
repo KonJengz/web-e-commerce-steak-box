@@ -3,15 +3,40 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 import { inter } from "@/styles/font";
 import { cn } from "@/lib/utils";
+import { metadataBase, siteDescription, siteName } from "@/lib/metadata";
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
 export const metadata: Metadata = {
-  title: {
-    default: "Steak Box",
-    template: "%s | Steak Box",
+  applicationName: siteName,
+  alternates: {
+    canonical: "/",
   },
-  description: "Steak Box",
+  description: siteDescription,
+  keywords: [
+    "steak",
+    "premium meat",
+    "e-commerce",
+    "cold chain delivery",
+    "beef cuts",
+  ],
+  metadataBase,
+  openGraph: {
+    description: siteDescription,
+    siteName,
+    title: siteName,
+    type: "website",
+    url: "/",
+  },
+  title: {
+    default: siteName,
+    template: `%s | ${siteName}`,
+  },
+  twitter: {
+    card: "summary_large_image",
+    description: siteDescription,
+    title: siteName,
+  },
 };
 
 export default function RootLayout({

@@ -19,11 +19,24 @@ import {
   DEFAULT_PRODUCT_SORT,
   normalizeProductSort,
 } from "@/features/product/types/product-sort";
+import { siteDescription } from "@/lib/metadata";
 
 export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
   title: "Premium Steaks & Cuts — Steak Box",
-  description:
-    "Browse our curated selection of premium steaks and cuts. Fresh, certified, and delivered to your door.",
+  description: siteDescription,
+  openGraph: {
+    description: siteDescription,
+    title: "Premium Steaks & Cuts — Steak Box",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    description: siteDescription,
+    title: "Premium Steaks & Cuts — Steak Box",
+  },
 };
 
 interface HomePageProps {
@@ -43,7 +56,7 @@ const getParam = (value: string | string[] | undefined): string => {
 };
 
 const getAllCategories = cache(async () => {
-  return (await categoryService.getAll()).data;
+  return (await categoryService.getPublicAll()).data;
 });
 
 const getHomeProducts = cache(
@@ -53,7 +66,7 @@ const getHomeProducts = cache(
     sortValue: ProductQueryOptions["sort"],
   ) => {
     return (
-      await productService.getAll({
+      await productService.getPublicAll({
         inStock: undefined,
         limit: 12,
         page: currentPage,
@@ -94,7 +107,6 @@ async function HomeCatalogSummary({
   sortValue,
 }: HomeCatalogSummaryProps) {
   const products = await getHomeProducts(currentPage, searchQuery, sortValue);
-
   return (
     <p className="text-sm text-muted-foreground">
       Showing{" "}

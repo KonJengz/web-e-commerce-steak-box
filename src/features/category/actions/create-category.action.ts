@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -15,6 +15,10 @@ import {
 } from "@/features/category/schemas/category.schema";
 import { categoryService } from "@/features/category/services/category.service";
 import type { CreateCategoryActionState } from "@/features/category/types/category.type";
+import {
+  PUBLIC_CATEGORIES_CACHE_TAG,
+  PUBLIC_PRODUCTS_CACHE_TAG,
+} from "@/lib/cache-tags";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<CreateCategoryActionState> => {
@@ -72,6 +76,8 @@ export async function createCategoryAction(
     revalidatePath("/admin/products");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag(PUBLIC_CATEGORIES_CACHE_TAG, "max");
+    revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
 
     return {
       message: "Category created successfully.",

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -16,6 +16,10 @@ import {
 import { categoryService } from "@/features/category/services/category.service";
 import type { UpdateCategoryActionState } from "@/features/category/types/category.type";
 import { buildCategoryPath } from "@/features/category/utils/category-path";
+import {
+  PUBLIC_CATEGORIES_CACHE_TAG,
+  PUBLIC_PRODUCTS_CACHE_TAG,
+} from "@/lib/cache-tags";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<UpdateCategoryActionState> => {
@@ -84,6 +88,8 @@ export async function updateCategoryAction(
     revalidatePath("/admin/products");
     revalidatePath(buildCategoryPath(updatedCategory.data.slug));
     revalidatePath("/");
+    revalidateTag(PUBLIC_CATEGORIES_CACHE_TAG, "max");
+    revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
 
     return {
       message: "Category updated successfully.",

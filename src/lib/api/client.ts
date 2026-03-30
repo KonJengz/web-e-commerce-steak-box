@@ -6,8 +6,14 @@ import type { ApiResult } from "@/types";
 
 type ApiMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
 
+interface ApiNextRequestConfig {
+  revalidate?: false | number;
+  tags?: string[];
+}
+
 interface ApiRequestOptions extends Omit<RequestInit, "body" | "method"> {
   body?: Record<string, unknown> | FormData | string | null;
+  next?: ApiNextRequestConfig;
 }
 
 const buildUrl = (path: string): string => {
@@ -39,7 +45,7 @@ const request = async <T>(
     method,
     headers: resolvedHeaders,
     body: requestBody,
-    cache: "no-store",
+    cache: restOptions.cache ?? "no-store",
     credentials: "include",
   });
 

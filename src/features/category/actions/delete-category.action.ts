@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 import {
@@ -10,6 +10,10 @@ import {
 } from "@/features/auth/services/server-auth-execution.service";
 import { categoryService } from "@/features/category/services/category.service";
 import type { DeleteCategoryActionState } from "@/features/category/types/category.type";
+import {
+  PUBLIC_CATEGORIES_CACHE_TAG,
+  PUBLIC_PRODUCTS_CACHE_TAG,
+} from "@/lib/cache-tags";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<DeleteCategoryActionState> => {
@@ -64,6 +68,8 @@ export async function deleteCategoryAction(
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/products");
     revalidatePath("/");
+    revalidateTag(PUBLIC_CATEGORIES_CACHE_TAG, "max");
+    revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
 
     return {
       success: true,

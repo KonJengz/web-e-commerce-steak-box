@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/features/auth/services/server-auth-execution.service";
 import { productService } from "@/features/product/services/product.service";
 import type { DeleteProductActionState } from "@/features/product/types/product.type";
+import { PUBLIC_PRODUCTS_CACHE_TAG } from "@/lib/cache-tags";
 import { ApiError } from "@/lib/api/error";
 
 const buildUnauthorizedState = async (): Promise<DeleteProductActionState> => {
@@ -39,6 +40,7 @@ export async function deleteProductAction(
     revalidatePath("/admin/products");
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
+    revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
 
     return {
       success: true,

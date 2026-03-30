@@ -389,6 +389,57 @@ export function CheckoutPageSkeleton() {
   );
 }
 
+export function OrderDetailPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <HeroSkeleton />
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="space-y-4">
+          {Array.from({ length: 2 }, (_, index) => (
+            <article
+              key={index}
+              className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]"
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <Skeleton className="size-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-4 w-56" />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Skeleton className="h-18 w-full rounded-[1.25rem]" />
+                <Skeleton className="h-18 w-full rounded-[1.25rem]" />
+                <Skeleton className="h-18 w-full rounded-[1.25rem]" />
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <aside className="space-y-4 xl:sticky xl:top-24">
+          <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.06)]">
+            <div className="mb-4 flex items-center gap-3">
+              <Skeleton className="size-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Skeleton className="h-18 w-full rounded-[1.25rem]" />
+              <Skeleton className="h-12 w-full rounded-[1.25rem]" />
+              <Skeleton className="h-12 w-full rounded-full" />
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 export function CatalogResultsSkeleton() {
   return (
     <div className="grid gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">

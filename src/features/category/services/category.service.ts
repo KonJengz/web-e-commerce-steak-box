@@ -6,6 +6,7 @@ import type {
 } from "@/features/category/schemas/category.schema";
 import type { Category } from "@/features/category/types/category.type";
 import { api } from "@/lib/api/client";
+import { PUBLIC_CATEGORIES_CACHE_TAG } from "@/lib/cache-tags";
 import type { ApiResult } from "@/types";
 
 interface CategoryApiResponse {
@@ -20,6 +21,14 @@ interface CategoryApiResponse {
 interface DeleteCategoryApiResponse {
   message: string;
 }
+
+const PUBLIC_CATEGORY_FETCH_OPTIONS = {
+  cache: "force-cache" as const,
+  next: {
+    revalidate: 300,
+    tags: [PUBLIC_CATEGORIES_CACHE_TAG],
+  },
+};
 
 const mapCategory = (category: CategoryApiResponse): Category => {
   return {
@@ -41,11 +50,37 @@ const getAll = async (): Promise<ApiResult<Category[]>> => {
   };
 };
 
+const getPublicAll = async (): Promise<ApiResult<Category[]>> => {
+  const result = await api.get<CategoryApiResponse[]>(
+    "/api/categories",
+    PUBLIC_CATEGORY_FETCH_OPTIONS,
+  );
+
+  return {
+    ...result,
+    data: result.data.map(mapCategory),
+  };
+};
+
 const getByIdentifier = async (
   identifier: string,
 ): Promise<ApiResult<Category>> => {
   const result = await api.get<CategoryApiResponse>(
     `/api/categories/${encodeURIComponent(identifier)}`,
+  );
+
+  return {
+    ...result,
+    data: mapCategory(result.data),
+  };
+};
+
+const getPublicByIdentifier = async (
+  identifier: string,
+): Promise<ApiResult<Category>> => {
+  const result = await api.get<CategoryApiResponse>(
+    `/api/categories/${encodeURIComponent(identifier)}`,
+    PUBLIC_CATEGORY_FETCH_OPTIONS,
   );
 
   return {
@@ -116,6 +151,8 @@ export const categoryService = {
   create,
   getAll,
   getByIdentifier,
+  getPublicAll,
+  getPublicByIdentifier,
   remove,
   update,
 };

@@ -87,6 +87,16 @@ export const orderStatusSupportsTracking = (
   return status === "SHIPPED" || status === "DELIVERED";
 };
 
+export const canCustomerUploadPaymentSlip = (
+  status: OrderStatus,
+): boolean => {
+  return (
+    status === "PENDING" ||
+    status === "PAYMENT_REVIEW" ||
+    status === "PAYMENT_FAILED"
+  );
+};
+
 export const getAllowedAdminOrderStatuses = (
   currentStatus: OrderStatus,
 ): readonly OrderStatus[] => {
