@@ -21,6 +21,20 @@ import {
   AdminDashboardStatsSkeleton,
   AdminRecentInventorySkeleton,
 } from "@/components/shared/loading-skeletons";
+import {
+  adminOutlineButtonClassName,
+  adminPrimaryButtonClassName,
+} from "@/components/ui/admin-action-styles";
+import {
+  adminDangerBadgeClassName,
+  adminHeroPrimaryBadgeClassName,
+  adminHeroSecondaryBadgeClassName,
+  adminInactiveBadgeClassName,
+  adminMutedBadgeClassName,
+  adminOutlineBadgeClassName,
+  adminSuccessBadgeClassName,
+  adminWarningBadgeClassName,
+} from "@/components/ui/admin-badge-styles";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { categoryService } from "@/features/category/services/category.service";
@@ -199,7 +213,7 @@ function ProductAvailabilityBadge({
     return (
       <Badge
         variant="secondary"
-        className="h-auto rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-rose-600 dark:text-rose-300"
+        className={adminDangerBadgeClassName}
       >
         Out of stock
       </Badge>
@@ -210,7 +224,7 @@ function ProductAvailabilityBadge({
     return (
       <Badge
         variant="secondary"
-        className="h-auto rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300"
+        className={adminWarningBadgeClassName}
       >
         Low stock
       </Badge>
@@ -220,7 +234,7 @@ function ProductAvailabilityBadge({
   return (
     <Badge
       variant="secondary"
-      className="h-auto rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300"
+      className={adminSuccessBadgeClassName}
     >
       In stock
     </Badge>
@@ -236,10 +250,7 @@ function ProductStatusBadge({
     <Badge
       variant="secondary"
       className={cn(
-        "h-auto rounded-full px-3 py-1",
-        isActive
-          ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-          : "border border-border/60 bg-muted/30 text-muted-foreground",
+        isActive ? adminSuccessBadgeClassName : adminInactiveBadgeClassName,
       )}
     >
       {isActive ? "Active" : "Inactive"}
@@ -254,13 +265,13 @@ async function AdminDashboardHeroBadges(): Promise<JSX.Element> {
     <>
       <Badge
         variant="secondary"
-        className="h-auto rounded-full bg-white/10 px-4 py-2 text-white"
+        className={adminHeroPrimaryBadgeClassName}
       >
         {formatCount(dashboardData.totalProducts)} products tracked
       </Badge>
       <Badge
         variant="secondary"
-        className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/80"
+        className={adminHeroSecondaryBadgeClassName}
       >
         {dashboardData.stockCoverage}% stocked · {formatCount(dashboardData.categories.length)} categories
       </Badge>
@@ -350,7 +361,7 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
 
             <Badge
               variant="outline"
-              className="h-auto rounded-full px-3 py-1.5 text-xs"
+              className={cn(adminOutlineBadgeClassName, "px-3 py-1.5 text-xs")}
             >
               {dashboardData.lastUpdatedAt
                 ? `Last change ${formatAccountDateTime(dashboardData.lastUpdatedAt)}`
@@ -379,7 +390,7 @@ async function AdminDashboardOperationsBoard(): Promise<JSX.Element> {
                 </div>
                 <Badge
                   variant="secondary"
-                  className="h-auto rounded-full px-3 py-1 text-xs"
+                  className={cn(adminMutedBadgeClassName, "text-xs")}
                 >
                   {formatCount(dashboardData.inStockProducts)} / {formatCount(dashboardData.totalProducts)} stocked
                 </Badge>
@@ -524,7 +535,12 @@ async function AdminDashboardWorkspace(): Promise<JSX.Element> {
             </div>
           </div>
 
-          <Button asChild variant="outline" size="lg" className="rounded-full">
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className={adminOutlineButtonClassName}
+          >
             <Link href="/admin/products?view=list">
               Open product directory
             </Link>
@@ -583,14 +599,19 @@ async function AdminDashboardWorkspace(): Promise<JSX.Element> {
                     <ProductAvailabilityBadge stock={product.stock} />
                     <Badge
                       variant="outline"
-                      className="h-auto rounded-full px-3 py-1"
+                      className={adminOutlineBadgeClassName}
                     >
                       {product.stock} units
                     </Badge>
                   </div>
                 </div>
 
-                <Button asChild variant="outline" size="sm" className="rounded-full">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className={adminOutlineButtonClassName}
+                >
                   <Link href={getProductInventoryHref(product)}>Review</Link>
                 </Button>
               </article>
@@ -604,7 +625,7 @@ async function AdminDashboardWorkspace(): Promise<JSX.Element> {
                 Create the first product, then the latest inventory will appear
                 here automatically.
               </p>
-              <Button asChild size="lg" className="mt-6 rounded-full">
+              <Button asChild size="lg" className={`mt-6 ${adminPrimaryButtonClassName}`}>
                 <Link href="/admin/products">Create the first product</Link>
               </Button>
             </div>
@@ -647,7 +668,7 @@ async function AdminDashboardWorkspace(): Promise<JSX.Element> {
                       </div>
                       <Badge
                         variant="outline"
-                        className="h-auto rounded-full px-2.5 py-1 text-[11px]"
+                        className={cn(adminOutlineBadgeClassName, "px-2.5 py-1 text-[11px]")}
                       >
                         {formatAccountDateTime(category.updatedAt)}
                       </Badge>
@@ -705,13 +726,13 @@ export default function AdminDashboardPage(): JSX.Element {
             <>
               <Badge
                 variant="secondary"
-                className="h-auto rounded-full bg-white/10 px-4 py-2 text-white"
+                className={adminHeroPrimaryBadgeClassName}
               >
                 Loading catalog stats
               </Badge>
               <Badge
                 variant="secondary"
-                className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/80"
+                className={adminHeroSecondaryBadgeClassName}
               >
                 Preparing coverage view
               </Badge>

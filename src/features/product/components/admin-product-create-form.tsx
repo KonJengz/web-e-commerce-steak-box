@@ -11,6 +11,11 @@ import {
   adminPrimaryButtonClassName,
 } from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
+import {
+  adminErrorNoticePreWrapClassName,
+  adminSuccessNoticeClassName,
+  adminWarningNoticeClassName,
+} from "@/components/ui/admin-notice-styles";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -243,9 +248,9 @@ export function AdminProductCreateForm({
             className={
               submissionState.success
                 ? submissionState.warning
-                  ? "rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-800 dark:text-amber-300"
-                  : "rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300"
-                : "rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive"
+                  ? adminWarningNoticeClassName
+                  : adminSuccessNoticeClassName
+                : adminErrorNoticePreWrapClassName
             }
           >
             {submissionState.message}
@@ -397,7 +402,7 @@ export function AdminProductCreateForm({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="rounded-full"
+                    className={adminOutlineButtonClassName}
                     disabled={isPending}
                     onClick={() => {
                       setSubmissionState(null);

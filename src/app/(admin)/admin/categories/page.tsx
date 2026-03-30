@@ -1,4 +1,5 @@
 import { AdminPageHero } from "@/components/admin/admin-page-hero";
+import { adminHeroPrimaryBadgeClassName } from "@/components/ui/admin-badge-styles";
 import { Badge } from "@/components/ui/badge";
 import { AdminCategoryCard } from "@/features/category/components/admin-category-card";
 import { AdminCategoryCreateForm } from "@/features/category/components/admin-category-create-form";
@@ -156,7 +157,7 @@ export default async function AdminCategoriesPage({
       >
         <Badge
           variant="secondary"
-          className="h-auto rounded-full bg-white/10 px-4 py-2 text-white"
+          className={adminHeroPrimaryBadgeClassName}
         >
           {categories.length} total categories
         </Badge>

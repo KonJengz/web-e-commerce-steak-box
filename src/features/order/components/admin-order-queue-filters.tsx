@@ -4,7 +4,15 @@ import { Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
-import { adminGhostButtonClassName } from "@/components/ui/admin-action-styles";
+import {
+  adminGhostButtonClassName,
+  adminSegmentedCountActiveClassName,
+  adminSegmentedCountClassName,
+  adminSegmentedCountInactiveClassName,
+  adminSegmentedStandaloneOptionActiveClassName,
+  adminSegmentedStandaloneOptionClassName,
+  adminSegmentedStandaloneOptionInactiveClassName,
+} from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -264,10 +272,10 @@ export function AdminOrderQueueFilters({
               key={status}
               type="button"
               className={cn(
-                "inline-flex items-center rounded-full border px-3.5 py-2 text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-200",
+                adminSegmentedStandaloneOptionClassName,
                 isActive
-                  ? "border-primary/25 bg-primary/10 text-primary shadow-sm"
-                  : "border-border/60 bg-background/72 text-muted-foreground hover:border-border/80 hover:bg-background hover:text-foreground",
+                  ? adminSegmentedStandaloneOptionActiveClassName
+                  : adminSegmentedStandaloneOptionInactiveClassName,
               )}
               onClick={() => {
                 handleStatusChange(status);
@@ -276,10 +284,10 @@ export function AdminOrderQueueFilters({
               <span>{label}</span>
               <span
                 className={cn(
-                  "ml-2 rounded-full px-2 py-0.5 text-[10px]",
+                  adminSegmentedCountClassName,
                   isActive
-                    ? "bg-primary/15 text-primary"
-                    : "bg-muted text-muted-foreground",
+                    ? adminSegmentedCountActiveClassName
+                    : adminSegmentedCountInactiveClassName,
                 )}
               >
                 {count}

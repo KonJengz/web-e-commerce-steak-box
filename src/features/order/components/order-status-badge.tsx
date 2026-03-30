@@ -1,3 +1,10 @@
+import {
+  adminAccentBadgeClassName,
+  adminInfoBadgeClassName,
+  adminInactiveBadgeClassName,
+  adminSuccessBadgeClassName,
+  adminWarningBadgeClassName,
+} from "@/components/ui/admin-badge-styles";
 import { Badge } from "@/components/ui/badge";
 import {
   getOrderStatusLabel,
@@ -11,15 +18,11 @@ interface OrderStatusBadgeProps {
 }
 
 const orderStatusClassName: Record<OrderStatus, string> = {
-  CANCELLED:
-    "border border-border/60 bg-muted/40 text-muted-foreground dark:bg-muted/20",
-  DELIVERED:
-    "border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  PAID: "border border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  PENDING:
-    "border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  SHIPPED:
-    "border border-violet-500/20 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  CANCELLED: adminInactiveBadgeClassName,
+  DELIVERED: adminSuccessBadgeClassName,
+  PAID: adminInfoBadgeClassName,
+  PENDING: adminWarningBadgeClassName,
+  SHIPPED: adminAccentBadgeClassName,
 };
 
 export function OrderStatusBadge({

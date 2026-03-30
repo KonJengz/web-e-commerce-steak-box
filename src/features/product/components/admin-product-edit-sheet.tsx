@@ -22,9 +22,15 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  adminDestructiveButtonClassName,
   adminOutlineButtonClassName,
   adminPrimaryButtonClassName,
 } from "@/components/ui/admin-action-styles";
+import {
+  adminErrorNoticePreWrapClassName,
+  adminSuccessNoticeClassName,
+  adminWarningNoticeClassName,
+} from "@/components/ui/admin-notice-styles";
 import {
   Dialog,
   DialogContent,
@@ -184,13 +190,13 @@ const getGalleryNoticeClassName = (
 ): string => {
   if (state.success) {
     if (state.warning) {
-      return "rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-800 dark:text-amber-300";
+      return adminWarningNoticeClassName;
     }
 
-    return "rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300";
+    return adminSuccessNoticeClassName;
   }
 
-  return "rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive";
+  return adminErrorNoticePreWrapClassName;
 };
 
 export function AdminProductEditSheet({
@@ -781,7 +787,7 @@ export function AdminProductEditSheet({
           type="button"
           variant="outline"
           size="sm"
-          className="rounded-full border-border/60 bg-background/70"
+          className={adminOutlineButtonClassName}
         >
           <PencilLine className="size-4" />
           Edit
@@ -837,8 +843,8 @@ export function AdminProductEditSheet({
                 <div
                   className={
                     submissionState.success
-                      ? "rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300"
-                      : "rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive"
+                      ? adminSuccessNoticeClassName
+                      : adminErrorNoticePreWrapClassName
                   }
                 >
                   {submissionState.message}
@@ -944,7 +950,7 @@ export function AdminProductEditSheet({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="rounded-full"
+                            className={adminOutlineButtonClassName}
                             disabled={isBusy}
                             onClick={handleClearSelectedCoverImage}
                           >
@@ -1144,7 +1150,7 @@ export function AdminProductEditSheet({
                       <Button
                         type="button"
                         variant="outline"
-                        className="rounded-full"
+                        className={adminOutlineButtonClassName}
                         disabled={isBusy || selectedGalleryFiles.length === 0}
                         onClick={clearSelectedGalleryImages}
                       >
@@ -1153,7 +1159,7 @@ export function AdminProductEditSheet({
                       </Button>
                       <Button
                         type="button"
-                        className="rounded-full"
+                        className={adminPrimaryButtonClassName}
                         disabled={isBusy || selectedGalleryFiles.length === 0}
                         onClick={handleUploadGalleryImages}
                       >
@@ -1256,9 +1262,9 @@ export function AdminProductEditSheet({
                                       type="button"
                                       aria-label={`Drag to reorder ${product.name} image ${index + 1}`}
                                       className={cn(
-                                        "inline-flex size-7 items-center justify-center rounded-full border border-border/60 bg-muted/25 text-muted-foreground transition-colors touch-none",
+                                        "inline-flex size-7 items-center justify-center rounded-full border border-border/60 bg-background/75 text-muted-foreground transition-colors touch-none",
                                         galleryImages.length > 1 && !isBusy
-                                          ? "cursor-grab active:cursor-grabbing hover:border-primary/35 hover:bg-primary/8 hover:text-primary"
+                                          ? "cursor-grab active:cursor-grabbing hover:border-primary/35 hover:bg-muted/70 hover:text-primary"
                                           : "cursor-default",
                                       )}
                                       disabled={isBusy || galleryImages.length < 2}
@@ -1289,7 +1295,7 @@ export function AdminProductEditSheet({
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    className="rounded-full"
+                                    className={adminOutlineButtonClassName}
                                     disabled={isBusy || image.isPrimary}
                                     onClick={() => {
                                       handleReorderGalleryImages(
@@ -1304,7 +1310,7 @@ export function AdminProductEditSheet({
                                     type="button"
                                     variant="destructive"
                                     size="sm"
-                                    className="rounded-full"
+                                    className={adminDestructiveButtonClassName}
                                     disabled={isBusy}
                                     onClick={() => handleDeleteImage(image)}
                                   >
@@ -1318,7 +1324,7 @@ export function AdminProductEditSheet({
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    className="rounded-full"
+                                    className={adminOutlineButtonClassName}
                                     disabled={isBusy || isFirstImage}
                                     onClick={() => {
                                       handleReorderGalleryImages(
@@ -1333,7 +1339,7 @@ export function AdminProductEditSheet({
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    className="rounded-full"
+                                    className={adminOutlineButtonClassName}
                                     disabled={isBusy || isLastImage}
                                     onClick={() => {
                                       handleReorderGalleryImages(

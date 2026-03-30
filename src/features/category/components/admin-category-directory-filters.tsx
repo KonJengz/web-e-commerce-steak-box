@@ -10,7 +10,13 @@ import {
   useTransition,
 } from "react";
 
-import { adminOutlineButtonClassName } from "@/components/ui/admin-action-styles";
+import {
+  adminOutlineButtonClassName,
+  adminSegmentedRailClassName,
+  adminSegmentedRailOptionActiveClassName,
+  adminSegmentedRailOptionClassName,
+  adminSegmentedRailOptionInactiveClassName,
+} from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
 import {
   adminSurfaceInputClassName,
@@ -248,7 +254,7 @@ export function AdminCategoryDirectoryFilters({
           </label>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/85 p-1">
+            <div className={adminSegmentedRailClassName}>
               {CATEGORY_USAGE_FILTER_OPTIONS.map((option) => {
                 const isActive = currentStatus === option.value;
 
@@ -257,10 +263,10 @@ export function AdminCategoryDirectoryFilters({
                     key={option.value}
                     type="button"
                     className={cn(
-                      "rounded-full px-3.5 py-2 text-xs font-semibold transition-colors",
+                      adminSegmentedRailOptionClassName,
                       isActive
-                        ? "bg-foreground text-background shadow-sm"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        ? adminSegmentedRailOptionActiveClassName
+                        : adminSegmentedRailOptionInactiveClassName,
                     )}
                     aria-pressed={isActive}
                     disabled={isPending}

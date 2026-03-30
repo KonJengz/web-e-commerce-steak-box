@@ -15,7 +15,13 @@ import {
   adminSurfaceInputClassName,
   adminSurfaceSelectClassName,
 } from "@/components/ui/admin-control-styles";
-import { adminOutlineButtonClassName } from "@/components/ui/admin-action-styles";
+import {
+  adminOutlineButtonClassName,
+  adminSegmentedRailClassName,
+  adminSegmentedRailOptionActiveClassName,
+  adminSegmentedRailOptionClassName,
+  adminSegmentedRailOptionInactiveClassName,
+} from "@/components/ui/admin-action-styles";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import type { Category } from "@/features/category/types/category.type";
@@ -332,7 +338,7 @@ export function AdminProductDirectoryFilters({
         ))}
       </NativeSelect>
 
-      <div className="inline-flex items-center rounded-full border border-border/60 bg-card/85 p-1">
+      <div className={adminSegmentedRailClassName}>
         {PRODUCT_DIRECTORY_VIEW_OPTIONS.map((option) => {
           const isActive = currentView === option.value;
           const Icon = option.value === "card" ? LayoutGrid : Rows3;
@@ -342,10 +348,10 @@ export function AdminProductDirectoryFilters({
               key={option.value}
               type="button"
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                adminSegmentedRailOptionClassName,
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? adminSegmentedRailOptionActiveClassName
+                  : adminSegmentedRailOptionInactiveClassName,
               )}
               aria-pressed={isActive}
               disabled={isPending}

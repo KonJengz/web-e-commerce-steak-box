@@ -1,15 +1,21 @@
 "use client";
 
-import { Trash2, TriangleAlert } from "lucide-react";
+import { Package, Trash2, TriangleAlert } from "lucide-react";
 
-import { formatAccountDate } from "@/components/account/account.utils";
+import {
+  formatAccountDate,
+  formatCompactId,
+  formatCurrency,
+} from "@/components/account/account.utils";
 import {
   adminDestructiveButtonClassName,
   adminOutlineButtonClassName,
 } from "@/components/ui/admin-action-styles";
 import {
+  adminInactiveBadgeClassName,
   adminMutedBadgeClassName,
   adminOutlineBadgeClassName,
+  adminSuccessBadgeClassName,
 } from "@/components/ui/admin-badge-styles";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,34 +28,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Category } from "@/features/category/types/category.type";
+import type { ProductSummary } from "@/features/product/types/product.type";
 
-interface CategoryDeleteDialogProps {
-  category: Category;
+interface ProductDeleteDialogProps {
   isPending: boolean;
-  linkedProductCount: number;
   message?: string | null;
   onConfirm: () => void;
   onOpenChange: (open: boolean) => void;
   open: boolean;
+  product: ProductSummary;
 }
 
-const getLinkedProductLabel = (count: number): string => {
-  return `${count} linked product${count === 1 ? "" : "s"}`;
-};
-
-export function CategoryDeleteDialog({
-  category,
+export function ProductDeleteDialog({
   isPending,
-  linkedProductCount,
   message,
   onConfirm,
   onOpenChange,
   open,
-}: CategoryDeleteDialogProps) {
+  product,
+}: ProductDeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[32rem] border-border/60 bg-card/98 p-0">
+      <DialogContent className="max-w-[34rem] border-border/60 bg-card/98 p-0">
         <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-destructive/40 to-transparent" />
         <div className="pointer-events-none absolute -top-10 right-10 size-32 rounded-full bg-destructive/10 blur-3xl motion-safe:animate-pulse-glow" />
         <div className="pointer-events-none absolute -bottom-16 left-4 size-36 rounded-full bg-amber-500/6 blur-3xl motion-safe:animate-float-slow" />
@@ -70,15 +70,16 @@ export function CategoryDeleteDialog({
               <div className="flex items-center gap-2">
                 <div className="glow-dot bg-destructive/80" />
                 <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-destructive/90">
-                  Delete Category
+                  Delete Product
                 </p>
               </div>
               <DialogTitle className="text-xl font-semibold tracking-tight">
-                Remove this category from the catalog?
+                Remove this product from the catalog?
               </DialogTitle>
               <DialogDescription className="max-w-md leading-6">
-                This permanently deletes the taxonomy record. Products assigned
-                to this category must be moved out before deletion.
+                This permanently removes the product record from the admin
+                directory. Use this only when the SKU should no longer exist in
+                the catalog.
               </DialogDescription>
             </div>
           </div>
@@ -87,26 +88,45 @@ export function CategoryDeleteDialog({
         <div className="space-y-4 px-6 py-5">
           <div className="relative overflow-hidden rounded-[1.5rem] border border-border/60 bg-background/65 p-4">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/35 to-transparent" />
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0 space-y-2">
-                <p className="text-base font-semibold tracking-tight text-foreground">
-                  {category.name}
-                </p>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  {category.description || "No description saved for this category."}
-                </p>
+            <div className="flex items-start gap-4">
+              <div className="flex size-14 shrink-0 items-center justify-center rounded-[1.2rem] border border-border/60 bg-muted/30 text-primary">
+                <Package className="size-5" />
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className={adminOutlineBadgeClassName}>
-                  Updated {formatAccountDate(category.updatedAt)}
-                </Badge>
-                <Badge
-                  variant="secondary"
-                  className={adminMutedBadgeClassName}
-                >
-                  {getLinkedProductLabel(linkedProductCount)}
-                </Badge>
+              <div className="min-w-0 flex-1 space-y-3">
+                <div className="space-y-1">
+                  <p className="text-base font-semibold tracking-tight text-foreground">
+                    {product.name}
+                  </p>
+                  <p className="font-mono text-xs text-muted-foreground/70">
+                    {formatCompactId(product.id)}
+                  </p>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {product.description.trim() || "No description saved for this product."}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    variant="secondary"
+                    className={
+                      product.isActive
+                        ? adminSuccessBadgeClassName
+                        : adminInactiveBadgeClassName
+                    }
+                  >
+                    {product.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                  <Badge variant="outline" className={adminOutlineBadgeClassName}>
+                    {product.categoryName ?? "Uncategorized"}
+                  </Badge>
+                  <Badge variant="secondary" className={adminMutedBadgeClassName}>
+                    {formatCurrency(product.currentPrice)}
+                  </Badge>
+                  <Badge variant="outline" className={adminOutlineBadgeClassName}>
+                    Updated {formatAccountDate(product.updatedAt)}
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
@@ -118,17 +138,13 @@ export function CategoryDeleteDialog({
                 <TriangleAlert className="size-3.5" />
               </div>
               <p>
-                Deleting this category clears it from admin taxonomy management
+                Deleting this product removes it from the admin catalog view
                 immediately. This action cannot be undone.
               </p>
             </div>
           </div>
 
-          {message ? (
-            <div className={adminErrorNoticeClassName}>
-              {message}
-            </div>
-          ) : null}
+          {message ? <div className={adminErrorNoticeClassName}>{message}</div> : null}
         </div>
 
         <DialogFooter className="border-t border-border/50 bg-background/50 px-6 py-5 sm:justify-between">
@@ -139,7 +155,7 @@ export function CategoryDeleteDialog({
             disabled={isPending}
             onClick={() => onOpenChange(false)}
           >
-            Keep category
+            Keep product
           </Button>
           <Button
             type="button"
@@ -149,7 +165,7 @@ export function CategoryDeleteDialog({
             onClick={onConfirm}
           >
             <Trash2 className="size-4" />
-            {isPending ? "Deleting..." : "Delete category"}
+            {isPending ? "Deleting..." : "Delete product"}
           </Button>
         </DialogFooter>
       </DialogContent>

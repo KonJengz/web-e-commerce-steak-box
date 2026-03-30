@@ -22,6 +22,10 @@ import {
   AdminOrdersQueueSkeleton,
 } from "@/components/shared/loading-skeletons";
 import { Pagination } from "@/components/shared/pagination";
+import {
+  adminHeroPrimaryBadgeClassName,
+  adminHeroSecondaryBadgeClassName,
+} from "@/components/ui/admin-badge-styles";
 import { Badge } from "@/components/ui/badge";
 import { requireAdminUser, requireCurrentAccessToken } from "@/features/auth/services/current-user.service";
 import { buildSessionRefreshPath } from "@/features/auth/utils/auth-redirect";
@@ -237,20 +241,20 @@ async function HeroBadges({
     <>
       <Badge
         variant="secondary"
-        className="h-auto rounded-full bg-white/10 px-4 py-2 text-white"
+        className={adminHeroPrimaryBadgeClassName}
       >
         {ordersPage.total} total orders
       </Badge>
       <Badge
         variant="secondary"
-        className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+        className={adminHeroSecondaryBadgeClassName}
       >
         Page {ordersPage.page} of {ordersPage.totalPages}
       </Badge>
       {requestState.selectedStatus ? (
         <Badge
           variant="secondary"
-          className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+          className={adminHeroSecondaryBadgeClassName}
         >
           Filter {requestState.selectedStatus}
         </Badge>
@@ -258,14 +262,14 @@ async function HeroBadges({
       {requestState.searchQuery ? (
         <Badge
           variant="secondary"
-          className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+          className={adminHeroSecondaryBadgeClassName}
         >
           Search “{requestState.searchQuery}”
         </Badge>
       ) : null}
       <Badge
         variant="secondary"
-        className="h-auto rounded-full bg-white/8 px-4 py-2 text-white/90"
+        className={adminHeroSecondaryBadgeClassName}
       >
         <Truck className="mr-1 size-3.5" />
         {ordersPage.summary.tracked} with tracking

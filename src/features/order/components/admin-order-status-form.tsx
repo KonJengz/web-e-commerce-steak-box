@@ -15,6 +15,11 @@ import {
   adminSurfaceInputClassName,
   adminSurfaceSelectClassName,
 } from "@/components/ui/admin-control-styles";
+import {
+  adminErrorNoticeClassName,
+  adminMutedNoticeClassName,
+  adminSuccessNoticeClassName,
+} from "@/components/ui/admin-notice-styles";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -223,8 +228,8 @@ export function AdminOrderStatusForm({
         <div
           className={
             submissionState.success
-              ? "rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300"
-              : "rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm leading-6 text-destructive"
+              ? adminSuccessNoticeClassName
+              : adminErrorNoticeClassName
           }
         >
           {submissionState.message}
@@ -232,7 +237,7 @@ export function AdminOrderStatusForm({
       ) : null}
 
       {isCancelledState ? (
-        <div className="rounded-2xl border border-border/60 bg-muted/35 px-4 py-3 text-sm leading-6 text-muted-foreground">
+        <div className={adminMutedNoticeClassName}>
           This order is already cancelled. Inventory was released and the
           fulfillment controls are locked.
         </div>
@@ -290,7 +295,7 @@ export function AdminOrderStatusForm({
           )}
         />
 
-        <div className="rounded-[1.25rem] border border-border/60 bg-muted/25 px-4 py-3 text-sm leading-6 text-muted-foreground">
+        <div className={adminMutedNoticeClassName}>
           {selectedStatus === "PENDING"
             ? "Pending orders can move to Paid or Cancelled."
             : selectedStatus === "PAID"

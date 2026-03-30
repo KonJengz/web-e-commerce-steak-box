@@ -14,6 +14,13 @@ import {
   adminOutlineButtonClassName,
   adminPrimaryButtonClassName,
 } from "@/components/ui/admin-action-styles";
+import {
+  adminMutedBadgeClassName,
+  adminOutlineBadgeClassName,
+  adminSuccessBadgeClassName,
+  adminWarningBadgeClassName,
+} from "@/components/ui/admin-badge-styles";
+import { adminErrorNoticePreWrapClassName } from "@/components/ui/admin-notice-styles";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { deleteCategoryAction } from "@/features/category/actions/delete-category.action";
 import { updateCategoryAction } from "@/features/category/actions/update-category.action";
@@ -28,6 +35,7 @@ import type {
   DeleteCategoryActionState,
   UpdateCategoryActionState,
 } from "@/features/category/types/category.type";
+import { cn } from "@/lib/utils";
 
 interface AdminCategoryCardProps {
   assignedProductCount: number;
@@ -170,12 +178,12 @@ export function AdminCategoryCard({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className={cn(adminOutlineBadgeClassName, "text-xs")}>
               Saved {formatAccountDate(category.updatedAt)}
             </Badge>
             <Badge
               variant="secondary"
-              className="h-auto rounded-full border border-border/60 bg-muted/25 px-3 py-1"
+              className={adminMutedBadgeClassName}
             >
               {getAssignedProductLabel(assignedProductCount)}
             </Badge>
@@ -187,8 +195,8 @@ export function AdminCategoryCard({
           noValidate
           onSubmit={handleSubmit(handleUpdateCategory)}
         >
-          {updateState?.message ? (
-            <div className="rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive">
+        {updateState?.message ? (
+            <div className={adminErrorNoticePreWrapClassName}>
               {updateState.message}
             </div>
           ) : null}
@@ -249,7 +257,7 @@ export function AdminCategoryCard({
           <div className="flex flex-wrap gap-2">
             <Badge
               variant="secondary"
-              className="h-auto rounded-full border border-border/60 bg-muted/25 px-3 py-1"
+              className={adminMutedBadgeClassName}
             >
               {getAssignedProductLabel(assignedProductCount)}
             </Badge>
@@ -257,8 +265,8 @@ export function AdminCategoryCard({
               variant="secondary"
               className={
                 isDeleteBlocked
-                  ? "h-auto rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300"
-                  : "h-auto rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300"
+                  ? adminWarningBadgeClassName
+                  : adminSuccessBadgeClassName
               }
             >
               {isDeleteBlocked ? "Still assigned" : "No assigned products"}

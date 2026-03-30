@@ -13,6 +13,12 @@ import {
   AdminProductCreateSectionSkeleton,
   AdminProductDirectorySkeleton,
 } from "@/components/shared/loading-skeletons";
+import {
+  adminHeroPrimaryBadgeClassName,
+  adminInactiveBadgeClassName,
+  adminOutlineBadgeClassName,
+  adminSuccessBadgeClassName,
+} from "@/components/ui/admin-badge-styles";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -139,7 +145,7 @@ async function AdminProductsHeroBadge({
   return (
     <Badge
       variant="secondary"
-      className="h-auto rounded-full bg-white/10 px-4 py-2 text-white"
+      className={adminHeroPrimaryBadgeClassName}
     >
       {productsPage.total} total products
     </Badge>
@@ -242,14 +248,14 @@ function AdminProductListItem({
                 variant={product.isActive ? "secondary" : "outline"}
                 className={
                   product.isActive
-                    ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
-                    : undefined
+                    ? adminSuccessBadgeClassName
+                    : adminInactiveBadgeClassName
                 }
               >
                 {product.isActive ? "Active" : "Inactive"}
               </Badge>
               {product.categoryName ? (
-                <Badge variant="outline" className="rounded-full">
+                <Badge variant="outline" className={adminOutlineBadgeClassName}>
                   {product.categoryName}
                 </Badge>
               ) : null}
@@ -337,8 +343,8 @@ function AdminProductCardItem({
               variant={product.isActive ? "secondary" : "outline"}
               className={
                 product.isActive
-                  ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
-                  : undefined
+                  ? adminSuccessBadgeClassName
+                  : adminInactiveBadgeClassName
               }
             >
               {product.isActive ? "Active" : "Inactive"}

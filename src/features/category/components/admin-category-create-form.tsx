@@ -11,6 +11,10 @@ import {
   adminPrimaryButtonClassName,
 } from "@/components/ui/admin-action-styles";
 import { Button } from "@/components/ui/button";
+import {
+  adminErrorNoticePreWrapClassName,
+  adminSuccessNoticeClassName,
+} from "@/components/ui/admin-notice-styles";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { createCategoryAction } from "@/features/category/actions/create-category.action";
 import { CategoryFormFields } from "@/features/category/components/category-form-fields";
@@ -137,8 +141,8 @@ export function AdminCategoryCreateForm() {
           <div
             className={
               submissionState.success
-                ? "rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-700 dark:text-emerald-300"
-                : "rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm leading-6 whitespace-pre-line text-destructive"
+                ? adminSuccessNoticeClassName
+                : adminErrorNoticePreWrapClassName
             }
           >
             {submissionState.message}
