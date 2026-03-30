@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -93,6 +93,7 @@ export async function uploadOrderPaymentSlipAction(
     revalidatePath(buildAccountOrderPath(orderId));
     revalidatePath("/admin/orders");
     revalidatePath("/admin/dashboard");
+    refresh();
 
     return {
       message: "Payment slip uploaded. The order is now waiting for admin review.",

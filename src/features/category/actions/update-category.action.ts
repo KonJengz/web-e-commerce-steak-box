@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { refresh, revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -90,6 +90,7 @@ export async function updateCategoryAction(
     revalidatePath("/");
     revalidateTag(PUBLIC_CATEGORIES_CACHE_TAG, "max");
     revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
+    refresh();
 
     return {
       message: "Category updated successfully.",

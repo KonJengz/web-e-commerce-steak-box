@@ -19,23 +19,25 @@ import {
   DEFAULT_PRODUCT_SORT,
   normalizeProductSort,
 } from "@/features/product/types/product-sort";
-import { siteDescription } from "@/lib/metadata";
 
 export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  title: "Premium Steaks & Cuts — Steak Box",
-  description: siteDescription,
+  title: "Steak Box — Premium Steaks & Chef-Selected Cuts Delivered to Your Door",
+  description:
+    "Order premium chef-selected steaks and imported meat from Steak Box. We offer cold-chain delivery service across Thailand to ensure maximum freshness from our farm to your kitchen.",
   openGraph: {
-    description: siteDescription,
-    title: "Premium Steaks & Cuts — Steak Box",
+    description:
+      "Order premium chef-selected steaks and imported meat from Steak Box. We offer cold-chain delivery service across Thailand to ensure maximum freshness from our farm to your kitchen.",
+    title: "Steak Box — Premium Steaks & Chef-Selected Cuts Delivered to Your Door",
     url: "/",
   },
   twitter: {
     card: "summary_large_image",
-    description: siteDescription,
-    title: "Premium Steaks & Cuts — Steak Box",
+    description:
+      "Order premium chef-selected steaks and imported meat from Steak Box. We offer cold-chain delivery service across Thailand to ensure maximum freshness from our farm to your kitchen.",
+    title: "Steak Box — Premium Steaks & Chef-Selected Cuts Delivered to Your Door",
   },
 };
 

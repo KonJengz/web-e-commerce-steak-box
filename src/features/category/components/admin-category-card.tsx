@@ -129,7 +129,6 @@ export function AdminCategoryCard({
       }
 
       setIsEditing(false);
-      router.refresh();
     });
   };
 
@@ -160,7 +159,6 @@ export function AdminCategoryCard({
       }
 
       setIsDeleteDialogOpen(false);
-      router.refresh();
     });
   };
 

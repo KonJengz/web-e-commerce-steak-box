@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { CalendarDays, ShieldCheck } from "lucide-react";
+
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 
 import { AccountPageHero } from "@/components/account/account-page-hero";
 import { formatAccountDate } from "@/components/account/account.utils";
@@ -7,6 +10,11 @@ import { requireCurrentUser } from "@/features/auth/services/current-user.servic
 import { ProfileEmailEditor } from "@/features/user/components/profile-email-editor";
 import { ProfileNameEditor } from "@/features/user/components/profile-name-editor";
 import { ProfilePhotoEditor } from "@/features/user/components/profile-photo-editor";
+
+export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
+  title: "My Profile",
+};
 
 export default async function ProfilePage() {
   const profile = await requireCurrentUser();

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 
 import { AccountPageHero } from "@/components/account/account-page-hero";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 import { requireCurrentUser } from "@/features/auth/services/current-user.service";
 import {
   GoogleLinkCard,
@@ -10,7 +11,8 @@ import {
 import { ProfilePasswordEditor } from "@/features/user/components/profile-password-editor";
 
 export const metadata: Metadata = {
-  title: "Security",
+  ...BASE_PRIVATE_METADATA,
+  title: "Account Security",
 };
 
 const getGoogleLinkNotice = (

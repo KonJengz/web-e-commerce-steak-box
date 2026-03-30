@@ -106,7 +106,6 @@ export function AdminCategoryCreateForm() {
       }
 
       reset(defaultValues);
-      router.refresh();
     });
   };
 

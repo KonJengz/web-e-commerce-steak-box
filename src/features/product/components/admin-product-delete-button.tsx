@@ -57,7 +57,6 @@ export function AdminProductDeleteButton({
       }
 
       setOpen(false);
-      router.refresh();
     });
   };
 

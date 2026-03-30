@@ -211,7 +211,6 @@ export function ProfileEmailEditor({ profile }: ProfileEmailEditorProps) {
       }
 
       closeEditor();
-      router.refresh();
     });
   };
 

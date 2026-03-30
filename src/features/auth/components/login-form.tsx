@@ -87,7 +87,6 @@ export function LoginForm({
       }
 
       router.replace(result.redirectTo ?? "/");
-      router.refresh();
     });
   };
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -155,6 +155,7 @@ export async function verifyEmailChangeAction(
     );
 
     revalidatePath("/(main)", "layout");
+    refresh();
 
     return {
       message: "Email updated successfully.",

@@ -92,7 +92,6 @@ export function ProfileNameEditor({ profile }: ProfileNameEditorProps) {
       }
 
       closeEditor();
-      router.refresh();
     });
   };
 

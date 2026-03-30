@@ -5,10 +5,12 @@ import {
   getPendingVerificationEmail,
   maskEmailAddress,
 } from "@/features/auth/services/auth-session.service";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 import { VerifyEmailForm } from "@/features/auth/components/verify-email-form";
 
 export const metadata: Metadata = {
-  title: "Verify Email - Steak Box",
+  ...BASE_PRIVATE_METADATA,
+  title: "Verify Email",
   description: "Confirm your email and sign in automatically.",
 };
 

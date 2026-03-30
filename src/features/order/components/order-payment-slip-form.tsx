@@ -93,7 +93,6 @@ export function OrderPaymentSlipForm({
       setSubmissionMessage(result.message ?? null);
       setIsSuccess(true);
       resetSlipSelection();
-      router.refresh();
     });
   };
 

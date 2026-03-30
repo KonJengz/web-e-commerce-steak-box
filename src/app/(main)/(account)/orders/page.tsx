@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Package2, ReceiptText } from "lucide-react";
+
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 
 import { AccountPageHero } from "@/components/account/account-page-hero";
 import {
@@ -14,6 +17,11 @@ import { OrderStatusBadge } from "@/features/order/components/order-status-badge
 import { orderService } from "@/features/order/services/order.service";
 import { getOrderStatusLabel } from "@/features/order/types/order-status";
 import { buildAccountOrderPath } from "@/features/order/utils/order-path";
+
+export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
+  title: "My Orders",
+};
 
 interface OrdersPageProps {
   searchParams: Promise<{ page?: string | string[] }>;

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -106,6 +106,7 @@ export async function updateAdminOrderAction(
     revalidatePath("/admin/orders");
     revalidatePath("/admin/dashboard");
     revalidatePath("/orders");
+    refresh();
 
     return {
       message: "Order updated successfully.",

@@ -6,8 +6,10 @@ import {
   getPendingPasswordResetEmail,
   maskEmailAddress,
 } from "@/features/auth/services/auth-session.service";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 
 export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
   title: "Reset Password",
   description: "Reset your Steak Box password with the code sent to your email.",
 };

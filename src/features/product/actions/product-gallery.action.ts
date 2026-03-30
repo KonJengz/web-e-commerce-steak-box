@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { refresh, revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -349,6 +349,7 @@ export async function addProductImagesAction(
     const latestImages = await getLatestProductImages(validatedInput.data.productId);
 
     await revalidateProductPaths(validatedInput.data.productId);
+    refresh();
 
     if (!latestImages.success) {
       return latestImages;
@@ -433,6 +434,7 @@ export async function reorderProductImagesAction(
     );
 
     await revalidateProductPaths(validatedInput.data.productId);
+    refresh();
 
     return {
       ...(await getLatestProductImages(validatedInput.data.productId)),
@@ -490,6 +492,7 @@ export async function deleteProductImageAction(
     );
 
     await revalidateProductPaths(validatedInput.data.productId);
+    refresh();
 
     return {
       ...(await getLatestProductImages(validatedInput.data.productId)),

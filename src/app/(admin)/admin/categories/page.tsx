@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AdminPageHero } from "@/components/admin/admin-page-hero";
 import { adminHeroPrimaryBadgeClassName } from "@/components/ui/admin-badge-styles";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,12 @@ import {
 } from "@/features/category/types/category-directory-query";
 import type { Category } from "@/features/category/types/category.type";
 import { productService } from "@/features/product/services/product.service";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
+
+export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
+  title: "Taxonomy Management",
+};
 
 interface AdminCategoryDirectoryItem {
   assignedProductCount: number;

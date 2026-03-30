@@ -175,7 +175,6 @@ export function ProfilePhotoEditor({ profile }: ProfilePhotoEditorProps) {
         removeImage: false,
       });
       setFileInputKey((currentKey) => currentKey + 1);
-      router.refresh();
     });
   };
 

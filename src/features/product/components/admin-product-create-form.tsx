@@ -210,7 +210,6 @@ export function AdminProductCreateForm({
       }
 
       resetFormFields();
-      router.refresh();
     });
   };
 

@@ -148,8 +148,6 @@ export function ProfilePasswordEditor({
         router.replace(loginRedirectPath);
         return;
       }
-
-      router.refresh();
     });
   };
 

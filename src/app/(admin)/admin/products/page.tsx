@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { cache, Suspense } from "react";
 import { Package, Sparkles } from "lucide-react";
 
@@ -41,7 +42,13 @@ import {
 import type { ProductSummary } from "@/features/product/types/product.type";
 import cloudinaryLoader from "@/lib/cloudinary-loader";
 import { INVENTORY_THRESHOLDS } from "@/lib/inventory-config";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 import { cn } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
+  title: "Inventory Management",
+};
 
 interface AdminProductsPageProps {
   searchParams: Promise<{

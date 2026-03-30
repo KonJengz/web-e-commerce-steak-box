@@ -170,7 +170,6 @@ function VerifyEmailFormContent({
       }
 
       router.replace(result.redirectTo ?? "/");
-      router.refresh();
     });
   };
 

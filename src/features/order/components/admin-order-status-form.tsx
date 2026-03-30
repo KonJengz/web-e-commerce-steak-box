@@ -200,8 +200,6 @@ export function AdminOrderStatusForm({
       if (result.order) {
         reset(buildDefaultValues(result.order));
       }
-
-      router.refresh();
     });
   };
 

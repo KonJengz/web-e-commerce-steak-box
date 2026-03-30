@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { MapPinHouse } from "lucide-react";
+
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 
 import { AccountPageHero } from "@/components/account/account-page-hero";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +11,11 @@ import { AddressCard } from "@/features/address/components/address-card";
 import { AddressCreateForm } from "@/features/address/components/address-create-form";
 import { addressService } from "@/features/address/services/address.service";
 import { executeProtectedRequestOrRedirect } from "@/features/auth/services/current-user.service";
+
+export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
+  title: "My Addresses",
+};
 
 export default async function AddressesPage() {
   const addresses = await executeProtectedRequestOrRedirect(

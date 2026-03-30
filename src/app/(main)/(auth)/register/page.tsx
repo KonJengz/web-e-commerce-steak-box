@@ -12,8 +12,10 @@ import { LogoIconSteakBox } from "@/components/shared/icons/logo-icon";
 import { RegisterForm } from "@/features/auth/components/register-form";
 import { authService } from "@/features/auth/services/auth.service";
 import { normalizeAuthRedirectTarget } from "@/features/auth/utils/auth-redirect";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 
 export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
   title: "Register - Join Steak Box",
   description:
     "Create your Steak Box account, verify your email, and get signed in automatically.",

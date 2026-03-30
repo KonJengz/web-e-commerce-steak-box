@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import type { Metadata } from "next";
 import { Suspense, cache } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -43,7 +44,13 @@ import { productService } from "@/features/product/services/product.service";
 import type { ProductSummary } from "@/features/product/types/product.type";
 import cloudinaryLoader from "@/lib/cloudinary-loader";
 import { INVENTORY_THRESHOLDS } from "@/lib/inventory-config";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 import { cn } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
+  title: "Admin Dashboard",
+};
 
 const RECENT_CATEGORY_LIMIT = 5;
 const RECENT_PRODUCTS_LIMIT = 6;

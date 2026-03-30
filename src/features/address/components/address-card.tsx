@@ -135,7 +135,6 @@ export function AddressCard({ address }: AddressCardProps) {
       }
 
       setIsEditing(false);
-      router.refresh();
     });
   };
 
@@ -159,8 +158,6 @@ export function AddressCard({ address }: AddressCardProps) {
 
         return;
       }
-
-      router.refresh();
     });
   };
 

@@ -12,8 +12,10 @@ import { LogoIconSteakBox } from "@/components/shared/icons/logo-icon";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { authService } from "@/features/auth/services/auth.service";
 import { normalizeAuthRedirectTarget } from "@/features/auth/utils/auth-redirect";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 
 export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
   title: "Login",
 };
 

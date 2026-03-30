@@ -531,7 +531,6 @@ export function AdminProductEditSheet({
       clearCoverImagePreview();
       setFileInputKey((currentKey) => currentKey + 1);
       setSubmissionState(null);
-      router.refresh();
     });
   };
 
@@ -611,7 +610,6 @@ export function AdminProductEditSheet({
         }
 
         clearSelectedGalleryImages();
-        router.refresh();
       }
     });
   };
@@ -628,9 +626,7 @@ export function AdminProductEditSheet({
         productId: product.id,
       });
       const wasSuccessful = handleGalleryResult(result);
-
       if (wasSuccessful) {
-        router.refresh();
         return;
       }
 
@@ -730,9 +726,7 @@ export function AdminProductEditSheet({
           result.message || result.fieldErrors || !result.success ? result : null,
         );
         setIsGalleryLoaded(true);
-
         if (result.success) {
-          router.refresh();
           return;
         }
 
@@ -771,9 +765,8 @@ export function AdminProductEditSheet({
         productId: product.id,
       });
       const wasSuccessful = handleGalleryResult(result);
-
       if (wasSuccessful) {
-        router.refresh();
+        return;
       }
     });
   };

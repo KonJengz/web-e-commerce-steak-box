@@ -127,7 +127,6 @@ export function AddressCreateForm({ hasAddresses }: AddressCreateFormProps) {
       }
 
       reset(getDefaultValues(true));
-      router.refresh();
     });
   };
 

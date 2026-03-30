@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { refresh, revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -188,6 +188,7 @@ export async function updateProductAction(
       revalidatePath(buildCategoryPath(updatedProduct.data.categorySlug));
     }
     revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
+    refresh();
 
     return {
       message: "Product updated successfully.",

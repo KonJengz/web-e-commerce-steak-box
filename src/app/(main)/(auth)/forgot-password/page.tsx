@@ -4,8 +4,10 @@ import { ChevronRight, MailSearch, ShieldCheck, TimerReset, type LucideIcon } fr
 
 import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-form";
 import { LogoIconSteakBox } from "@/components/shared/icons/logo-icon";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 
 export const metadata: Metadata = {
+  ...BASE_PRIVATE_METADATA,
   title: "Forgot Password",
   description: "Request a password reset code for your Steak Box account.",
 };

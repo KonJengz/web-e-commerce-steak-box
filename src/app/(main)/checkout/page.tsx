@@ -21,11 +21,11 @@ import { cartService } from "@/features/cart/services/cart.service";
 import { CheckoutSubmitForm } from "@/features/order/components/checkout-submit-form";
 import { buildCartOverview } from "@/features/cart/utils/cart-summary";
 import { buildProductPath } from "@/features/product/utils/product-path";
-import { PRIVATE_ROUTE_ROBOTS } from "@/lib/metadata";
+import { BASE_PRIVATE_METADATA } from "@/lib/metadata";
 
 export const metadata: Metadata = {
-  robots: PRIVATE_ROUTE_ROBOTS,
-  title: "Checkout — Steak Box",
+  ...BASE_PRIVATE_METADATA,
+  title: "Checkout",
 };
 
 export default async function CheckoutPage() {

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { refresh, revalidatePath, revalidateTag } from "next/cache";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
 
@@ -205,6 +205,7 @@ export async function createProductAction(
     revalidatePath("/admin/dashboard");
     revalidatePath("/");
     revalidateTag(PUBLIC_PRODUCTS_CACHE_TAG, "max");
+    refresh();
 
     if (failedGalleryUploads > 0) {
       return {

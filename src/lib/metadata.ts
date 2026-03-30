@@ -16,6 +16,10 @@ export const PRIVATE_ROUTE_ROBOTS: NonNullable<Metadata["robots"]> = {
   index: false,
 };
 
+export const BASE_PRIVATE_METADATA: Metadata = {
+  robots: PRIVATE_ROUTE_ROBOTS,
+};
+
 export const buildAbsoluteSiteUrl = (path: string): string => {
   return new URL(path, metadataBase).toString();
 };
