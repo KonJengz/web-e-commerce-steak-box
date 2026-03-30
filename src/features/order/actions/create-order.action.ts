@@ -28,7 +28,10 @@ const buildUnauthorizedState = (): CreateOrderActionState => {
 };
 
 const buildApiErrorState = (error: ApiError): CreateOrderActionState => {
-  if (error.message === "Shipping address not found") {
+  if (
+    error.message === "Shipping address not found" ||
+    error.message === "Invalid shipping address"
+  ) {
     return {
       fieldErrors: {
         shippingAddressId: ["Choose one of your saved delivery addresses."],
