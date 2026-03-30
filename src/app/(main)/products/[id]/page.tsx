@@ -36,11 +36,11 @@ interface ProductDetailPageProps {
 }
 
 const getProduct = cache(async (identifier: string) => {
-  return (await productService.getPublicByIdentifier(identifier)).data;
+  return productService.getPublicByIdentifier(identifier);
 });
 
 const getProductImages = cache(async (identifier: string) => {
-  return (await productService.getPublicImages(identifier)).data;
+  return productService.getPublicImages(identifier);
 });
 
 interface ProductGallerySectionProps {

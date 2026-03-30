@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+
 import type {
   CreateProductCoreInput,
   UpdateProductCoreInput,
@@ -79,14 +81,6 @@ interface ProductUploadImageApiResponse {
 interface ProductImagesMutationApiResponse {
   images: ProductImageApiResponse[];
 }
-
-const PUBLIC_PRODUCT_FETCH_OPTIONS = {
-  cache: "force-cache" as const,
-  next: {
-    revalidate: 300,
-    tags: [PUBLIC_PRODUCTS_CACHE_TAG],
-  },
-};
 
 const mapProductSummary = (
   product: ProductListItemApiResponse,
@@ -222,21 +216,19 @@ const getAll = async (
 
 const getPublicAll = async (
   options: ProductQueryOptions = {},
-): Promise<ApiResult<ProductListResult>> => {
-  const result = await api.get<ProductListApiResponse>(
-    buildProductListPath(options),
-    PUBLIC_PRODUCT_FETCH_OPTIONS,
-  );
+): Promise<ProductListResult> => {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(PUBLIC_PRODUCTS_CACHE_TAG);
+
+  const result = await api.get<ProductListApiResponse>(buildProductListPath(options));
 
   return {
-    ...result,
-    data: {
-      items: result.data.data.map(mapProductSummary),
-      limit: result.data.limit,
-      page: result.data.page,
-      total: result.data.total,
-      totalPages: result.data.total_pages,
-    },
+    items: result.data.data.map(mapProductSummary),
+    limit: result.data.limit,
+    page: result.data.page,
+    total: result.data.total,
+    totalPages: result.data.total_pages,
   };
 };
 
@@ -255,16 +247,16 @@ const getByIdentifier = async (
 
 const getPublicByIdentifier = async (
   identifier: string,
-): Promise<ApiResult<ProductDetail>> => {
+): Promise<ProductDetail> => {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(PUBLIC_PRODUCTS_CACHE_TAG);
+
   const result = await api.get<ProductDetailApiResponse>(
     `/api/products/${encodeUrlSegment(identifier)}`,
-    PUBLIC_PRODUCT_FETCH_OPTIONS,
   );
 
-  return {
-    ...result,
-    data: mapProductDetail(result.data),
-  };
+  return mapProductDetail(result.data);
 };
 
 const getImages = async (
@@ -282,16 +274,16 @@ const getImages = async (
 
 const getPublicImages = async (
   identifier: string,
-): Promise<ApiResult<ProductImage[]>> => {
+): Promise<ProductImage[]> => {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(PUBLIC_PRODUCTS_CACHE_TAG);
+
   const result = await api.get<ProductImageApiResponse[]>(
     `/api/products/${encodeUrlSegment(identifier)}/images`,
-    PUBLIC_PRODUCT_FETCH_OPTIONS,
   );
 
-  return {
-    ...result,
-    data: result.data.map(mapProductImage),
-  };
+  return result.data.map(mapProductImage);
 };
 
 const create = async (

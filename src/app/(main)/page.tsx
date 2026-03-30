@@ -59,7 +59,7 @@ const getParam = (value: string | string[] | undefined): string => {
 };
 
 const getAllCategories = cache(async () => {
-  return (await categoryService.getPublicAll()).data;
+  return categoryService.getPublicAll();
 });
 
 const getHomeProducts = cache(
@@ -68,15 +68,13 @@ const getHomeProducts = cache(
     searchQuery: string,
     sortValue: ProductQueryOptions["sort"],
   ) => {
-    return (
-      await productService.getPublicAll({
-        inStock: undefined,
-        limit: 12,
-        page: currentPage,
-        search: searchQuery || undefined,
-        sort: sortValue,
-      })
-    ).data;
+    return productService.getPublicAll({
+      inStock: undefined,
+      limit: 12,
+      page: currentPage,
+      search: searchQuery || undefined,
+      sort: sortValue,
+    });
   },
 );
 

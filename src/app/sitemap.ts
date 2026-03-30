@@ -29,8 +29,8 @@ const getAllPublicProducts = async (): Promise<ProductSummary[]> => {
       page: currentPage,
     });
 
-    products.push(...response.data.items.filter((product) => product.isActive));
-    totalPages = response.data.totalPages;
+    products.push(...response.items.filter((product) => product.isActive));
+    totalPages = response.totalPages;
     currentPage += 1;
   } while (currentPage <= totalPages);
 
@@ -48,7 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
       ...STATIC_SITEMAP_FALLBACK,
-      ...categories.data.map((category) => ({
+      ...categories.map((category) => ({
         changeFrequency: "weekly" as const,
         lastModified: category.updatedAt,
         priority: 0.7,

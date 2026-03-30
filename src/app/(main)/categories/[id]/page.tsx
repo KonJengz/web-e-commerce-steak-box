@@ -41,11 +41,11 @@ const getParam = (value: string | string[] | undefined): string => {
 };
 
 const getAllCategories = cache(async () => {
-  return (await categoryService.getPublicAll()).data;
+  return categoryService.getPublicAll();
 });
 
 const getCategory = cache(async (identifier: string) => {
-  return (await categoryService.getPublicByIdentifier(identifier)).data;
+  return categoryService.getPublicByIdentifier(identifier);
 });
 
 const getCategoryProducts = cache(
@@ -55,15 +55,13 @@ const getCategoryProducts = cache(
     searchValue: string,
     sortValue: ProductQueryOptions["sort"],
   ) => {
-    return (
-      await productService.getPublicAll({
-        categorySlug,
-        limit: 12,
-        page: currentPage,
-        search: searchValue || undefined,
-        sort: sortValue,
-      })
-    ).data;
+    return productService.getPublicAll({
+      categorySlug,
+      limit: 12,
+      page: currentPage,
+      search: searchValue || undefined,
+      sort: sortValue,
+    });
   },
 );
 

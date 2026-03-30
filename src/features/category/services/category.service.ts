@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+
 import type {
   CreateCategoryInput,
   UpdateCategoryInput,
@@ -23,14 +25,6 @@ interface DeleteCategoryApiResponse {
   message: string;
 }
 
-const PUBLIC_CATEGORY_FETCH_OPTIONS = {
-  cache: "force-cache" as const,
-  next: {
-    revalidate: 300,
-    tags: [PUBLIC_CATEGORIES_CACHE_TAG],
-  },
-};
-
 const mapCategory = (category: CategoryApiResponse): Category => {
   return {
     createdAt: category.created_at,
@@ -51,16 +45,14 @@ const getAll = async (): Promise<ApiResult<Category[]>> => {
   };
 };
 
-const getPublicAll = async (): Promise<ApiResult<Category[]>> => {
-  const result = await api.get<CategoryApiResponse[]>(
-    "/api/categories",
-    PUBLIC_CATEGORY_FETCH_OPTIONS,
-  );
+const getPublicAll = async (): Promise<Category[]> => {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(PUBLIC_CATEGORIES_CACHE_TAG);
 
-  return {
-    ...result,
-    data: result.data.map(mapCategory),
-  };
+  const result = await api.get<CategoryApiResponse[]>("/api/categories");
+
+  return result.data.map(mapCategory);
 };
 
 const getByIdentifier = async (
@@ -76,18 +68,16 @@ const getByIdentifier = async (
   };
 };
 
-const getPublicByIdentifier = async (
-  identifier: string,
-): Promise<ApiResult<Category>> => {
+const getPublicByIdentifier = async (identifier: string): Promise<Category> => {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(PUBLIC_CATEGORIES_CACHE_TAG);
+
   const result = await api.get<CategoryApiResponse>(
     `/api/categories/${encodeUrlSegment(identifier)}`,
-    PUBLIC_CATEGORY_FETCH_OPTIONS,
   );
 
-  return {
-    ...result,
-    data: mapCategory(result.data),
-  };
+  return mapCategory(result.data);
 };
 
 const create = async (
