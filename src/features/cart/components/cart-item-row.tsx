@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { CartRemoveItemDialog } from "@/features/cart/components/cart-remove-item-dialog";
+import { useCartState } from "@/features/cart/components/cart-state-provider";
 import { removeCartItemAction } from "@/features/cart/actions/remove-cart-item.action";
 import { updateCartItemAction } from "@/features/cart/actions/update-cart-item.action";
 import type { CartItem } from "@/features/cart/types/cart.type";
@@ -26,6 +27,7 @@ interface CartItemRowProps {
 
 export function CartItemRow({ item }: CartItemRowProps) {
   const router = useRouter();
+  const { setCart } = useCartState();
   const [pendingQuantity, setPendingQuantity] = useState<number | null>(null);
   const [inlineMessage, setInlineMessage] = useState<string | null>(null);
   const [removeMessage, setRemoveMessage] = useState<string | null>(null);
@@ -68,6 +70,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
       }
 
       setPendingQuantity(null);
+      setCart(result.cart ?? null);
       router.refresh();
     });
   };
@@ -91,6 +94,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
       }
 
       setIsRemoveDialogOpen(false);
+      setCart(result.cart ?? null);
       router.refresh();
     });
   };

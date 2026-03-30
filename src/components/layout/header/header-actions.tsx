@@ -7,16 +7,13 @@ import type { HeaderUser } from "@/components/layout/header/header.types";
 import { HeaderUserMenu } from "@/components/layout/header/header-user-menu.client";
 import { ThemeToggle } from "@/components/layout/header/theme-toggle";
 import { HeaderCartSheet } from "@/features/cart/components/header-cart-sheet";
-import type { Cart } from "@/features/cart/types/cart.type";
 
 interface HeaderActionsProps {
-  cart: Cart | null;
   isLoggedIn: boolean;
   user: HeaderUser | null;
 }
 
 export function HeaderActions({
-  cart,
   isLoggedIn,
   user,
 }: HeaderActionsProps) {
@@ -24,7 +21,7 @@ export function HeaderActions({
     <div className="flex items-center justify-end gap-2 sm:gap-2">
       <ThemeToggle />
 
-      <HeaderCartSheet cart={cart} isLoggedIn={isLoggedIn} />
+      <HeaderCartSheet isLoggedIn={isLoggedIn} />
 
       {isLoggedIn && user ? (
         <HeaderUserMenu user={user} />

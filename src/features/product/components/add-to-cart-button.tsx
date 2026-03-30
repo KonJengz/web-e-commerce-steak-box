@@ -5,6 +5,7 @@ import { CheckCircle2, Loader2, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { addToCartAction } from "@/features/cart/actions/add-to-cart.action";
+import { useCartState } from "@/features/cart/components/cart-state-provider";
 import { Button } from "@/components/ui/button";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 
@@ -19,6 +20,7 @@ const SUCCESS_NOTICE_FADE_MS = 350;
 export function AddToCartButton({ maxStock, productId }: AddToCartButtonProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { setCart } = useCartState();
   const [isPending, startTransition] = useTransition();
   const [quantity, setQuantity] = useState<number>(1);
   const [message, setMessage] = useState<string | null>(null);
@@ -105,8 +107,8 @@ export function AddToCartButton({ maxStock, productId }: AddToCartButtonProps) {
       setIsSuccessNoticeVisible(result.success);
 
       if (result.success) {
+        setCart(result.cart ?? null);
         setQuantity(1);
-        router.refresh();
       }
     });
   };

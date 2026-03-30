@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Loader2, Minus, Package, Plus, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { formatCurrency } from "@/components/account/account.utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { CartRemoveItemDialog } from "@/features/cart/components/cart-remove-item-dialog";
+import { useCartState } from "@/features/cart/components/cart-state-provider";
 import { removeCartItemAction } from "@/features/cart/actions/remove-cart-item.action";
 import { updateCartItemAction } from "@/features/cart/actions/update-cart-item.action";
 import type { CartItem } from "@/features/cart/types/cart.type";
@@ -22,7 +23,9 @@ interface HeaderCartItemCardProps {
 }
 
 export function HeaderCartItemCard({ item }: HeaderCartItemCardProps) {
+  const pathname = usePathname();
   const router = useRouter();
+  const { setCart } = useCartState();
   const [pendingQuantity, setPendingQuantity] = useState<number | null>(null);
   const [inlineMessage, setInlineMessage] = useState<string | null>(null);
   const [removeMessage, setRemoveMessage] = useState<string | null>(null);
@@ -60,7 +63,11 @@ export function HeaderCartItemCard({ item }: HeaderCartItemCardProps) {
       }
 
       setPendingQuantity(null);
-      router.refresh();
+      setCart(result.cart ?? null);
+
+      if (pathname === "/cart" || pathname === "/checkout") {
+        router.refresh();
+      }
     });
   };
 
@@ -83,7 +90,11 @@ export function HeaderCartItemCard({ item }: HeaderCartItemCardProps) {
       }
 
       setIsRemoveDialogOpen(false);
-      router.refresh();
+      setCart(result.cart ?? null);
+
+      if (pathname === "/cart" || pathname === "/checkout") {
+        router.refresh();
+      }
     });
   };
 

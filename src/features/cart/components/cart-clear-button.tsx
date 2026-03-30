@@ -7,9 +7,11 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { clearCartAction } from "@/features/cart/actions/clear-cart.action";
+import { useCartState } from "@/features/cart/components/cart-state-provider";
 
 export function CartClearButton() {
   const router = useRouter();
+  const { setCart } = useCartState();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
 
@@ -37,6 +39,7 @@ export function CartClearButton() {
         return;
       }
 
+      setCart(result.cart ?? null);
       router.refresh();
     });
   };

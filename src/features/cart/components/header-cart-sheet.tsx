@@ -26,11 +26,10 @@ import {
 } from "@/components/ui/sheet";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { HeaderCartItemCard } from "@/features/cart/components/header-cart-item-card";
-import type { Cart } from "@/features/cart/types/cart.type";
+import { useCartState } from "@/features/cart/components/cart-state-provider";
 import { buildCartOverview } from "@/features/cart/utils/cart-summary";
 
 interface HeaderCartSheetProps {
-  cart: Cart | null;
   isLoggedIn: boolean;
 }
 
@@ -45,9 +44,9 @@ const formatCartBadgeCount = (value: number): string => {
 };
 
 export function HeaderCartSheet({
-  cart,
   isLoggedIn,
 }: HeaderCartSheetProps) {
+  const { cart } = useCartState();
   const [open, setOpen] = useState<boolean>(false);
   const items = cart?.items ?? [];
   const overview = buildCartOverview(items);

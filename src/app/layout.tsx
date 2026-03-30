@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { metadataBase, siteDescription, siteName } from "@/lib/metadata";
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { WebVitals } from "@/components/providers/web-vitals";
 
 export const metadata: Metadata = {
   applicationName: siteName,
@@ -52,6 +53,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <WebVitals />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
