@@ -214,10 +214,7 @@ function AdminProductActionGroup({
   return (
     <div className="flex flex-col gap-2 sm:flex-row xl:flex-col xl:items-end">
       <AdminProductEditSheet categories={categories} product={product} />
-      <AdminProductDeleteButton
-        productId={product.id}
-        productName={product.name}
-      />
+      <AdminProductDeleteButton product={product} />
     </div>
   );
 }

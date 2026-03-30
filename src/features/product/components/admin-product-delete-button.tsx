@@ -8,33 +8,38 @@ import { adminDestructiveButtonClassName } from "@/components/ui/admin-action-st
 import { Button } from "@/components/ui/button";
 import { buildLoginRedirectPath } from "@/features/auth/utils/auth-redirect";
 import { deleteProductAction } from "@/features/product/actions/delete-product.action";
+import { ProductDeleteDialog } from "@/features/product/components/product-delete-dialog";
+import type { ProductSummary } from "@/features/product/types/product.type";
 
 interface AdminProductDeleteButtonProps {
-  productId: string;
-  productName: string;
+  product: ProductSummary;
 }
 
 export function AdminProductDeleteButton({
-  productId,
-  productName,
+  product,
 }: AdminProductDeleteButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [open, setOpen] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleDelete = (): void => {
-    const confirmed = window.confirm(
-      `Delete "${productName}" from the catalog?`,
-    );
-
-    if (!confirmed) {
+  const handleOpenChange = (nextOpen: boolean): void => {
+    if (isPending) {
       return;
     }
 
+    setOpen(nextOpen);
+
+    if (!nextOpen) {
+      setMessage(null);
+    }
+  };
+
+  const handleDelete = (): void => {
     setMessage(null);
 
     startTransition(async () => {
-      const result = await deleteProductAction(productId);
+      const result = await deleteProductAction(product.id);
 
       if (!result.success) {
         setMessage(result.message ?? "Unable to delete this product.");
@@ -51,19 +56,20 @@ export function AdminProductDeleteButton({
         return;
       }
 
+      setOpen(false);
       router.refresh();
     });
   };
 
   return (
-    <div className="space-y-2">
+    <>
       <Button
         type="button"
         variant="destructive"
         size="sm"
         className={adminDestructiveButtonClassName}
         disabled={isPending}
-        onClick={handleDelete}
+        onClick={() => handleOpenChange(true)}
       >
         {isPending ? (
           <>
@@ -78,11 +84,14 @@ export function AdminProductDeleteButton({
         )}
       </Button>
 
-      {message ? (
-        <p className="max-w-[15rem] text-xs leading-5 text-destructive">
-          {message}
-        </p>
-      ) : null}
-    </div>
+      <ProductDeleteDialog
+        product={product}
+        open={open}
+        onOpenChange={handleOpenChange}
+        onConfirm={handleDelete}
+        isPending={isPending}
+        message={message}
+      />
+    </>
   );
 }
