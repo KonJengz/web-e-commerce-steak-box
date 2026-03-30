@@ -1,8 +1,9 @@
-import { Inter } from "next/font/google";
+interface AppFont {
+  variable: string;
+}
 
-export const inter = Inter({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-sans",
-});
+// Keep the existing layout contract without relying on a network font fetch
+// during production builds. The actual stack is defined in globals.css.
+export const inter: AppFont = {
+  variable: "",
+};

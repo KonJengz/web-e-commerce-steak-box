@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { ChevronRight, Flame, Sparkles, Beef } from "lucide-react";
 import { cache, Suspense } from "react";
 
@@ -173,6 +174,8 @@ async function HomeCatalogResults({
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
+  await connection();
+
   const resolvedSearchParams = await searchParams;
   const { currentPage, resultsKey, searchQuery, sortValue } =
     buildCatalogState(resolvedSearchParams);

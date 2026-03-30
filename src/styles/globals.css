@@ -67,6 +67,7 @@
 }
 
 :root {
+  --font-sans: "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --background: #f8f6f4;
   --foreground: #1a1614;
   --card: #ffffff;

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { connection } from "next/server";
 
 import { categoryService } from "@/features/category/services/category.service";
 import { buildCategoryPath } from "@/features/category/utils/category-path";
@@ -8,6 +9,14 @@ import { buildProductPath } from "@/features/product/utils/product-path";
 import { buildAbsoluteSiteUrl } from "@/lib/metadata";
 
 const SITEMAP_PRODUCT_PAGE_LIMIT = 100;
+const STATIC_SITEMAP_FALLBACK: MetadataRoute.Sitemap = [
+  {
+    changeFrequency: "daily",
+    lastModified: new Date(),
+    priority: 1,
+    url: buildAbsoluteSiteUrl("/"),
+  },
+];
 
 const getAllPublicProducts = async (): Promise<ProductSummary[]> => {
   const products: ProductSummary[] = [];
@@ -29,29 +38,30 @@ const getAllPublicProducts = async (): Promise<ProductSummary[]> => {
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [categories, products] = await Promise.all([
-    categoryService.getPublicAll(),
-    getAllPublicProducts(),
-  ]);
+  await connection();
 
-  return [
-    {
-      changeFrequency: "daily",
-      lastModified: new Date(),
-      priority: 1,
-      url: buildAbsoluteSiteUrl("/"),
-    },
-    ...categories.data.map((category) => ({
-      changeFrequency: "weekly" as const,
-      lastModified: category.updatedAt,
-      priority: 0.7,
-      url: buildAbsoluteSiteUrl(buildCategoryPath(category.slug)),
-    })),
-    ...products.map((product) => ({
-      changeFrequency: "weekly" as const,
-      lastModified: product.updatedAt,
-      priority: 0.8,
-      url: buildAbsoluteSiteUrl(buildProductPath(product.slug)),
-    })),
-  ];
+  try {
+    const [categories, products] = await Promise.all([
+      categoryService.getPublicAll(),
+      getAllPublicProducts(),
+    ]);
+
+    return [
+      ...STATIC_SITEMAP_FALLBACK,
+      ...categories.data.map((category) => ({
+        changeFrequency: "weekly" as const,
+        lastModified: category.updatedAt,
+        priority: 0.7,
+        url: buildAbsoluteSiteUrl(buildCategoryPath(category.slug)),
+      })),
+      ...products.map((product) => ({
+        changeFrequency: "weekly" as const,
+        lastModified: product.updatedAt,
+        priority: 0.8,
+        url: buildAbsoluteSiteUrl(buildProductPath(product.slug)),
+      })),
+    ];
+  } catch {
+    return STATIC_SITEMAP_FALLBACK;
+  }
 }

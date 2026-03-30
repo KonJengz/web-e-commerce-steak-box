@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/api/error";
 import type { ApiResult } from "@/types";
 
 type ApiMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
+const API_REQUEST_TIMEOUT_MS = 10_000;
 
 interface ApiNextRequestConfig {
   revalidate?: false | number;
@@ -27,6 +28,7 @@ const request = async <T>(
 ): Promise<ApiResult<T>> => {
   const { body, headers, ...restOptions } = options;
   const resolvedHeaders = new Headers(headers);
+  const requestSignal = AbortSignal.timeout(API_REQUEST_TIMEOUT_MS);
   const requestBody =
     body === null || body === undefined
       ? undefined
@@ -40,14 +42,29 @@ const request = async <T>(
 
   resolvedHeaders.set("Accept", "application/json");
 
-  const response = await fetch(buildUrl(path), {
-    ...restOptions,
-    method,
-    headers: resolvedHeaders,
-    body: requestBody,
-    cache: restOptions.cache ?? "no-store",
-    credentials: "include",
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(buildUrl(path), {
+      ...restOptions,
+      method,
+      headers: resolvedHeaders,
+      body: requestBody,
+      cache: restOptions.cache ?? "no-store",
+      credentials: "include",
+      signal: restOptions.signal ?? requestSignal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      throw new ApiError({
+        message: "The backend request timed out.",
+        payload: null,
+        status: 504,
+      });
+    }
+
+    throw error;
+  }
 
   const contentType = response.headers.get("content-type");
   const payload =
