@@ -1219,6 +1219,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
       "description": "รุ่นล่าสุด",
       "category_id": "category-uuid",
       "category_name": "Smartphones",
+      "category_slug": "smartphones",
       "image_url": "https://res.cloudinary.com/...primary...",
       "current_price": "39900",
       "stock": 100,
@@ -1237,6 +1238,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 **หมายเหตุ:**
 
 - field `slug` คือ canonical product slug ที่ frontend ควรใช้สร้าง URL เช่น `/products/iphone-16`
+- `category_slug` คือ canonical category slug ที่ใช้สร้าง link ไปหน้าหมวดได้ตรง ๆ
 - `image_url` ใน `GET /api/products` คือรูปหลักของสินค้า (primary image) ที่ frontend ใช้ map แสดงบน product cards / list pages ได้เลย
 - ถ้าสินค้ายังไม่มีรูปหลัก ค่า `image_url` จะเป็น `null`
 - ถ้าต้องการรูปทั้งหมดของสินค้าให้เรียก `GET /api/products/{identifier}/images` เพิ่ม
@@ -1271,6 +1273,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
   "description": "รุ่นล่าสุด",
   "category_id": "category-uuid",
   "category_name": "Smartphones",
+  "category_slug": "smartphones",
   "image_url": "https://res.cloudinary.com/...primary...",
   "current_price": "39900",
   "stock": 100,
@@ -1670,6 +1673,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
     {
       "id": "cart-item-uuid",
       "product_id": "product-uuid",
+      "product_slug": "iphone-16",
       "product_name": "iPhone 16",
       "product_image_url": "https://res.cloudinary.com/...",
       "current_price": "39900.00",
@@ -1684,6 +1688,11 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
   "updated_at": "2026-03-25T00:00:00Z"
 }
 ```
+
+**Frontend Notes:**
+
+- ใช้ `product_slug` เพื่อ link ไปหน้า product ได้ตรง ๆ เช่น `/products/{product_slug}`
+- cart ใช้ current catalog data ดังนั้น `product_slug`, `product_name`, `product_image_url`, `current_price`, และ `stock` เป็นค่าปัจจุบัน ไม่ใช่ snapshot ตอนเคยกดใส่ตะกร้า
 
 ### POST `/api/carts/items`
 
@@ -1711,6 +1720,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
     {
       "id": "cart-item-uuid",
       "product_id": "product-uuid",
+      "product_slug": "iphone-16",
       "product_name": "iPhone 16",
       "product_image_url": "https://res.cloudinary.com/...",
       "current_price": "39900.00",
@@ -1785,6 +1795,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
     {
       "id": "cart-item-uuid",
       "product_id": "product-uuid",
+      "product_slug": "iphone-16",
       "product_name": "iPhone 16",
       "product_image_url": "https://res.cloudinary.com/...",
       "current_price": "39900.00",
@@ -1914,6 +1925,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
       "id": "order-item-uuid",
       "order_id": "order-uuid",
       "product_id": "product-uuid",
+      "product_slug": "iphone-16",
       "product_name_at_purchase": "iPhone 16",
       "quantity": 2,
       "price_at_purchase": "39900.00"
@@ -1927,6 +1939,7 @@ GET /api/products?page=1&limit=10&search=iphone&min_price=10000&max_price=50000&
 - endpoint นี้สร้าง order และตัด stock ทันที
 - หลังได้ `order_id` แล้ว ให้พา user ไปอัปโหลด slip ต่อด้วย `PUT /api/orders/{id}/payment-slip`
 - ถ้า user ทิ้ง order ไว้จนหมดเวลา ระบบอาจเปลี่ยน status เป็น `CANCELLED` จาก background cleanup ได้เอง
+- `items[].product_slug` คือ canonical product slug ปัจจุบันสำหรับใช้ทำ link; field นี้อาจเป็น `null` ได้ถ้าในอนาคต product ไม่ควรถูกลิงก์แล้ว
 
 ---
 
@@ -1961,6 +1974,7 @@ user อัปโหลดหรือเปลี่ยน slip ของ order
       "id": "order-item-uuid",
       "order_id": "order-uuid",
       "product_id": "product-uuid",
+      "product_slug": "iphone-16",
       "product_name_at_purchase": "iPhone 16",
       "quantity": 2,
       "price_at_purchase": "39900.00"
@@ -2058,6 +2072,7 @@ user อัปโหลดหรือเปลี่ยน slip ของ order
       "id": "order-item-uuid",
       "order_id": "order-uuid",
       "product_id": "product-uuid",
+      "product_slug": "iphone-16",
       "product_name_at_purchase": "iPhone 16",
       "quantity": 2,
       "price_at_purchase": "39900.00"
@@ -2166,6 +2181,7 @@ GET /api/orders/admin?page=1&limit=20&status=PAYMENT_REVIEW&search=jane
       "id": "order-item-uuid",
       "order_id": "order-uuid",
       "product_id": "product-uuid",
+      "product_slug": "iphone-16",
       "product_name_at_purchase": "iPhone 16",
       "quantity": 2,
       "price_at_purchase": "39900.00"
@@ -2237,6 +2253,7 @@ admin อัปเดต status ของ order และใส่ `tracking_num
       "id": "order-item-uuid",
       "order_id": "order-uuid",
       "product_id": "product-uuid",
+      "product_slug": "iphone-16",
       "product_name_at_purchase": "iPhone 16",
       "quantity": 2,
       "price_at_purchase": "39900.00"

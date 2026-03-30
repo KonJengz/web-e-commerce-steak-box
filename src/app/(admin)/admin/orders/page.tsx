@@ -47,6 +47,7 @@ import type {
   AdminOrderListResult,
 } from "@/features/order/types/order.type";
 import { EMPTY_ADMIN_ORDER_SUMMARY } from "@/features/order/types/order.type";
+import { buildProductPath } from "@/features/product/utils/product-path";
 import type { ReactNode } from "react";
 import { ApiError } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
@@ -256,7 +257,7 @@ async function HeroBadges({
           variant="secondary"
           className={adminHeroSecondaryBadgeClassName}
         >
-          Filter {requestState.selectedStatus}
+          Filter {ORDER_STATUS_META[requestState.selectedStatus].label}
         </Badge>
       ) : null}
       {requestState.searchQuery ? (
@@ -273,6 +274,12 @@ async function HeroBadges({
       >
         <Truck className="mr-1 size-3.5" />
         {ordersPage.summary.tracked} with tracking
+      </Badge>
+      <Badge
+        variant="secondary"
+        className={adminHeroSecondaryBadgeClassName}
+      >
+        {ordersPage.summary.paymentReview} awaiting review
       </Badge>
     </>
   );
@@ -324,16 +331,16 @@ function QueueSection({
           />
           <QueueSummaryCard
             className="min-h-[7.5rem] sm:min-w-0 xl:min-h-[6.9rem]"
-            label="Paid"
+            label="Review"
             labelClassName="whitespace-nowrap tracking-[0.18em]"
-            value={String(queueSummary.paid)}
+            value={String(queueSummary.paymentReview)}
             valueClassName="text-3xl leading-none tabular-nums"
           />
           <QueueSummaryCard
             className="min-h-[7.5rem] sm:min-w-0 xl:min-h-[6.9rem]"
-            label="Shipped"
+            label="Failed"
             labelClassName="whitespace-nowrap tracking-[0.18em]"
-            value={String(queueSummary.shipped)}
+            value={String(queueSummary.paymentFailed)}
             valueClassName="text-3xl leading-none tabular-nums"
           />
         </div>
@@ -565,6 +572,35 @@ function SelectedOrderInspector({
         <div className="mt-5 grid gap-3">
           <div className="rounded-[1.25rem] border border-border/60 bg-muted/20 px-4 py-3">
             <div className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
+              <ReceiptText className="size-3.5" />
+              Payment Slip
+            </div>
+            {order.paymentSlipUrl ? (
+              <div className="mt-2 space-y-2">
+                <p className="text-sm font-medium text-foreground">
+                  Submitted{" "}
+                  {order.paymentSubmittedAt
+                    ? formatAccountDateTime(order.paymentSubmittedAt)
+                    : "recently"}
+                </p>
+                <a
+                  href={order.paymentSlipUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                >
+                  Open payment slip
+                  <ArrowRight className="size-4" />
+                </a>
+              </div>
+            ) : (
+              <p className="mt-2 text-sm font-medium text-foreground">
+                No payment slip uploaded yet
+              </p>
+            )}
+          </div>
+          <div className="rounded-[1.25rem] border border-border/60 bg-muted/20 px-4 py-3">
+            <div className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.24em] uppercase text-muted-foreground">
               <MapPinned className="size-3.5" />
               Shipping Reference
             </div>
@@ -608,9 +644,18 @@ function SelectedOrderInspector({
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 space-y-1">
-                  <h3 className="text-base font-semibold tracking-tight text-foreground">
-                    {item.productNameAtPurchase}
-                  </h3>
+                  {item.productSlug ? (
+                    <Link
+                      href={buildProductPath(item.productSlug)}
+                      className="text-base font-semibold tracking-tight text-foreground transition-colors hover:text-primary"
+                    >
+                      {item.productNameAtPurchase}
+                    </Link>
+                  ) : (
+                    <h3 className="text-base font-semibold tracking-tight text-foreground">
+                      {item.productNameAtPurchase}
+                    </h3>
+                  )}
                   <p className="font-mono text-xs text-muted-foreground/70">
                     {formatCompactId(item.productId)}
                   </p>

@@ -61,6 +61,10 @@ const getOrderStatusCount = (
   switch (status) {
     case "PENDING":
       return summary.pending;
+    case "PAYMENT_REVIEW":
+      return summary.paymentReview;
+    case "PAYMENT_FAILED":
+      return summary.paymentFailed;
     case "PAID":
       return summary.paid;
     case "SHIPPED":

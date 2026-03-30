@@ -10,7 +10,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { executeProtectedRequestOrRedirect } from "@/features/auth/services/current-user.service";
+import { OrderStatusBadge } from "@/features/order/components/order-status-badge";
 import { orderService } from "@/features/order/services/order.service";
+import { getOrderStatusLabel } from "@/features/order/types/order-status";
 
 interface OrdersPageProps {
   searchParams: Promise<{ page?: string | string[] }>;
@@ -86,9 +88,7 @@ export default async function OrdersPage({
                       <h2 className="text-lg font-semibold tracking-tight text-foreground">
                         Order {formatCompactId(order.id)}
                       </h2>
-                      <Badge className="rounded-full px-2.5 py-1">
-                        {order.status}
-                      </Badge>
+                      <OrderStatusBadge status={order.status} />
                     </div>
                     <p className="text-sm leading-6 text-muted-foreground">
                       Placed on {formatAccountDate(order.createdAt)}
@@ -118,7 +118,9 @@ export default async function OrdersPage({
                       </p>
                       <div className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-foreground">
                         <ReceiptText className="size-4 text-primary" />
-                        Snapshot stored
+                        {order.paymentSubmittedAt
+                          ? `Slip submitted on ${formatAccountDate(order.paymentSubmittedAt)}`
+                          : `Status: ${getOrderStatusLabel(order.status)}`}
                       </div>
                     </div>
                   </div>

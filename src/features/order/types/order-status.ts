@@ -1,5 +1,7 @@
 export const ORDER_STATUS_VALUES = [
   "PENDING",
+  "PAYMENT_REVIEW",
+  "PAYMENT_FAILED",
   "PAID",
   "SHIPPED",
   "DELIVERED",
@@ -22,12 +24,23 @@ export const ORDER_STATUS_META: Record<OrderStatus, OrderStatusMeta> = {
     description: "The parcel arrived and only tracking corrections remain.",
     label: "Delivered",
   },
+  PAYMENT_FAILED: {
+    description:
+      "Payment could not be confirmed. The customer needs to upload a new slip.",
+    label: "Payment Failed",
+  },
+  PAYMENT_REVIEW: {
+    description:
+      "A payment slip is waiting for an admin review before fulfillment can continue.",
+    label: "Payment Review",
+  },
   PAID: {
     description: "Payment is confirmed and the order can move into dispatch.",
     label: "Paid",
   },
   PENDING: {
-    description: "Waiting for an admin to confirm payment or cancel the order.",
+    description:
+      "The order is waiting for the customer to submit payment or for admin cancellation.",
     label: "Pending",
   },
   SHIPPED: {
@@ -79,7 +92,11 @@ export const getAllowedAdminOrderStatuses = (
 ): readonly OrderStatus[] => {
   switch (currentStatus) {
     case "PENDING":
-      return ["PENDING", "PAID", "CANCELLED"];
+      return ["PENDING", "PAYMENT_REVIEW", "CANCELLED"];
+    case "PAYMENT_REVIEW":
+      return ["PAYMENT_REVIEW", "PAID", "PAYMENT_FAILED", "CANCELLED"];
+    case "PAYMENT_FAILED":
+      return ["PAYMENT_FAILED", "PAYMENT_REVIEW", "CANCELLED"];
     case "PAID":
       return ["PAID", "SHIPPED", "CANCELLED"];
     case "SHIPPED":

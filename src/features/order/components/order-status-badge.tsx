@@ -1,7 +1,9 @@
 import {
   adminAccentBadgeClassName,
+  adminDangerBadgeClassName,
   adminInfoBadgeClassName,
   adminInactiveBadgeClassName,
+  adminMutedBadgeClassName,
   adminSuccessBadgeClassName,
   adminWarningBadgeClassName,
 } from "@/components/ui/admin-badge-styles";
@@ -20,8 +22,10 @@ interface OrderStatusBadgeProps {
 const orderStatusClassName: Record<OrderStatus, string> = {
   CANCELLED: adminInactiveBadgeClassName,
   DELIVERED: adminSuccessBadgeClassName,
+  PAYMENT_FAILED: adminDangerBadgeClassName,
+  PAYMENT_REVIEW: adminWarningBadgeClassName,
   PAID: adminInfoBadgeClassName,
-  PENDING: adminWarningBadgeClassName,
+  PENDING: adminMutedBadgeClassName,
   SHIPPED: adminAccentBadgeClassName,
 };
 

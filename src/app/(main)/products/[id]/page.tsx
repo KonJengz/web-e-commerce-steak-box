@@ -126,10 +126,10 @@ export default async function ProductDetailPage({
           Products
         </Link>
         <ChevronRight className="size-3.5" />
-        {product.categoryName && product.categoryId ? (
+        {product.categoryName && (product.categorySlug || product.categoryId) ? (
           <>
             <Link
-              href={buildCategoryPath(product.categoryId)}
+              href={buildCategoryPath(product.categorySlug ?? product.categoryId!)}
               className="transition-colors hover:text-foreground"
             >
               {product.categoryName}
@@ -157,8 +157,8 @@ export default async function ProductDetailPage({
         <div className="animate-slide-in-right space-y-7">
           {/* Title & Category */}
           <div className="space-y-3">
-            {product.categoryName && product.categoryId ? (
-              <Link href={buildCategoryPath(product.categoryId)}>
+            {product.categoryName && (product.categorySlug || product.categoryId) ? (
+              <Link href={buildCategoryPath(product.categorySlug ?? product.categoryId!)}>
                 <Badge
                   variant="secondary"
                   className="rounded-full px-3 py-1 text-xs font-medium transition-colors hover:bg-secondary/80"

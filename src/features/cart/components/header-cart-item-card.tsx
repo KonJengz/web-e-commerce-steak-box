@@ -106,7 +106,7 @@ export function HeaderCartItemCard({ item }: HeaderCartItemCardProps) {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <Link
-                  href={buildProductPath(item.productId)}
+                  href={buildProductPath(item.productSlug)}
                   className="block truncate text-sm font-semibold text-foreground transition-colors hover:text-primary"
                 >
                   {item.productName}

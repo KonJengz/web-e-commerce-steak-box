@@ -4,6 +4,8 @@ import type { OrderStatus } from "@/features/order/types/order-status";
 export interface Order {
   createdAt: string;
   id: string;
+  paymentSlipUrl: string | null;
+  paymentSubmittedAt: string | null;
   shippingAddressId: string | null;
   status: OrderStatus;
   totalAmount: string;
@@ -17,6 +19,7 @@ export interface OrderItem {
   orderId: string;
   priceAtPurchase: string;
   productId: string;
+  productSlug: string | null;
   productNameAtPurchase: string;
   quantity: number;
 }
@@ -39,6 +42,8 @@ export interface AdminOrderSummary {
   cancelled: number;
   delivered: number;
   paid: number;
+  paymentFailed: number;
+  paymentReview: number;
   pending: number;
   shipped: number;
   tracked: number;
@@ -49,6 +54,8 @@ export const EMPTY_ADMIN_ORDER_SUMMARY: AdminOrderSummary = {
   cancelled: 0,
   delivered: 0,
   paid: 0,
+  paymentFailed: 0,
+  paymentReview: 0,
   pending: 0,
   shipped: 0,
   tracked: 0,

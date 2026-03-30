@@ -20,6 +20,8 @@ import type { ApiResult, PaginatedResponse } from "@/types";
 interface OrderApiResponse {
   created_at: string;
   id: string;
+  payment_slip_url: string | null;
+  payment_submitted_at: string | null;
   shipping_address_id: string | null;
   status: string;
   total_amount: string;
@@ -33,6 +35,7 @@ interface OrderItemApiResponse {
   order_id: string;
   price_at_purchase: string;
   product_id: string;
+  product_slug: string | null;
   product_name_at_purchase: string;
   quantity: number;
 }
@@ -72,6 +75,8 @@ interface AdminOrderSummaryApiResponse {
   cancelled: number;
   delivered: number;
   paid: number;
+  payment_failed: number;
+  payment_review: number;
   pending: number;
   shipped: number;
   tracked: number;
@@ -93,6 +98,7 @@ const mapOrderItem = (orderItem: OrderItemApiResponse): OrderItem => {
     orderId: orderItem.order_id,
     priceAtPurchase: orderItem.price_at_purchase,
     productId: orderItem.product_id,
+    productSlug: orderItem.product_slug,
     productNameAtPurchase: orderItem.product_name_at_purchase,
     quantity: orderItem.quantity,
   };
@@ -102,6 +108,8 @@ const mapOrder = (order: OrderApiResponse): Order => {
   return {
     createdAt: order.created_at,
     id: order.id,
+    paymentSlipUrl: order.payment_slip_url,
+    paymentSubmittedAt: order.payment_submitted_at,
     shippingAddressId: order.shipping_address_id,
     status: normalizeOrderStatus(order.status),
     totalAmount: order.total_amount,
@@ -143,6 +151,8 @@ const mapAdminOrderSummary = (
     cancelled: summary.cancelled,
     delivered: summary.delivered,
     paid: summary.paid,
+    paymentFailed: summary.payment_failed,
+    paymentReview: summary.payment_review,
     pending: summary.pending,
     shipped: summary.shipped,
     tracked: summary.tracked,
@@ -158,6 +168,10 @@ const buildAdminOrderSummaryFallback = (
     cancelled: orders.filter((order) => order.status === "CANCELLED").length,
     delivered: orders.filter((order) => order.status === "DELIVERED").length,
     paid: orders.filter((order) => order.status === "PAID").length,
+    paymentFailed: orders.filter((order) => order.status === "PAYMENT_FAILED")
+      .length,
+    paymentReview: orders.filter((order) => order.status === "PAYMENT_REVIEW")
+      .length,
     pending: orders.filter((order) => order.status === "PENDING").length,
     shipped: orders.filter((order) => order.status === "SHIPPED").length,
     tracked: orders.filter((order) => order.trackingNumber).length,

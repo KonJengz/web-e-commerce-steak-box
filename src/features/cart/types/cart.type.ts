@@ -4,6 +4,7 @@ export interface CartItem {
   id: string;
   isActive: boolean;
   productId: string;
+  productSlug: string;
   productImageUrl: string | null;
   productName: string;
   quantity: number;

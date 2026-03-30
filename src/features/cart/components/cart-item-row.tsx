@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Loader2, Minus, Package, Plus, RefreshCcw, Trash2, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -17,6 +18,7 @@ import { removeCartItemAction } from "@/features/cart/actions/remove-cart-item.a
 import { updateCartItemAction } from "@/features/cart/actions/update-cart-item.action";
 import type { CartItem } from "@/features/cart/types/cart.type";
 import { getCartLineTotal } from "@/features/cart/utils/cart-line";
+import { buildProductPath } from "@/features/product/utils/product-path";
 
 interface CartItemRowProps {
   item: CartItem;
@@ -110,9 +112,12 @@ export function CartItemRow({ item }: CartItemRowProps) {
         <div className="min-w-0 space-y-3">
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+              <Link
+                href={buildProductPath(item.productSlug)}
+                className="text-base font-semibold tracking-tight text-foreground transition-colors hover:text-primary sm:text-lg"
+              >
                 {item.productName}
-              </h2>
+              </Link>
               <Badge
                 variant={item.isActive ? "secondary" : "destructive"}
                 className="rounded-full px-2.5 py-1"

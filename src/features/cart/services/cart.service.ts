@@ -10,6 +10,7 @@ interface CartItemApiResponse {
   id: string;
   is_active: boolean;
   product_id: string;
+  product_slug: string;
   product_image_url: string | null;
   product_name: string;
   quantity: number;
@@ -33,6 +34,7 @@ const mapCartItem = (item: CartItemApiResponse): CartItem => {
     id: item.id,
     isActive: item.is_active,
     productId: item.product_id,
+    productSlug: item.product_slug,
     productImageUrl: item.product_image_url,
     productName: item.product_name,
     quantity: item.quantity,
