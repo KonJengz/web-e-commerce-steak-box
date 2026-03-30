@@ -40,7 +40,6 @@ export function CartClearButton() {
       }
 
       setCart(result.cart ?? null);
-      router.refresh();
     });
   };
 

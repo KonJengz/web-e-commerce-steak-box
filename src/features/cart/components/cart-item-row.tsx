@@ -71,7 +71,6 @@ export function CartItemRow({ item }: CartItemRowProps) {
 
       setPendingQuantity(null);
       setCart(result.cart ?? null);
-      router.refresh();
     });
   };
 
@@ -95,7 +94,6 @@ export function CartItemRow({ item }: CartItemRowProps) {
 
       setIsRemoveDialogOpen(false);
       setCart(result.cart ?? null);
-      router.refresh();
     });
   };
 

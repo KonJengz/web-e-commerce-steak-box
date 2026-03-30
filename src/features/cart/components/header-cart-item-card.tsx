@@ -65,7 +65,7 @@ export function HeaderCartItemCard({ item }: HeaderCartItemCardProps) {
       setPendingQuantity(null);
       setCart(result.cart ?? null);
 
-      if (pathname === "/cart" || pathname === "/checkout") {
+      if (pathname === "/checkout") {
         router.refresh();
       }
     });
@@ -92,7 +92,7 @@ export function HeaderCartItemCard({ item }: HeaderCartItemCardProps) {
       setIsRemoveDialogOpen(false);
       setCart(result.cart ?? null);
 
-      if (pathname === "/cart" || pathname === "/checkout") {
+      if (pathname === "/checkout") {
         router.refresh();
       }
     });
