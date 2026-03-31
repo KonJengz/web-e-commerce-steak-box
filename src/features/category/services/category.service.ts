@@ -9,6 +9,7 @@ import type {
 import type { Category } from "@/features/category/types/category.type";
 import { api } from "@/lib/api/client";
 import { PUBLIC_CATEGORIES_CACHE_TAG } from "@/lib/cache-tags";
+import { resolvePublicIdentifier } from "@/lib/public-identifier";
 import { encodeUrlSegment } from "@/lib/url-segment";
 import type { ApiResult } from "@/types";
 
@@ -17,7 +18,7 @@ interface CategoryApiResponse {
   description: string | null;
   id: string;
   name: string;
-  slug: string;
+  slug?: string | null;
   updated_at: string;
 }
 
@@ -31,7 +32,7 @@ const mapCategory = (category: CategoryApiResponse): Category => {
     description: category.description,
     id: category.id,
     name: category.name,
-    slug: category.slug,
+    slug: resolvePublicIdentifier(category.slug, category.id),
     updatedAt: category.updated_at,
   };
 };

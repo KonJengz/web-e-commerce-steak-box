@@ -20,6 +20,7 @@ import type {
   OrderShippingAddressSnapshot,
 } from "@/features/order/types/order.type";
 import { api } from "@/lib/api/client";
+import { resolvePublicIdentifier } from "@/lib/public-identifier";
 import type { ApiResult, PaginatedResponse } from "@/types";
 
 interface OrderApiResponse {
@@ -112,7 +113,9 @@ const mapOrderItem = (orderItem: OrderItemApiResponse): OrderItem => {
     orderId: orderItem.order_id,
     priceAtPurchase: orderItem.price_at_purchase,
     productId: orderItem.product_id,
-    productSlug: orderItem.product_slug,
+    productSlug: orderItem.product_slug
+      ? resolvePublicIdentifier(orderItem.product_slug, orderItem.product_id)
+      : null,
     productNameAtPurchase: orderItem.product_name_at_purchase,
     quantity: orderItem.quantity,
   };

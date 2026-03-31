@@ -23,15 +23,12 @@ export function Header({ isLoggedIn, user }: HeaderProps) {
           </div>
 
           <div className="flex shrink-0 items-center">
-            <HeaderActions
-              isLoggedIn={isLoggedIn}
-              user={user}
-            />
+            <HeaderActions isLoggedIn={isLoggedIn} user={user} />
           </div>
         </div>
 
         {/* Mobile search bar */}
-        <div className="mt-2 md:hidden">
+        <div className="mt-2 hidden sm:block md:hidden">
           <HeaderSearch />
         </div>
       </MainContainer>

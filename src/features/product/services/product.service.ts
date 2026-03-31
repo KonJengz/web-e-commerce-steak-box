@@ -16,6 +16,7 @@ import type {
 } from "@/features/product/types/product.type";
 import { api } from "@/lib/api/client";
 import { PUBLIC_PRODUCTS_CACHE_TAG } from "@/lib/cache-tags";
+import { resolvePublicIdentifier } from "@/lib/public-identifier";
 import { encodeUrlSegment } from "@/lib/url-segment";
 import type { ApiResult } from "@/types";
 
@@ -30,7 +31,7 @@ interface ProductListItemApiResponse {
   image_url: string | null;
   is_active: boolean;
   name: string;
-  slug: string;
+  slug?: string | null;
   stock: number;
   updated_at: string;
 }
@@ -54,7 +55,7 @@ interface ProductDetailApiResponse {
   image_url: string | null;
   is_active: boolean;
   name: string;
-  slug: string;
+  slug?: string | null;
   stock: number;
   updated_at: string;
 }
@@ -96,7 +97,7 @@ const mapProductSummary = (
     imageUrl: product.image_url,
     isActive: product.is_active,
     name: product.name,
-    slug: product.slug,
+    slug: resolvePublicIdentifier(product.slug, product.id),
     stock: product.stock,
     updatedAt: product.updated_at,
   };
@@ -116,7 +117,7 @@ const mapProductDetail = (
     imageUrl: product.image_url,
     isActive: product.is_active,
     name: product.name,
-    slug: product.slug,
+    slug: resolvePublicIdentifier(product.slug, product.id),
     stock: product.stock,
     updatedAt: product.updated_at,
   };

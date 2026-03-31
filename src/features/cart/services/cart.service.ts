@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Cart, CartItem } from "@/features/cart/types/cart.type";
 import { api } from "@/lib/api/client";
+import { resolvePublicIdentifier } from "@/lib/public-identifier";
 import type { ApiResult } from "@/types";
 
 interface CartItemApiResponse {
@@ -10,7 +11,7 @@ interface CartItemApiResponse {
   id: string;
   is_active: boolean;
   product_id: string;
-  product_slug: string;
+  product_slug?: string | null;
   product_image_url: string | null;
   product_name: string;
   quantity: number;
@@ -34,7 +35,7 @@ const mapCartItem = (item: CartItemApiResponse): CartItem => {
     id: item.id,
     isActive: item.is_active,
     productId: item.product_id,
-    productSlug: item.product_slug,
+    productSlug: resolvePublicIdentifier(item.product_slug, item.product_id),
     productImageUrl: item.product_image_url,
     productName: item.product_name,
     quantity: item.quantity,
