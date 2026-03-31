@@ -28,11 +28,11 @@ export function HeaderActions({
       ) : (
         <Button
           asChild
-          className="rounded-full px-4 duration-200 hover:bg-primary/90 hover:scale-105 hover:shadow-md active:scale-95"
+          className="rounded-full px-3 sm:px-4 duration-200 hover:bg-primary/90 hover:scale-105 hover:shadow-md active:scale-95"
         >
           <Link href="/login">
             <LogIn className="size-4 group-hover:text-primary transition-all" />
-            <span>Login</span>
+            <span className="hidden sm:inline">Login</span>
           </Link>
         </Button>
       )}

@@ -13,7 +13,7 @@ export function Header({ isLoggedIn, user }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 shadow-sm backdrop-blur-xl transition-all duration-300">
       <MainContainer>
-        <div className="flex items-center justify-between gap-8 xl:gap-16">
+        <div className="flex items-center justify-between gap-3 md:gap-8 xl:gap-16">
           <div className="shrink-0">
             <HeaderBrand />
           </div>
@@ -28,6 +28,11 @@ export function Header({ isLoggedIn, user }: HeaderProps) {
               user={user}
             />
           </div>
+        </div>
+
+        {/* Mobile search bar */}
+        <div className="mt-2 md:hidden">
+          <HeaderSearch />
         </div>
       </MainContainer>
     </header>
