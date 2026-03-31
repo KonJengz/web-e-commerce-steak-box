@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  ArrowRight, 
-  Calendar, 
-  ChevronRight, 
-  ClipboardList, 
-  Mail, 
-  User 
+import {
+  Calendar,
+  ChevronRight,
+  ClipboardList,
+  Mail,
+  User,
 } from "lucide-react";
 
 import { 
@@ -19,7 +18,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OrderStatusBadge } from "@/features/order/components/order-status-badge";
 import type { AdminOrder } from "@/features/order/types/order.type";
-import { cn } from "@/lib/utils";
 
 interface AdminOrderListProps {
   orders: AdminOrder[];
